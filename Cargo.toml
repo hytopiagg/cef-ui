@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 
 [dev-dependencies]
+bevy = "0.13"
