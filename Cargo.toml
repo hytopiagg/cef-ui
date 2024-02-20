@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.80"
 
 [dev-dependencies]
 bevy = "0.13"
+
+[build-dependencies]
+anyhow = "1.0"
+ureq = "2.9"
+urlencoding = "2.1"
+tar = "0.4"
+bzip2 = "0.4"
