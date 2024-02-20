@@ -1,12 +1,14 @@
 use anyhow::{anyhow, Context, Result};
+use bindgen::Builder;
 use bzip2::read::BzDecoder;
 use std::{
     fs::{create_dir_all, File},
-    io::copy,
+    io::{copy, Write},
     path::PathBuf
 };
 use tar::Archive;
 use urlencoding::decode;
+use walkdir::WalkDir;
 
 const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.13%2Bg5c4a81b%2Bchromium-121.0.6167.184_linux64_minimal.tar.bz2";
 
@@ -33,10 +35,19 @@ fn main() -> Result<()> {
 
     let download_path = PathBuf::from(artifacts_dir.clone()).join(filename.clone());
     let extracted_path = PathBuf::from(artifacts_dir.clone()).join(filestem);
+    let include_path = extracted_path.join("include");
+    let everything_header_path = extracted_path.join("everything.h");
+    let bindings_path = extracted_path.join("bindings.rs");
 
-    println!("cargo:warning=      filename: {:?}", filename);
-    println!("cargo:warning= download_path: {:?}", download_path);
-    println!("cargo:warning=extracted_path: {:?}", extracted_path);
+    println!("cargo:warning=filename:               {:?}", filename);
+    println!("cargo:warning=download_path:          {:?}", download_path);
+    println!("cargo:warning=extracted_path:         {:?}", extracted_path);
+    println!("cargo:warning=include_path:           {:?}", include_path);
+    println!(
+        "cargo:warning=everything_header_path: {:?}",
+        everything_header_path
+    );
+    println!("cargo:warning=bindings_path:          {:?}", bindings_path);
 
     // Make sure the artifacts directory exists.
     create_dir_all(&artifacts_dir)
@@ -61,6 +72,25 @@ fn main() -> Result<()> {
             .context("Failed to extract file.")?;
     }
 
+    // TODO: Strip debug symbols on macOS and Linux!
+
+    // Build the everything header if it doesn't exist.
+    if !everything_header_path.exists() {
+        println!("cargo:warning=Building everything header...");
+
+        build_everything_header(&include_path, &everything_header_path)
+            .map_err(|e| anyhow!(e))
+            .context("Failed to build everything header.")?;
+    }
+
+    if !bindings_path.exists() {
+        println!("cargo:warning=Generating bindings...");
+
+        generate_bindings(&include_path, &everything_header_path, &bindings_path)
+            .map_err(|e| anyhow!(e))
+            .context("Failed to generate bindings.")?;
+    }
+
     Ok(())
 }
 
@@ -81,6 +111,64 @@ fn extract_file(download_path: &PathBuf, extracted_path: &PathBuf) -> Result<()>
     let mut archive = Archive::new(decompressed);
 
     archive.unpack(extracted_path)?;
+
+    Ok(())
+}
+
+fn build_everything_header(include_path: &PathBuf, everything_header_path: &PathBuf) -> Result<()> {
+    // Build the list of header files.
+    let headers: Vec<PathBuf> = WalkDir::new(include_path)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .map(|e| e.into_path())
+        .filter(|path| {
+            path.extension()
+                .map_or(false, |ext| ext == "h")
+        })
+        .collect();
+
+    let mut file = File::create(&everything_header_path)?;
+
+    // Generate a header that includes all the other headers.
+    for path in headers {
+        let relative_path = path.strip_prefix(include_path)?;
+        let include_str = format!("{}", relative_path.display()).replace("\\", "/");
+
+        writeln!(file, "#include \"{}\"", include_str)?;
+    }
+
+    Ok(())
+}
+
+fn generate_bindings(
+    include_path: &PathBuf,
+    everything_header_path: &PathBuf,
+    bindings_path: &PathBuf
+) -> Result<()> {
+    let header_path = everything_header_path
+        .to_str()
+        .ok_or_else(|| anyhow!("Failed to convert everything header path to string."))?;
+
+    let include_path = include_path.canonicalize()?;
+    let include_path = include_path
+        .to_str()
+        .ok_or_else(|| anyhow!("Failed to convert include path to string."))?;
+
+    // let include_path = binding
+    //     .to_str()
+    //     .ok_or_else(|| anyhow!("Failed to convert include path to string."))?;
+
+    println!("cargo:warning=INCLUDE_PATH: {}", include_path);
+
+    //let clang_args = format!("-I{}", include_path);
+
+    let bindings = Builder::default()
+        .header(header_path)
+        .clang_args(vec!["-I", &include_path])
+        //.clang_arg(clang_args)
+        .generate()?;
+
+    bindings.write_to_file(bindings_path)?;
 
     Ok(())
 }
