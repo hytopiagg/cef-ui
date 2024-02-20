@@ -27,6 +27,8 @@
             xorg.libXcursor
             xorg.libXi
             libxkbcommon
+            clang
+            libclang
           ];
 
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
@@ -38,6 +40,8 @@
               pkgs.xorg.libXcursor
               pkgs.xorg.libXi
               pkgs.libxkbcommon
+              pkgs.clang
+              pkgs.libclang
           ];
         };
       });
