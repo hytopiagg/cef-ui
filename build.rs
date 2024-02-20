@@ -86,7 +86,7 @@ fn main() -> Result<()> {
     if !bindings_path.exists() {
         println!("cargo:warning=Generating bindings...");
 
-        generate_bindings(&include_path, &everything_header_path, &bindings_path)
+        generate_bindings(&extracted_path, &everything_header_path, &bindings_path)
             .map_err(|e| anyhow!(e))
             .context("Failed to generate bindings.")?;
     }
@@ -149,23 +149,24 @@ fn generate_bindings(
         .to_str()
         .ok_or_else(|| anyhow!("Failed to convert everything header path to string."))?;
 
-    let include_path = include_path.canonicalize()?;
-    let include_path = include_path
+    let a = include_path.canonicalize()?;
+    let b = include_path
+        .join("include")
+        .canonicalize()?;
+
+    let a = a
+        .to_str()
+        .ok_or_else(|| anyhow!("Failed to convert include path to string."))?;
+    let b = b
         .to_str()
         .ok_or_else(|| anyhow!("Failed to convert include path to string."))?;
 
-    // let include_path = binding
-    //     .to_str()
-    //     .ok_or_else(|| anyhow!("Failed to convert include path to string."))?;
-
-    println!("cargo:warning=INCLUDE_PATH: {}", include_path);
-
-    //let clang_args = format!("-I{}", include_path);
+    println!("cargo:warning=INCLUDE_PATH: {}", a);
+    println!("cargo:warning=INCLUDE_PATH: {}", b);
 
     let bindings = Builder::default()
         .header(header_path)
-        .clang_args(vec!["-I", &include_path])
-        //.clang_arg(clang_args)
+        .clang_args(vec!["-I", &a, "-I", &b])
         .generate()?;
 
     bindings.write_to_file(bindings_path)?;
