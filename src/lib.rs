@@ -1,3 +1,3 @@
-pub fn test() -> u32 {
-    1337
-}
+pub mod bindings;
+
+//pub use bindings::*;
