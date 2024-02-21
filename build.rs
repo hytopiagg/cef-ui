@@ -10,7 +10,8 @@ use tar::Archive;
 use urlencoding::decode;
 use walkdir::WalkDir;
 
-const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.13%2Bg5c4a81b%2Bchromium-121.0.6167.184_linux64_minimal.tar.bz2";
+//const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.13%2Bg5c4a81b%2Bchromium-121.0.6167.184_linux64_minimal.tar.bz2";
+const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.13%2Bg5c4a81b%2Bchromium-121.0.6167.184_macosarm64_minimal.tar.bz2";
 
 fn main() -> Result<()> {
     let artifacts_dir = std::env::var("CEF_UI_ARTIFACTS_DIR").unwrap_or(String::from("artifacts"));
@@ -35,7 +36,9 @@ fn main() -> Result<()> {
 
     let download_path = PathBuf::from(artifacts_dir.clone()).join(filename.clone());
     let extracted_path = PathBuf::from(artifacts_dir.clone()).join(filestem);
-    let include_path = extracted_path.join("include");
+    let include_path = extracted_path
+        .join("include")
+        .join("capi");
     let everything_header_path = extracted_path.join("everything.h");
     let bindings_path = extracted_path.join("bindings.rs");
 
@@ -75,7 +78,8 @@ fn main() -> Result<()> {
     // TODO: Strip debug symbols on macOS and Linux!
 
     // Build the everything header if it doesn't exist.
-    if !everything_header_path.exists() {
+    //if !everything_header_path.exists() {
+    {
         println!("cargo:warning=Building everything header...");
 
         build_everything_header(&include_path, &everything_header_path)
@@ -83,12 +87,13 @@ fn main() -> Result<()> {
             .context("Failed to build everything header.")?;
     }
 
-    if !bindings_path.exists() {
+    //if !bindings_path.exists() {
+    {
         println!("cargo:warning=Generating bindings...");
 
         generate_bindings(&extracted_path, &everything_header_path, &bindings_path)
-            .map_err(|e| anyhow!(e))
-            .context("Failed to generate bindings.")?;
+            .map_err(|e| anyhow!("Failed to generate bindings: {}", e))?;
+        //.context("Failed to generate bindings.")?;
     }
 
     Ok(())
@@ -124,6 +129,19 @@ fn build_everything_header(include_path: &PathBuf, everything_header_path: &Path
         .filter(|path| {
             path.extension()
                 .map_or(false, |ext| ext == "h")
+                && !path.components().any(|component| {
+                    component
+                        .as_os_str()
+                        .to_str()
+                        .map_or(false, |s| {
+                            s == "test"
+                            // || s == "internal"
+                            // || s == "capi"
+                            // || s == "base"
+                            // || s == "views"
+                            // || s == "wrapper"
+                        })
+                })
         })
         .collect();
 
@@ -134,14 +152,15 @@ fn build_everything_header(include_path: &PathBuf, everything_header_path: &Path
         let relative_path = path.strip_prefix(include_path)?;
         let include_str = format!("{}", relative_path.display()).replace("\\", "/");
 
-        writeln!(file, "#include \"{}\"", include_str)?;
+        // TODO: Fix this!
+        writeln!(file, "#include \"include/capi/{}\"", include_str)?;
     }
 
     Ok(())
 }
 
 fn generate_bindings(
-    include_path: &PathBuf,
+    extracted_path: &PathBuf,
     everything_header_path: &PathBuf,
     bindings_path: &PathBuf
 ) -> Result<()> {
@@ -149,9 +168,10 @@ fn generate_bindings(
         .to_str()
         .ok_or_else(|| anyhow!("Failed to convert everything header path to string."))?;
 
-    let a = include_path.canonicalize()?;
-    let b = include_path
+    let a = extracted_path.canonicalize()?;
+    let b = extracted_path
         .join("include")
+        .join("capi")
         .canonicalize()?;
 
     let a = a
@@ -166,7 +186,20 @@ fn generate_bindings(
 
     let bindings = Builder::default()
         .header(header_path)
-        .clang_args(vec!["-I", &a, "-I", &b])
+        .layout_tests(false)
+        .clang_args(vec![
+            "-I",
+            &a,
+            "-I",
+            &b,
+            // "-isystem",
+            // "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1",
+            "-isystem",
+            "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include",
+            // "--std=c++17",
+            // "-x",
+            // "c++",
+        ])
         .generate()?;
 
     bindings.write_to_file(bindings_path)?;
