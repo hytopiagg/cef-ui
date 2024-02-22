@@ -12,26 +12,27 @@
         pkgs = import nixpkgs { system = system; };
       });
     in
-    {
-      devShells = forEachSupportedSystem ({ pkgs }: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [
-            rustup
-            pkg-config
-            gcc
-            alsa-lib
-            udev
-            vulkan-loader
-            xorg.libX11
-            xorg.libXrandr
-            xorg.libXcursor
-            xorg.libXi
-            libxkbcommon
-            clang
-            libclang
-          ];
+      {
+        devShells = forEachSupportedSystem ({ pkgs }: {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              rustup
+              pkg-config
+              gcc
+              alsa-lib
+              udev
+              vulkan-loader
+              xorg.libX11
+              xorg.libXrandr
+              xorg.libXcursor
+              xorg.libXi
+              libxkbcommon
+              clang
+              libclang
+            ];
 
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+              pkgs.rustup
               pkgs.alsa-lib
               pkgs.udev
               pkgs.vulkan-loader
@@ -42,8 +43,12 @@
               pkgs.libxkbcommon
               pkgs.clang
               pkgs.libclang
-          ];
-        };
-      });
-    };
+            ];
+
+            shellHook = ''
+              export PATH=$HOME/.cargo/bin:$PATH
+          '';
+          };
+        });
+      };
 }
