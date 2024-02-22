@@ -61,3 +61,6 @@ strip Release/chrome-sandbox
 
 # Pop back to the original directory.
 popd || exit
+
+# Copy the final bindings to the correct location.
+cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/bindings-linux/src"
