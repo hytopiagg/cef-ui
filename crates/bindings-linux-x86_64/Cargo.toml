@@ -1,0 +1,6 @@
+[package]
+name = "cef-ui-bindings-linux-x86_64"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

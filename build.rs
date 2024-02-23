@@ -1,4 +1,4 @@
-main() {}
+fn main() {}
 
 // use anyhow::{anyhow, Context, Result};
 // use bindgen::Builder;
