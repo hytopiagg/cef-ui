@@ -4,5 +4,5 @@ members = [
   "crates/*",
 ]
 
-[dev-dependencies]
-bevy = "0.13"
+[workspace.dependencies]
+anyhow = "1.0"

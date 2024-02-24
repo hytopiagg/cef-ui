@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = { workspace = true }
 
+# Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
 cef-ui-bindings-linux-x86_64 = { path = "../bindings-linux-x86_64" }
+
+[dev-dependencies]
+bevy = "0.13.0"

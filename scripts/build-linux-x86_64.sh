@@ -46,15 +46,6 @@ bindgen "$EVERYTHING_HEADER" --no-layout-tests --no-doc-comments --output "$BIND
     -I "$INCLUDE" \
     -I .
 
-# Ignore various warnings.
-TEMP=$(mktemp)
-{
-    echo "#[allow(non_camel_case_types)]"
-    echo "#[allow(non_upper_case_globals)]"
-    echo "#[allow(non_snake_case)]"
-    cat "$BINDINGS"
-} > "$TEMP" && mv "$TEMP" "$BINDINGS"
-
 # Strip all debug symbols.
 strip Release/*.so
 strip Release/chrome-sandbox
@@ -63,4 +54,4 @@ strip Release/chrome-sandbox
 popd || exit
 
 # Copy the final bindings to the correct location.
-cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/bindings-linux/src"
+cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/bindings-linux-x86_64/src"
