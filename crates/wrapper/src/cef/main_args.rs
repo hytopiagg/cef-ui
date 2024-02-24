@@ -13,7 +13,7 @@ pub struct MainArgs {
 }
 
 impl MainArgs {
-    /// Create a new MainArgs from an iterator of strings.
+    /// Try and create a new MainArgs from an iterator of strings.
     pub fn new<T: IntoIterator<Item = String>>(args: T) -> Result<Self> {
         let args = args
             .into_iter()
