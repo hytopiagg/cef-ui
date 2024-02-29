@@ -27,7 +27,7 @@ if [ ! -d "$EXTRACTED" ]; then
 fi
 
 # Move to the extracted directory.
-cd "$EXTRACTED" || exit
+pushd "$EXTRACTED" || exit
 
 # Generate the everything header.
 find "$INCLUDE/capi" -type f -name '*.h' ! -path '*/test/*' -print0 | \
@@ -50,7 +50,16 @@ bindgen "$EVERYTHING_HEADER" --no-layout-tests --no-doc-comments --output "$BIND
 strip Release/*.so
 strip Release/chrome-sandbox
 
-# Pop back to the original directory.
+# Pop back to the artifacts directory.
+popd || exit
+
+# Prepare the binaries for distribution.
+mkdir -p cef
+cp -r "$EXTRACTED"/Release cef/
+cp -r "$EXTRACTED"/Resources cef/
+tar -czvf cef-linux-x86_64.tar.gz cef/
+
+# Move back to the original directory.
 popd || exit
 
 # Copy the final bindings to the correct location.
