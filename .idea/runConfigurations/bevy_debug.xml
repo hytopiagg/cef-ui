@@ -2,7 +2,9 @@
   <configuration default="false" name="bevy-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
     <option name="command" value="run --example bevy" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-    <envs />
+    <envs>
+      <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef/Release" />
+    </envs>
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="true" />

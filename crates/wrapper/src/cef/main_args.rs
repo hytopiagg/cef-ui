@@ -3,8 +3,8 @@ use cef_ui_bindings_linux_x86_64::cef_main_args_t;
 use std::ffi::{c_char, CString};
 
 /// Wraps cef_main_args_t.
-#[derive(Clone)]
-pub struct MainArgs {
+#[derive(Debug)]
+pub struct CefMainArgs {
     // We must keep the CString vector alive
     // for the pointer vector to remain valid.
     #[allow(dead_code)]
@@ -12,7 +12,7 @@ pub struct MainArgs {
     argv: Vec<*const c_char>
 }
 
-impl MainArgs {
+impl CefMainArgs {
     /// Try and create a new MainArgs from an iterator of strings.
     pub fn new<T: IntoIterator<Item = String>>(args: T) -> Result<Self> {
         let args = args
@@ -34,5 +34,17 @@ impl MainArgs {
             argc: self.argv.len() as i32,
             argv: self.argv.as_ptr() as *mut *mut c_char
         }
+    }
+}
+
+impl Clone for CefMainArgs {
+    fn clone(&self) -> Self {
+        let args = self.args.clone();
+        let argv = args
+            .iter()
+            .map(|arg| arg.as_ptr())
+            .collect();
+
+        Self { args, argv }
     }
 }

@@ -26,9 +26,25 @@
               xorg.libXrandr
               xorg.libXcursor
               xorg.libXi
+              xorg.libXdamage
+              xorg.libXext
+              xorg.libXfixes
+              xorg.libXcomposite
+              xorg.libxcb
               libxkbcommon
               clang
               libclang
+              glib
+              pango
+              libdrm
+              dbus
+              cups
+              cairo
+              nss
+              nspr
+              atk
+              expat
+              mesa
             ];
 
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
@@ -40,9 +56,25 @@
               pkgs.xorg.libXrandr
               pkgs.xorg.libXcursor
               pkgs.xorg.libXi
+              pkgs.xorg.libXdamage
+              pkgs.xorg.libXext
+              pkgs.xorg.libXfixes
+              pkgs.xorg.libXcomposite
+              pkgs.xorg.libxcb
               pkgs.libxkbcommon
               pkgs.clang
               pkgs.libclang
+              pkgs.glib
+              pkgs.pango
+              pkgs.libdrm
+              pkgs.dbus              
+              pkgs.cups
+              pkgs.cairo
+              pkgs.nss
+              pkgs.nspr
+              pkgs.atk
+              pkgs.expat
+              pkgs.mesa
             ];
 
             shellHook = ''

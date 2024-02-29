@@ -7,7 +7,7 @@ use std::{ffi::c_int, mem::size_of};
 
 /// Wraps cef_settings_t.
 #[derive(Default)]
-pub struct Settings {
+pub struct CefSettings {
     pub no_sandbox:                          bool,
     pub browser_subprocess_path:             CefString,
     pub framework_dir_path:                  CefString,
@@ -41,7 +41,7 @@ pub struct Settings {
     pub chrome_app_icon_id:                  i32
 }
 
-impl Settings {
+impl CefSettings {
     pub fn as_raw(&self) -> cef_settings_t {
         cef_settings_t {
             size:                                size_of::<cef_settings_t>(),
