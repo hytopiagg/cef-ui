@@ -4,7 +4,7 @@ use widestring::U16CString;
 
 /// Wraps cef_string_t. A cef_string_t is ultimately a
 /// typedef for _cef_string_utf16_t, a UTF-16 string.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct CefString(pub U16CString);
 
 impl CefString {
