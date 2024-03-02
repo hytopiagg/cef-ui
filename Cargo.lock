@@ -3968,6 +3968,7 @@ dependencies = [
  "anyhow",
  "bevy",
  "cef-ui-bindings-linux-x86_64",
+ "paste",
  "widestring",
 ]
 
