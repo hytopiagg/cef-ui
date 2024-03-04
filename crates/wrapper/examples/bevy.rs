@@ -8,7 +8,7 @@ impl AppCallbacks for MyCefApp {}
 
 fn main() -> Result<()> {
     let main_args = MainArgs::new(env::args())?;
-    let settings = Settings::default();
+    let settings = Settings::new();
     let app = App::new(MyCefApp {});
 
     println!("{:?}", main_args);

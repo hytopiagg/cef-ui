@@ -4,12 +4,12 @@ use std::ffi::{c_char, CString};
 
 /// Wraps cef_main_args_t.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct MainArgs {
     // We must keep the CString vector alive
     // for the pointer vector to remain valid.
-    #[allow(dead_code)]
     args: Vec<CString>,
-    argv: Vec<*mut c_char>,
+    argv: Vec<*const c_char>,
     cef:  cef_main_args_t
 }
 
@@ -20,20 +20,21 @@ impl MainArgs {
             .into_iter()
             .map(|arg| CString::new(arg))
             .collect::<Result<Vec<CString>, _>>()?;
-        let mut argv = args
+
+        let argv = args
             .iter()
             .map(|arg| arg.as_ptr())
-            .collect::<Vec<*mut c_char>>();
+            .collect::<Vec<*const c_char>>();
 
         let cef = cef_main_args_t {
             argc: argv.len() as i32,
-            argv: argv.as_mut_ptr()
+            argv: argv.as_ptr() as *mut *mut c_char
         };
 
         Ok(Self { args, argv, cef })
     }
 
-    /// Returns a cef_main_args_t.
+    /// Converts to the raw cef type.
     pub fn as_raw(&self) -> &cef_main_args_t {
         &self.cef
     }

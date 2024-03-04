@@ -1,17 +1,34 @@
-use crate::{
-    cef::types::{Color, LogItems, LogSeverity},
-    CefString
+use crate::{cef::types::LogItems, free_cef_string, CefString, Color, LogSeverity};
+use anyhow::{anyhow, Result};
+use cef_ui_bindings_linux_x86_64::{cef_settings_t, cef_string_t};
+use dunce::canonicalize;
+use std::{
+    ffi::c_int,
+    mem::{size_of, zeroed},
+    path::PathBuf
 };
-use cef_ui_bindings_linux_x86_64::cef_settings_t;
-use std::{ffi::c_int, mem::size_of, path::PathBuf};
 
 /// Wraps cef_settings_t.
-#[derive(Debug, Default)]
-pub struct Settings {
+#[derive(Debug)]
+pub struct Settings(cef_settings_t);
+
+impl Settings {
+    pub fn new() -> Self {
+        let mut cef: cef_settings_t = unsafe { zeroed() };
+
+        cef.size = size_of::<cef_settings_t>();
+
+        Self(cef)
+    }
+
     /// Set to true (1) to disable the sandbox for sub-processes. See
     /// cef_sandbox_win.h for requirements to enable the sandbox on Windows. Also
     /// configurable using the "no-sandbox" command-line switch.
-    pub no_sandbox: bool,
+    pub fn no_sandbox(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.no_sandbox = value as c_int;
+
+        Ok(self)
+    }
 
     /// The path to a separate executable that will be launched for sub-processes.
     /// If this value is empty on Windows or Linux then the main process
@@ -21,31 +38,51 @@ pub struct Settings {
     /// the comments on CefExecuteProcess() for details. If this value is
     /// non-empty then it must be an absolute path. Also configurable using the
     /// "browser-subprocess-path" command-line switch.
-    pub browser_subprocess_path: Option<PathBuf>,
+    pub fn browser_subprocess_path(&mut self, path: PathBuf) -> Result<&mut Self> {
+        Self::set_path(path, &mut self.0.browser_subprocess_path)?;
+
+        Ok(self)
+    }
 
     /// The path to the CEF framework directory on macOS. If this value is empty
     /// then the framework must exist at "Contents/Frameworks/Chromium Embedded
     /// Framework.framework" in the top-level app bundle. If this value is
     /// non-empty then it must be an absolute path. Also configurable using the
     /// "framework-dir-path" command-line switch.
-    pub framework_dir_path: Option<PathBuf>,
+    pub fn framework_dir_path(&mut self, path: PathBuf) -> Result<&mut Self> {
+        Self::set_path(path, &mut self.0.framework_dir_path)?;
+
+        Ok(self)
+    }
 
     /// The path to the main bundle on macOS. If this value is empty then it
     /// defaults to the top-level app bundle. If this value is non-empty then it
     /// must be an absolute path. Also configurable using the "main-bundle-path"
     /// command-line switch.
-    pub main_bundle_path: Option<PathBuf>,
+    pub fn main_bundle_path(&mut self, path: PathBuf) -> Result<&mut Self> {
+        Self::set_path(path, &mut self.0.main_bundle_path)?;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to enable use of the Chrome runtime in CEF. This feature
     /// is considered experimental and is not recommended for most users at this
     /// time. See issue #2969 for details.
-    pub chrome_runtime: bool,
+    pub fn chrome_runtime(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.chrome_runtime = value as c_int;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to have the browser process message loop run in a separate
     /// thread. If false (0) then the CefDoMessageLoopWork() function must be
     /// called from your application message loop. This option is only supported
     /// on Windows and Linux.
-    pub multi_threaded_message_loop: bool,
+    pub fn multi_threaded_message_loop(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.multi_threaded_message_loop = value as c_int;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to control browser process main (UI) thread message pump
     /// scheduling via the CefBrowserProcessHandler::OnScheduleMessagePumpWork()
@@ -56,18 +93,30 @@ pub struct Settings {
     /// not recommended for most users; leave this option disabled and use either
     /// the CefRunMessageLoop() function or multi_threaded_message_loop if
     /// possible.
-    pub external_message_pump: bool,
+    pub fn external_message_pump(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.external_message_pump = value as c_int;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to enable windowless (off-screen) rendering support. Do
     /// not enable this value if the application does not use windowless rendering
     /// as it may reduce rendering performance on some systems.
-    pub windowless_rendering_enabled: bool,
+    pub fn windowless_rendering_enabled(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.windowless_rendering_enabled = value as c_int;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to disable configuration of browser process features using
     /// standard CEF and Chromium command-line arguments. Configuration can still
     /// be specified using CEF data structures or via the
     /// CefApp::OnBeforeCommandLineProcessing() method.
-    pub command_line_args_disabled: bool,
+    pub fn command_line_args_disabled(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.command_line_args_disabled = value as c_int;
+
+        Ok(self)
+    }
 
     /// The directory where data for the global browser cache will be stored on
     /// disk. If this value is non-empty then it must be an absolute path that is
@@ -81,7 +130,11 @@ pub struct Settings {
     /// CefRequestContextSettings.cache_path value. When using the Chrome runtime
     /// any child directory value will be ignored and the "default" profile (also
     /// a child directory) will be used instead.
-    pub cache_path: Option<PathBuf>,
+    pub fn cache_path(&mut self, path: PathBuf) -> Result<&mut Self> {
+        Self::set_path(path, &mut self.0.cache_path)?;
+
+        Ok(self)
+    }
 
     /// The root directory for installation-specific data and the parent directory
     /// for profile-specific data. All CefSettings.cache_path and
@@ -107,7 +160,11 @@ pub struct Settings {
     /// Failure to set the root_cache_path value correctly may result in startup
     /// crashes or other unexpected behaviors (for example, the sandbox blocking
     /// read/write access to certain files).
-    pub root_cache_path: Option<PathBuf>,
+    pub fn root_cache_path(&mut self, path: PathBuf) -> Result<&mut Self> {
+        Self::set_path(path, &mut self.0.root_cache_path)?;
+
+        Ok(self)
+    }
 
     /// To persist session cookies (cookies without an expiry date or validity
     /// interval) by default when using the global cookie manager set this value
@@ -117,7 +174,11 @@ pub struct Settings {
     /// "persist-session-cookies" command-line switch. Can be overridden for
     /// individual CefRequestContext instances via the
     /// CefRequestContextSettings.persist_session_cookies value.
-    pub persist_session_cookies: bool,
+    pub fn persist_session_cookies(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.persist_session_cookies = value as c_int;
+
+        Ok(self)
+    }
 
     /// To persist user preferences as a JSON file in the cache path directory set
     /// this value to true (1). A |cache_path| value must also be specified
@@ -125,25 +186,41 @@ pub struct Settings {
     /// "persist-user-preferences" command-line switch. Can be overridden for
     /// individual CefRequestContext instances via the
     /// CefRequestContextSettings.persist_user_preferences value.
-    pub persist_user_preferences: bool,
+    pub fn persist_user_preferences(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.persist_user_preferences = value as c_int;
+
+        Ok(self)
+    }
 
     /// Value that will be returned as the User-Agent HTTP header. If empty the
     /// default User-Agent string will be used. Also configurable using the
     /// "user-agent" command-line switch.
-    pub user_agent: Option<String>,
+    pub fn user_agent(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.user_agent)?;
+
+        Ok(self)
+    }
 
     /// Value that will be inserted as the product portion of the default
     /// User-Agent string. If empty the Chromium product version will be used. If
     /// |userAgent| is specified this value will be ignored. Also configurable
     /// using the "user-agent-product" command-line switch.
-    pub user_agent_product: Option<String>,
+    pub fn user_agent_product(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.user_agent_product)?;
+
+        Ok(self)
+    }
 
     /// The locale string that will be passed to WebKit. If empty the default
     /// locale of "en-US" will be used. This value is ignored on Linux where
     /// locale is determined using environment variable parsing with the
     /// precedence order: LANGUAGE, LC_ALL, LC_MESSAGES and LANG. Also
     /// configurable using the "lang" command-line switch.
-    pub locale: Option<String>,
+    pub fn locale(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.locale)?;
+
+        Ok(self)
+    }
 
     /// The directory and file name to use for the debug log. If empty a default
     /// log file name and location will be used. On Windows and Linux a
@@ -151,32 +228,52 @@ pub struct Settings {
     /// MacOS a "~/Library/Logs/[app name]_debug.log" file will be written where
     /// [app name] is the name of the main app executable. Also configurable using
     /// the "log-file" command-line switch.
-    pub log_file: Option<PathBuf>,
+    pub fn log_file(&mut self, value: PathBuf) -> Result<&mut Self> {
+        Self::set_path(value, &mut self.0.log_file)?;
+
+        Ok(self)
+    }
 
     /// The log severity. Only messages of this severity level or higher will be
     /// logged. When set to DISABLE no messages will be written to the log file,
     /// but FATAL messages will still be output to stderr. Also configurable using
     /// the "log-severity" command-line switch with a value of "verbose", "info",
     /// "warning", "error", "fatal" or "disable".
-    pub log_severity: LogSeverity,
+    pub fn log_severity(&mut self, value: LogSeverity) -> Result<&mut Self> {
+        self.0.log_severity = value.into();
+
+        Ok(self)
+    }
 
     /// The log items prepended to each log line. If not set the default log items
     /// will be used. Also configurable using the "log-items" command-line switch
     /// with a value of "none" for no log items, or a comma-delimited list of
     /// values "pid", "tid", "timestamp" or "tickcount" for custom log items.
-    pub log_items: LogItems,
+    pub fn log_items(&mut self, value: LogItems) -> Result<&mut Self> {
+        self.0.log_items = value.into();
+
+        Ok(self)
+    }
 
     /// Custom flags that will be used when initializing the V8 JavaScript engine.
     /// The consequences of using custom flags may not be well tested. Also
     /// configurable using the "js-flags" command-line switch.
-    pub javascript_flags: Option<String>,
+    pub fn javascript_flags(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.javascript_flags)?;
+
+        Ok(self)
+    }
 
     /// The fully qualified path for the resources directory. If this value is
     /// empty the *.pak files must be located in the module directory on
     /// Windows/Linux or the app bundle Resources directory on MacOS. If this
     /// value is non-empty then it must be an absolute path. Also configurable
     /// using the "resources-dir-path" command-line switch.
-    pub resources_dir_path: Option<PathBuf>,
+    pub fn resources_dir_path(&mut self, value: PathBuf) -> Result<&mut Self> {
+        Self::set_path(value, &mut self.0.resources_dir_path)?;
+
+        Ok(self)
+    }
 
     /// The fully qualified path for the locales directory. If this value is empty
     /// the locales directory must be located in the module directory. If this
@@ -184,14 +281,22 @@ pub struct Settings {
     /// on MacOS where pack files are always loaded from the app bundle Resources
     /// directory. Also configurable using the "locales-dir-path" command-line
     /// switch.
-    pub locales_dir_path: Option<PathBuf>,
+    pub fn locales_dir_path(&mut self, value: PathBuf) -> Result<&mut Self> {
+        Self::set_path(value, &mut self.0.locales_dir_path)?;
+
+        Ok(self)
+    }
 
     /// Set to true (1) to disable loading of pack files for resources and
     /// locales. A resource bundle handler must be provided for the browser and
     /// render processes via CefApp::GetResourceBundleHandler() if loading of pack
     /// files is disabled. Also configurable using the "disable-pack-loading"
     /// command- line switch.
-    pub pack_loading_disabled: bool,
+    pub fn pack_loading_disabled(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.pack_loading_disabled = value as c_int;
+
+        Ok(self)
+    }
 
     /// Set to a value between 1024 and 65535 to enable remote debugging on the
     /// specified port. Also configurable using the "remote-debugging-port"
@@ -199,7 +304,11 @@ pub struct Settings {
     /// chrome://inspect page in Google Chrome. Port numbers 9222 and 9229 are
     /// discoverable by default. Other port numbers may need to be configured via
     /// "Discover network targets" on the Devices tab.
-    pub remote_debugging_port: u16,
+    pub fn remote_debugging_port(&mut self, value: u16) -> Result<&mut Self> {
+        self.0.remote_debugging_port = value as c_int;
+
+        Ok(self)
+    }
 
     /// The number of stack trace frames to capture for uncaught exceptions.
     /// Specify a positive value to enable the
@@ -207,7 +316,11 @@ pub struct Settings {
     /// (default value) and OnUncaughtException() will not be called. Also
     /// configurable using the "uncaught-exception-stack-size" command-line
     /// switch.
-    pub uncaught_exception_stack_size: u32,
+    pub fn uncaught_exception_stack_size(&mut self, value: u32) -> Result<&mut Self> {
+        self.0.uncaught_exception_stack_size = value as c_int;
+
+        Ok(self)
+    }
 
     /// Background color used for the browser before a document is loaded and when
     /// no document color is specified. The alpha component must be either fully
@@ -217,14 +330,22 @@ pub struct Settings {
     /// default value of opaque white be used. If the alpha component is fully
     /// transparent for a windowless (off-screen) browser then transparent
     /// painting will be enabled.
-    pub background_color: Color,
+    pub fn background_color(&mut self, value: Color) -> Result<&mut Self> {
+        self.0.background_color = value.to_raw();
+
+        Ok(self)
+    }
 
     /// Comma delimited ordered list of language codes without any whitespace that
     /// will be used in the "Accept-Language" HTTP request header and
     /// "navigator.language" JS attribute. Can be overridden for individual
     /// CefRequestContext instances via the
     /// CefRequestContextSettings.accept_language_list value.
-    pub accept_language_list: Option<String>,
+    pub fn accept_language_list(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.accept_language_list)?;
+
+        Ok(self)
+    }
 
     /// Comma delimited list of schemes supported by the associated
     /// CefCookieManager. If |cookieable_schemes_exclude_defaults| is false (0)
@@ -235,8 +356,17 @@ pub struct Settings {
     /// CefRequestContext. Individual CefRequestContext instances can be
     /// configured via the CefRequestContextSettings.cookieable_schemes_list and
     /// CefRequestContextSettings.cookieable_schemes_exclude_defaults values.
-    pub cookieable_schemes_list:             Option<String>,
-    pub cookieable_schemes_exclude_defaults: bool,
+    pub fn cookieable_schemes_list(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.cookieable_schemes_list)?;
+
+        Ok(self)
+    }
+
+    pub fn cookieable_schemes_exclude_defaults(&mut self, value: bool) -> Result<&mut Self> {
+        self.0.cookieable_schemes_exclude_defaults = value as c_int;
+
+        Ok(self)
+    }
 
     /// Specify an ID to enable Chrome policy management via Platform and OS-user
     /// policies. On Windows, this is a registry key like
@@ -249,51 +379,64 @@ pub struct Settings {
     /// "enable-chrome-browser-cloud-management" command-line flag, will also use
     /// the specified ID. See https://support.google.com/chrome/a/answer/9116814
     /// for details.
-    pub chrome_policy_id: Option<String>,
+    pub fn chrome_policy_id(&mut self, value: String) -> Result<&mut Self> {
+        Self::set_string(value, &mut self.0.chrome_policy_id)?;
+
+        Ok(self)
+    }
 
     /// Specify an ID for an ICON resource that can be loaded from the main
     /// executable and used when creating default Chrome windows such as DevTools
     /// and Task Manager. If unspecified the default Chromium ICON (IDR_MAINFRAME
     /// [101]) will be loaded from libcef.dll. Only supported with the Chrome
     /// runtime on Windows.
-    pub chrome_app_icon_id: i32
+    pub fn chrome_app_icon_id(&mut self, value: i32) -> Result<&mut Self> {
+        self.0.chrome_app_icon_id = value;
+
+        Ok(self)
+    }
+
+    /// Converts to the raw cef type.
+    pub fn as_raw(&self) -> &cef_settings_t {
+        &self.0
+    }
+
+    /// Tries to assign a PathBuf to a cef_string_t.
+    fn set_path(path: PathBuf, cef: &mut cef_string_t) -> Result<()> {
+        let path = canonicalize(path)?;
+        let path = path
+            .to_str()
+            .ok_or_else(|| anyhow!("Failed to convert path to utf8."))?;
+
+        *cef = CefString::new(path)?.into_raw();
+
+        Ok(())
+    }
+
+    /// Tries to assign a String to a cef_string_t.
+    fn set_string(s: String, cef: &mut cef_string_t) -> Result<()> {
+        *cef = CefString::new(s.as_str())?.into_raw();
+
+        Ok(())
+    }
 }
 
-impl Settings {
-    pub fn as_raw(&self) -> cef_settings_t {
-        cef_settings_t {
-            size:                                size_of::<cef_settings_t>(),
-            no_sandbox:                          self.no_sandbox as c_int,
-            browser_subprocess_path:             self.browser_subprocess_path.as_raw(),
-            framework_dir_path:                  self.framework_dir_path.as_raw(),
-            main_bundle_path:                    self.main_bundle_path.as_raw(),
-            chrome_runtime:                      self.chrome_runtime as c_int,
-            multi_threaded_message_loop:         self.multi_threaded_message_loop as c_int,
-            external_message_pump:               self.external_message_pump as c_int,
-            windowless_rendering_enabled:        self.windowless_rendering_enabled as c_int,
-            command_line_args_disabled:          self.command_line_args_disabled as c_int,
-            cache_path:                          self.cache_path.as_raw(),
-            root_cache_path:                     self.root_cache_path.as_raw(),
-            persist_session_cookies:             self.persist_session_cookies as c_int,
-            persist_user_preferences:            self.persist_user_preferences as c_int,
-            user_agent:                          self.user_agent.as_raw(),
-            user_agent_product:                  self.user_agent_product.as_raw(),
-            locale:                              self.locale.as_raw(),
-            log_file:                            self.log_file.as_raw(),
-            log_severity:                        self.log_severity,
-            log_items:                           self.log_items,
-            javascript_flags:                    self.javascript_flags.as_raw(),
-            resources_dir_path:                  self.resources_dir_path.as_raw(),
-            locales_dir_path:                    self.locales_dir_path.as_raw(),
-            pack_loading_disabled:               self.pack_loading_disabled as c_int,
-            remote_debugging_port:               self.remote_debugging_port as c_int,
-            uncaught_exception_stack_size:       self.uncaught_exception_stack_size as c_int,
-            background_color:                    self.background_color,
-            accept_language_list:                self.accept_language_list.as_raw(),
-            cookieable_schemes_list:             self.cookieable_schemes_list.as_raw(),
-            cookieable_schemes_exclude_defaults: self.cookieable_schemes_exclude_defaults as c_int,
-            chrome_policy_id:                    self.chrome_policy_id.as_raw(),
-            chrome_app_icon_id:                  self.chrome_app_icon_id as c_int
-        }
+impl Drop for Settings {
+    fn drop(&mut self) {
+        free_cef_string(&mut self.0.browser_subprocess_path);
+        free_cef_string(&mut self.0.framework_dir_path);
+        free_cef_string(&mut self.0.main_bundle_path);
+        free_cef_string(&mut self.0.cache_path);
+        free_cef_string(&mut self.0.root_cache_path);
+        free_cef_string(&mut self.0.user_agent);
+        free_cef_string(&mut self.0.user_agent_product);
+        free_cef_string(&mut self.0.locale);
+        free_cef_string(&mut self.0.log_file);
+        free_cef_string(&mut self.0.javascript_flags);
+        free_cef_string(&mut self.0.resources_dir_path);
+        free_cef_string(&mut self.0.locales_dir_path);
+        free_cef_string(&mut self.0.accept_language_list);
+        free_cef_string(&mut self.0.cookieable_schemes_list);
+        free_cef_string(&mut self.0.chrome_policy_id);
     }
 }
