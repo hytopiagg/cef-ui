@@ -41,7 +41,11 @@ find "$INCLUDE/capi" -type f -name '*.h' ! -path '*/test/*' -print0 | \
 } >> "$EVERYTHING_HEADER"
 
 # Generate the Rust bindings.
-bindgen "$EVERYTHING_HEADER" --no-layout-tests --no-doc-comments --output "$BINDINGS" -- \
+bindgen "$EVERYTHING_HEADER" \
+    --no-layout-tests \
+    --no-doc-comments \
+    --default-enum-style=rust \
+    --output "$BINDINGS" -- \
     -I "$INCLUDE/capi" \
     -I "$INCLUDE" \
     -I .
