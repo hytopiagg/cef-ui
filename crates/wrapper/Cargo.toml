@@ -9,8 +9,8 @@ anyhow = { workspace = true }
 
 [dependencies]
 anyhow = { workspace = true }
-widestring = "1.0"
 paste = "1.0"
+dunce = "1.0"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
