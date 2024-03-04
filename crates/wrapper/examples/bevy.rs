@@ -1,6 +1,6 @@
 use anyhow::Result;
 use std::{env, process::exit};
-use wrapper::{App, AppCallbacks, Context, MainArgs, Settings};
+use wrapper::{App, AppCallbacks, Context, LogSeverity, MainArgs, Settings};
 
 pub struct MyCefApp;
 
@@ -8,7 +8,7 @@ impl AppCallbacks for MyCefApp {}
 
 fn main() -> Result<()> {
     let main_args = MainArgs::new(env::args())?;
-    let settings = Settings::new();
+    let settings = Settings::new().log_severity(LogSeverity::Verbose);
     let app = App::new(MyCefApp {});
 
     println!("{:?}", main_args);
