@@ -54,37 +54,19 @@ impl Context {
     /// |windows_sandbox_info| parameter is only used on Windows and may be NULL
     /// (see cef_sandbox_win.h for details).
     pub fn initialize(&self) -> Result<()> {
-        let worked = unsafe {
-            let app = self
-                .app
-                .clone()
-                .map(|app| app.into_raw())
-                .unwrap_or(null_mut());
-
+        match unsafe {
             cef_initialize(
                 self.main_args.as_raw(),
                 self.settings.as_raw(),
-                app,
+                self.app
+                    .clone()
+                    .map(|app| app.into_raw())
+                    .unwrap_or(null_mut()),
                 null_mut()
             ) != 0
-        };
-
-        match worked {
+        } {
             true => Ok(()),
-            false => Err(anyhow!("Failed to initialize CEF"))
+            false => Err(anyhow!("Failed to initialize CEF."))
         }
-
-        // extern "C" {
-        //     pub fn cef_initialize(
-        //         args: *const cef_main_args_t,
-        //         settings: *const _cef_settings_t,
-        //         application: *mut cef_app_t,
-        //         windows_sandbox_info: *mut ::std::os::raw::c_void
-        //     ) -> ::std::os::raw::c_int;
-        // }
-
-        // unsafe {
-        //     cef_sys::cef_initialize(&self.main_args.as_raw(), &self.settings.as_raw(), self.app.as_ref().map(|app| app.as_raw()).unwrap_or(null_mut()), null_mut());
-        // }
     }
 }
