@@ -3,7 +3,7 @@
     <option name="command" value="run --release --example bevy" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs>
-      <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef/Release" />
+      <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef" />
     </envs>
     <option name="emulateTerminal" value="true" />
     <option name="channel" value="DEFAULT" />
