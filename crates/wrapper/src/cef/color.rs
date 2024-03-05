@@ -20,7 +20,7 @@ impl Color {
         )
     }
 
-    pub(crate) fn to_raw(self) -> cef_color_t {
+    pub fn to_raw(self) -> cef_color_t {
         self.0
     }
 

@@ -6,6 +6,7 @@ mod refcounted;
 mod settings;
 mod string;
 mod types;
+mod values;
 
 pub use app::*;
 pub use color::*;
@@ -15,3 +16,4 @@ pub use refcounted::*;
 pub use settings::*;
 pub use string::*;
 pub use types::*;
+pub use values::*;

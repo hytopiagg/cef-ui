@@ -35,13 +35,13 @@ impl Default for LogSeverity {
 impl From<cef_log_severity_t> for LogSeverity {
     fn from(value: cef_log_severity_t) -> Self {
         match value {
-            cef_log_severity_t::LOGSEVERITY_DEFAULT => LogSeverity::Default,
-            cef_log_severity_t::LOGSEVERITY_VERBOSE => LogSeverity::Verbose,
-            cef_log_severity_t::LOGSEVERITY_INFO => LogSeverity::Info,
-            cef_log_severity_t::LOGSEVERITY_WARNING => LogSeverity::Warning,
-            cef_log_severity_t::LOGSEVERITY_ERROR => LogSeverity::Error,
-            cef_log_severity_t::LOGSEVERITY_FATAL => LogSeverity::Fatal,
-            cef_log_severity_t::LOGSEVERITY_DISABLE => LogSeverity::Disable
+            cef_log_severity_t::LOGSEVERITY_DEFAULT => Self::Default,
+            cef_log_severity_t::LOGSEVERITY_VERBOSE => Self::Verbose,
+            cef_log_severity_t::LOGSEVERITY_INFO => Self::Info,
+            cef_log_severity_t::LOGSEVERITY_WARNING => Self::Warning,
+            cef_log_severity_t::LOGSEVERITY_ERROR => Self::Error,
+            cef_log_severity_t::LOGSEVERITY_FATAL => Self::Fatal,
+            cef_log_severity_t::LOGSEVERITY_DISABLE => Self::Disable
         }
     }
 }
@@ -49,13 +49,13 @@ impl From<cef_log_severity_t> for LogSeverity {
 impl From<LogSeverity> for cef_log_severity_t {
     fn from(value: LogSeverity) -> Self {
         match value {
-            LogSeverity::Default => cef_log_severity_t::LOGSEVERITY_DEFAULT,
-            LogSeverity::Verbose => cef_log_severity_t::LOGSEVERITY_VERBOSE,
-            LogSeverity::Info => cef_log_severity_t::LOGSEVERITY_INFO,
-            LogSeverity::Warning => cef_log_severity_t::LOGSEVERITY_WARNING,
-            LogSeverity::Error => cef_log_severity_t::LOGSEVERITY_ERROR,
-            LogSeverity::Fatal => cef_log_severity_t::LOGSEVERITY_FATAL,
-            LogSeverity::Disable => cef_log_severity_t::LOGSEVERITY_DISABLE
+            LogSeverity::Default => Self::LOGSEVERITY_DEFAULT,
+            LogSeverity::Verbose => Self::LOGSEVERITY_VERBOSE,
+            LogSeverity::Info => Self::LOGSEVERITY_INFO,
+            LogSeverity::Warning => Self::LOGSEVERITY_WARNING,
+            LogSeverity::Error => Self::LOGSEVERITY_ERROR,
+            LogSeverity::Fatal => Self::LOGSEVERITY_FATAL,
+            LogSeverity::Disable => Self::LOGSEVERITY_DISABLE
         }
     }
 }
@@ -91,12 +91,12 @@ impl Default for LogItems {
 impl From<cef_log_items_t> for LogItems {
     fn from(value: cef_log_items_t) -> Self {
         match value {
-            cef_log_items_t::LOG_ITEMS_DEFAULT => LogItems::Default,
-            cef_log_items_t::LOG_ITEMS_NONE => LogItems::None,
-            cef_log_items_t::LOG_ITEMS_FLAG_PROCESS_ID => LogItems::FlagProcessId,
-            cef_log_items_t::LOG_ITEMS_FLAG_THREAD_ID => LogItems::FlagThreadId,
-            cef_log_items_t::LOG_ITEMS_FLAG_TIME_STAMP => LogItems::FlagTimeStamp,
-            cef_log_items_t::LOG_ITEMS_FLAG_TICK_COUNT => LogItems::FlagTickCount
+            cef_log_items_t::LOG_ITEMS_DEFAULT => Self::Default,
+            cef_log_items_t::LOG_ITEMS_NONE => Self::None,
+            cef_log_items_t::LOG_ITEMS_FLAG_PROCESS_ID => Self::FlagProcessId,
+            cef_log_items_t::LOG_ITEMS_FLAG_THREAD_ID => Self::FlagThreadId,
+            cef_log_items_t::LOG_ITEMS_FLAG_TIME_STAMP => Self::FlagTimeStamp,
+            cef_log_items_t::LOG_ITEMS_FLAG_TICK_COUNT => Self::FlagTickCount
         }
     }
 }
@@ -104,12 +104,12 @@ impl From<cef_log_items_t> for LogItems {
 impl From<LogItems> for cef_log_items_t {
     fn from(value: LogItems) -> Self {
         match value {
-            LogItems::Default => cef_log_items_t::LOG_ITEMS_DEFAULT,
-            LogItems::None => cef_log_items_t::LOG_ITEMS_NONE,
-            LogItems::FlagProcessId => cef_log_items_t::LOG_ITEMS_FLAG_PROCESS_ID,
-            LogItems::FlagThreadId => cef_log_items_t::LOG_ITEMS_FLAG_THREAD_ID,
-            LogItems::FlagTimeStamp => cef_log_items_t::LOG_ITEMS_FLAG_TIME_STAMP,
-            LogItems::FlagTickCount => cef_log_items_t::LOG_ITEMS_FLAG_TICK_COUNT
+            LogItems::Default => Self::LOG_ITEMS_DEFAULT,
+            LogItems::None => Self::LOG_ITEMS_NONE,
+            LogItems::FlagProcessId => Self::LOG_ITEMS_FLAG_PROCESS_ID,
+            LogItems::FlagThreadId => Self::LOG_ITEMS_FLAG_THREAD_ID,
+            LogItems::FlagTimeStamp => Self::LOG_ITEMS_FLAG_TIME_STAMP,
+            LogItems::FlagTickCount => Self::LOG_ITEMS_FLAG_TICK_COUNT
         }
     }
 }

@@ -4,6 +4,6 @@ newline_style = "Unix"
 trailing_comma = "Never"
 merge_derives = false
 struct_field_align_threshold = 32
-chain_width = 48
+chain_width = 36
 imports_granularity = "Crate"
 match_block_trailing_comma = true

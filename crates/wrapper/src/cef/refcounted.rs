@@ -39,12 +39,12 @@ unsafe impl<T: RefCounted> Sync for RefCountedPtr<T> {}
 
 impl<T: RefCounted> RefCountedPtr<T> {
     /// Wraps a RefCounted object with a Rust object.
-    pub(crate) fn wrap<W: Wrappable>(cef: W::Cef, value: W) -> RefCountedPtr<T> {
+    pub fn wrap<W: Wrappable>(cef: W::Cef, value: W) -> RefCountedPtr<T> {
         unsafe { RefCountedPtr::from_ptr_unchecked(Wrapped::new(cef, value) as *mut T) }
     }
 
     /// Creates a new RefCountedPtr from a raw pointer.
-    pub(crate) unsafe fn from_ptr_unchecked(ptr: *mut T) -> RefCountedPtr<T> {
+    pub unsafe fn from_ptr_unchecked(ptr: *mut T) -> RefCountedPtr<T> {
         debug_assert!(ptr != null_mut());
 
         let ptr = NonNull::new_unchecked(ptr);
@@ -53,14 +53,14 @@ impl<T: RefCounted> RefCountedPtr<T> {
     }
 
     /// Creates a new RefCountedPtr from a raw pointer.
-    pub(crate) unsafe fn from_ptr(ptr: *mut T) -> Option<RefCountedPtr<T>> {
+    pub unsafe fn from_ptr(ptr: *mut T) -> Option<RefCountedPtr<T>> {
         let ptr = NonNull::new(ptr)?;
 
         Some(RefCountedPtr { value: ptr })
     }
 
     /// Creates a new RefCountedPtr from a raw pointer and adds a reference.
-    pub(crate) unsafe fn from_ptr_add_ref(ptr: *mut T) -> Option<RefCountedPtr<T>> {
+    pub unsafe fn from_ptr_add_ref(ptr: *mut T) -> Option<RefCountedPtr<T>> {
         let mut ptr = RefCountedPtr {
             value: NonNull::new(ptr)?
         };
@@ -70,8 +70,13 @@ impl<T: RefCounted> RefCountedPtr<T> {
         Some(ptr)
     }
 
+    /// Gets the raw pointer.
+    pub fn as_ptr(&self) -> *mut T {
+        self.value.as_ptr()
+    }
+
     /// Transfers ownership of the pointer.
-    pub(crate) fn into_raw(self) -> *mut T {
+    pub fn into_raw(self) -> *mut T {
         let ptr = self.value.as_ptr();
 
         forget(self);
@@ -143,19 +148,23 @@ macro_rules! ref_counted_ptr {
         unsafe impl Sync for $rust {}
 
         impl $rust {
-            pub(crate) unsafe fn from_ptr_unchecked(ptr: *mut $cef) -> Self {
+            pub unsafe fn from_ptr_unchecked(ptr: *mut $cef) -> Self {
                 Self(crate::RefCountedPtr::from_ptr_unchecked(ptr))
             }
 
-            pub(crate) unsafe fn from_ptr(ptr: *mut $cef) -> Option<Self> {
+            pub unsafe fn from_ptr(ptr: *mut $cef) -> Option<Self> {
                 crate::RefCountedPtr::from_ptr(ptr).map(Self)
             }
 
-            pub(crate) unsafe fn from_ptr_add_ref(ptr: *mut $cef) -> Option<Self> {
+            pub unsafe fn from_ptr_add_ref(ptr: *mut $cef) -> Option<Self> {
                 crate::RefCountedPtr::from_ptr_add_ref(ptr).map(Self)
             }
 
-            pub(crate) unsafe fn into_raw(self) -> *mut $cef {
+            pub unsafe fn as_ptr(&self) -> *mut $cef {
+                self.0.as_ptr()
+            }
+
+            pub unsafe fn into_raw(self) -> *mut $cef {
                 self.0.into_raw()
             }
         }
@@ -210,7 +219,8 @@ impl<W: Wrappable> Wrapped<W> {
 
     /// Increments the reference count.
     fn add_ref(&mut self) {
-        self.count.fetch_add(1, Ordering::Relaxed);
+        self.count
+            .fetch_add(1, Ordering::Relaxed);
     }
 
     /// Returns true if the reference count is 1.
@@ -226,7 +236,9 @@ impl<W: Wrappable> Wrapped<W> {
     /// Decrements the reference count. If the reference
     /// count reaches 0, then the object is deallocated.
     fn release(&mut self) -> bool {
-        let count = self.count.fetch_sub(1, Ordering::Release);
+        let count = self
+            .count
+            .fetch_sub(1, Ordering::Release);
 
         fence(Ordering::Acquire);
 
