@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use std::{env, path::PathBuf, process::exit};
-use wrapper::{App, AppCallbacks, Context, LogSeverity, MainArgs, Settings};
+use wrapper::{App, AppCallbacks, CefString, Context, LogSeverity, MainArgs, Settings};
 
 pub struct MyCefApp;
 

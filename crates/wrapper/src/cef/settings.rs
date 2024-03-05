@@ -349,7 +349,8 @@ impl Settings {
     }
 
     pub fn cookieable_schemes_exclude_defaults(mut self, value: bool) -> Self {
-        self.0.cookieable_schemes_exclude_defaults = value as c_int;
+        self.0
+            .cookieable_schemes_exclude_defaults = value as c_int;
         self
     }
 

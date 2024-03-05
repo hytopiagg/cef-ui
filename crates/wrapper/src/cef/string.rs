@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use cef_ui_bindings_linux_x86_64::{cef_string_t, cef_string_utf8_to_utf16};
+use cef_ui_bindings_linux_x86_64::{cef_string_t, cef_string_utf16_set, cef_string_utf8_to_utf16};
 use std::{
     ffi::c_char,
     fmt::Debug,
@@ -25,12 +25,31 @@ impl CefString {
         Ok(Self(ret))
     }
 
+    /// Try and create a CefString from a cef_string_t pointer.
+    pub fn from_ptr(ptr: *mut cef_string_t) -> Result<Self> {
+        if ptr.is_null() {
+            return Err(anyhow!("Cannot copy from null cef_string_t pointer."));
+        }
+
+        let mut cef = Self::null();
+
+        match unsafe { cef_string_utf16_set((*ptr).str_, (*ptr).length, &mut cef, 1) } {
+            0 => Err(anyhow!("Failed to copy cef_string_t.")),
+            _ => Ok(Self(cef))
+        }
+    }
+
     /// Try and set the CefString from a str.
     pub fn set(&mut self, s: &str) -> Result<()> {
         self.free();
         self.0 = Self::utf8_to_utf16(s)?;
 
         Ok(())
+    }
+
+    /// Returns the string as a pointer.
+    pub fn as_ptr(&self) -> *const cef_string_t {
+        &self.0
     }
 
     /// Transfers ownership of the pointer.
@@ -66,9 +85,19 @@ impl Drop for CefString {
 
 impl Debug for CefString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = String::from_utf16_lossy(unsafe { from_raw_parts(self.0.str_, self.0.length) });
+        <String as Debug>::fmt(&self.into(), f)
+    }
+}
 
-        <String as Debug>::fmt(&s, f)
+impl From<CefString> for String {
+    fn from(value: CefString) -> Self {
+        String::from(&value)
+    }
+}
+
+impl<'a> From<&'a CefString> for String {
+    fn from(value: &'a CefString) -> Self {
+        String::from_utf16_lossy(unsafe { from_raw_parts(value.0.str_, value.0.length) })
     }
 }
 
