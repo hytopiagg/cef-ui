@@ -1,14 +1,28 @@
-use anyhow::Result;
-use std::{env, process::exit};
+use anyhow::{anyhow, Result};
+use std::{env, path::PathBuf, process::exit};
 use wrapper::{App, AppCallbacks, Context, LogSeverity, MainArgs, Settings};
 
 pub struct MyCefApp;
 
 impl AppCallbacks for MyCefApp {}
 
-fn main() -> Result<()> {
+fn main() {
+    if let Err(e) = try_main() {
+        eprintln!("Error: {}", e);
+        exit(1);
+    }
+}
+
+fn try_main() -> Result<()> {
+    // TODO: Set this properly based on the platform.
+    let root_cache_dir = PathBuf::from("/tmp");
+
+    println!("Root cache path: {:?}", root_cache_dir);
+
     let main_args = MainArgs::new(env::args())?;
-    let settings = Settings::new().log_severity(LogSeverity::Verbose);
+    let settings = Settings::new()
+        .log_severity(LogSeverity::Warning)
+        .root_cache_path(root_cache_dir)?;
     let app = App::new(MyCefApp {});
 
     println!("{:?}", main_args);
@@ -20,6 +34,12 @@ fn main() -> Result<()> {
     if let Some(code) = context.is_cef_subprocess() {
         exit(code);
     }
+
+    // Initialize CEF.
+    context.initialize()?;
+
+    // Shutdown CEF.
+    context.shutdown();
 
     // App::new()
     //     .add_plugins(DefaultPlugins)

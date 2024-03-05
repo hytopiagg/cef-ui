@@ -57,10 +57,13 @@ strip Release/chrome-sandbox
 # Pop back to the artifacts directory.
 popd || exit
 
+# Remove any previous binaries.
+rm -rf cef cef-linux-x86_64.tar.gz
+
 # Prepare the binaries for distribution.
 mkdir -p cef
-cp -r "$EXTRACTED"/Release cef/
-cp -r "$EXTRACTED"/Resources cef/
+cp -r "$EXTRACTED"/Release/* cef/
+cp -r "$EXTRACTED"/Resources/* cef/
 tar -czvf cef-linux-x86_64.tar.gz cef/
 
 # Move back to the original directory.

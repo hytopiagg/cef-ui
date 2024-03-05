@@ -1,6 +1,6 @@
 use crate::{App, MainArgs, Settings};
 use anyhow::{anyhow, Result};
-use cef_ui_bindings_linux_x86_64::{cef_execute_process, cef_initialize};
+use cef_ui_bindings_linux_x86_64::{cef_execute_process, cef_initialize, cef_shutdown};
 use std::ptr::null_mut;
 
 pub struct Context {
@@ -68,5 +68,12 @@ impl Context {
             true => Ok(()),
             false => Err(anyhow!("Failed to initialize CEF."))
         }
+    }
+
+    /// This function should be called on the main application thread to shut down
+    /// the CEF browser process before the application exits. Do not call any other
+    /// CEF functions after calling this function.
+    pub fn shutdown(&self) {
+        unsafe { cef_shutdown() };
     }
 }
