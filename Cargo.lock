@@ -3975,7 +3975,12 @@ dependencies = [
  "bevy",
  "cef-ui-bindings-linux-x86_64",
  "dunce",
+ "log",
+ "parking_lot",
  "paste",
+ "tracing",
+ "tracing-log 0.2.0",
+ "tracing-subscriber",
 ]
 
 [[package]]

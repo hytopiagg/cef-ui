@@ -8,7 +8,9 @@ use std::{
     path::PathBuf
 };
 
-/// Wraps cef_settings_t.
+/// Initialization settings. Specify NULL or 0 to get the recommended default
+/// values. Many of these and other settings can also configured using command-
+/// line switches.
 #[derive(Debug)]
 pub struct Settings(cef_settings_t);
 
@@ -187,20 +189,20 @@ impl Settings {
     /// Value that will be returned as the User-Agent HTTP header. If empty the
     /// default User-Agent string will be used. Also configurable using the
     /// "user-agent" command-line switch.
-    pub fn user_agent(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.user_agent)?;
+    pub fn user_agent(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.user_agent);
 
-        Ok(self)
+        self
     }
 
     /// Value that will be inserted as the product portion of the default
     /// User-Agent string. If empty the Chromium product version will be used. If
     /// |userAgent| is specified this value will be ignored. Also configurable
     /// using the "user-agent-product" command-line switch.
-    pub fn user_agent_product(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.user_agent_product)?;
+    pub fn user_agent_product(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.user_agent_product);
 
-        Ok(self)
+        self
     }
 
     /// The locale string that will be passed to WebKit. If empty the default
@@ -208,10 +210,10 @@ impl Settings {
     /// locale is determined using environment variable parsing with the
     /// precedence order: LANGUAGE, LC_ALL, LC_MESSAGES and LANG. Also
     /// configurable using the "lang" command-line switch.
-    pub fn locale(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.locale)?;
+    pub fn locale(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.locale);
 
-        Ok(self)
+        self
     }
 
     /// The directory and file name to use for the debug log. If empty a default
@@ -248,10 +250,10 @@ impl Settings {
     /// Custom flags that will be used when initializing the V8 JavaScript engine.
     /// The consequences of using custom flags may not be well tested. Also
     /// configurable using the "js-flags" command-line switch.
-    pub fn javascript_flags(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.javascript_flags)?;
+    pub fn javascript_flags(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.javascript_flags);
 
-        Ok(self)
+        self
     }
 
     /// The fully qualified path for the resources directory. If this value is
@@ -327,10 +329,10 @@ impl Settings {
     /// "navigator.language" JS attribute. Can be overridden for individual
     /// CefRequestContext instances via the
     /// CefRequestContextSettings.accept_language_list value.
-    pub fn accept_language_list(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.accept_language_list)?;
+    pub fn accept_language_list(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.accept_language_list);
 
-        Ok(self)
+        self
     }
 
     /// Comma delimited list of schemes supported by the associated
@@ -342,10 +344,10 @@ impl Settings {
     /// CefRequestContext. Individual CefRequestContext instances can be
     /// configured via the CefRequestContextSettings.cookieable_schemes_list and
     /// CefRequestContextSettings.cookieable_schemes_exclude_defaults values.
-    pub fn cookieable_schemes_list(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.cookieable_schemes_list)?;
+    pub fn cookieable_schemes_list(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.cookieable_schemes_list);
 
-        Ok(self)
+        self
     }
 
     pub fn cookieable_schemes_exclude_defaults(mut self, value: bool) -> Self {
@@ -365,10 +367,10 @@ impl Settings {
     /// "enable-chrome-browser-cloud-management" command-line flag, will also use
     /// the specified ID. See https://support.google.com/chrome/a/answer/9116814
     /// for details.
-    pub fn chrome_policy_id(mut self, value: String) -> Result<Self> {
-        Self::set_string(value, &mut self.0.chrome_policy_id)?;
+    pub fn chrome_policy_id(mut self, value: String) -> Self {
+        Self::set_string(value, &mut self.0.chrome_policy_id);
 
-        Ok(self)
+        self
     }
 
     /// Specify an ID for an ICON resource that can be loaded from the main
@@ -393,16 +395,14 @@ impl Settings {
             .to_str()
             .ok_or_else(|| anyhow!("Failed to convert path to utf8."))?;
 
-        *cef = CefString::new(path)?.into_raw();
+        *cef = CefString::new(path).into_raw();
 
         Ok(())
     }
 
     /// Tries to assign a String to a cef_string_t.
-    fn set_string(s: String, cef: &mut cef_string_t) -> Result<()> {
-        *cef = CefString::new(s.as_str())?.into_raw();
-
-        Ok(())
+    fn set_string(s: String, cef: &mut cef_string_t) {
+        *cef = CefString::new(s.as_str()).into_raw();
     }
 }
 

@@ -2,7 +2,7 @@ use anyhow::Result;
 use cef_ui_bindings_linux_x86_64::cef_main_args_t;
 use std::ffi::{c_char, CString};
 
-/// Wraps cef_main_args_t.
+/// Structure representing CefExecuteProcess arguments.
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct MainArgs {
