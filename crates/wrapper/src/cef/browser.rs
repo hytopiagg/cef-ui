@@ -1,4 +1,4 @@
-use crate::ref_counted_ptr;
+use crate::{ref_counted_ptr, CefStringList, Frame};
 use cef_ui_bindings_linux_x86_64::{cef_browser_host_t, cef_browser_t};
 
 // Structure used to represent a browser. When used in the browser process the
@@ -128,37 +128,36 @@ impl Browser {
             .unwrap_or(false)
     }
 
-    // TODO: Fix this!
+    /// Returns the main (top-level) frame for the browser. In the browser process
+    /// this will return a valid object until after
+    /// cef_life_span_handler_t::OnBeforeClose is called. In the renderer process
+    /// this will return NULL if the main frame is hosted in a different renderer
+    /// process (e.g. for cross-origin sub-frames). The main frame object will
+    /// change during cross-origin navigation or re-navigation after renderer
+    /// process termination (due to crashes, etc).
+    pub fn get_main_frame(&self) -> Option<Frame> {
+        self.0
+            .get_main_frame
+            .and_then(|get_main_frame| unsafe { Frame::from_ptr(get_main_frame(self.as_ptr())) })
+    }
 
-    // /// Returns the main (top-level) frame for the browser. In the browser process
-    // /// this will return a valid object until after
-    // /// cef_life_span_handler_t::OnBeforeClose is called. In the renderer process
-    // /// this will return NULL if the main frame is hosted in a different renderer
-    // /// process (e.g. for cross-origin sub-frames). The main frame object will
-    // /// change during cross-origin navigation or re-navigation after renderer
-    // /// process termination (due to crashes, etc).
-    // ///
-    // struct _cef_frame_t*(CEF_CALLBACK* get_main_frame)(
-    // struct _cef_browser_t* self);
+    /// Returns the focused frame for the browser.
+    pub fn get_focused_frame(&self) -> Option<Frame> {
+        self.0
+            .get_focused_frame
+            .and_then(|get_focused_frame| unsafe {
+                Frame::from_ptr(get_focused_frame(self.as_ptr()))
+            })
+    }
 
-    // ///
-    // /// Returns the focused frame for the browser.
-    // ///
-    // struct _cef_frame_t*(CEF_CALLBACK* get_focused_frame)(
-    // struct _cef_browser_t* self);
-    //
-    // ///
-    // /// Returns the frame with the specified identifier, or NULL if not found.
-    // ///
-    // struct _cef_frame_t*(CEF_CALLBACK* get_frame_byident)(
-    // struct _cef_browser_t* self,
-    // int64_t identifier);
-    //
-    // ///
-    // /// Returns the frame with the specified name, or NULL if not found.
-    // ///
-    // struct _cef_frame_t*(CEF_CALLBACK* get_frame)(struct _cef_browser_t* self,
-    // const cef_string_t* name);
+    /// Returns the frame with the specified identifier, or NULL if not found.
+    pub fn get_frame_by_identifier(&self, identifier: i64) -> Option<Frame> {
+        self.0
+            .get_frame_byident
+            .and_then(|get_frame_by_identifier| unsafe {
+                Frame::from_ptr(get_frame_by_identifier(self.as_ptr(), identifier))
+            })
+    }
 
     /// Returns the number of frames that currently exist.
     pub fn get_frame_count(&self) -> usize {
@@ -168,18 +167,38 @@ impl Browser {
             .unwrap_or(0)
     }
 
-    // TODO: Fix this!
+    /// Returns the identifiers of all existing frames.
+    pub fn get_frame_identifiers(&self) -> Vec<i64> {
+        self.0
+            .get_frame_identifiers
+            .map(|get_frame_identifiers| {
+                let mut count = self.get_frame_count();
+                let mut identifiers = vec![0; count];
 
-    // /// Returns the identifiers of all existing frames.
-    // void(CEF_CALLBACK* get_frame_identifiers)(struct _cef_browser_t* self,
-    // size_t* identifiersCount,
-    // int64_t* identifiers);
-    //
-    // ///
-    // /// Returns the names of all existing frames.
-    // ///
-    // void(CEF_CALLBACK* get_frame_names)(struct _cef_browser_t* self,
-    // cef_string_list_t names);
+                unsafe {
+                    get_frame_identifiers(self.as_ptr(), &mut count, identifiers.as_mut_ptr());
+                }
+
+                identifiers
+            })
+            .unwrap_or_default()
+    }
+
+    /// Returns the names of all existing frames.
+    pub fn get_frame_names(&self) -> Vec<String> {
+        self.0
+            .get_frame_names
+            .map(|get_frame_names| {
+                let mut list = CefStringList::new();
+
+                unsafe {
+                    get_frame_names(self.as_ptr(), list.as_mut_ptr());
+                }
+
+                list.into()
+            })
+            .unwrap_or_default()
+    }
 }
 
 // Structure used to represent the browser process aspects of a browser. The
