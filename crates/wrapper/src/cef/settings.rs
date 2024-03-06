@@ -39,7 +39,7 @@ impl Settings {
     /// the comments on CefExecuteProcess() for details. If this value is
     /// non-empty then it must be an absolute path. Also configurable using the
     /// "browser-subprocess-path" command-line switch.
-    pub fn browser_subprocess_path(mut self, path: PathBuf) -> Result<Self> {
+    pub fn browser_subprocess_path(mut self, path: &PathBuf) -> Result<Self> {
         Self::set_path(path, &mut self.0.browser_subprocess_path)?;
 
         Ok(self)
@@ -50,7 +50,7 @@ impl Settings {
     /// Framework.framework" in the top-level app bundle. If this value is
     /// non-empty then it must be an absolute path. Also configurable using the
     /// "framework-dir-path" command-line switch.
-    pub fn framework_dir_path(mut self, path: PathBuf) -> Result<Self> {
+    pub fn framework_dir_path(mut self, path: &PathBuf) -> Result<Self> {
         Self::set_path(path, &mut self.0.framework_dir_path)?;
 
         Ok(self)
@@ -60,7 +60,7 @@ impl Settings {
     /// defaults to the top-level app bundle. If this value is non-empty then it
     /// must be an absolute path. Also configurable using the "main-bundle-path"
     /// command-line switch.
-    pub fn main_bundle_path(mut self, path: PathBuf) -> Result<Self> {
+    pub fn main_bundle_path(mut self, path: &PathBuf) -> Result<Self> {
         Self::set_path(path, &mut self.0.main_bundle_path)?;
 
         Ok(self)
@@ -126,7 +126,7 @@ impl Settings {
     /// CefRequestContextSettings.cache_path value. When using the Chrome runtime
     /// any child directory value will be ignored and the "default" profile (also
     /// a child directory) will be used instead.
-    pub fn cache_path(mut self, path: PathBuf) -> Result<Self> {
+    pub fn cache_path(mut self, path: &PathBuf) -> Result<Self> {
         Self::set_path(path, &mut self.0.cache_path)?;
 
         Ok(self)
@@ -156,7 +156,7 @@ impl Settings {
     /// Failure to set the root_cache_path value correctly may result in startup
     /// crashes or other unexpected behaviors (for example, the sandbox blocking
     /// read/write access to certain files).
-    pub fn root_cache_path(mut self, path: PathBuf) -> Result<Self> {
+    pub fn root_cache_path(mut self, path: &PathBuf) -> Result<Self> {
         Self::set_path(path, &mut self.0.root_cache_path)?;
 
         Ok(self)
@@ -189,7 +189,7 @@ impl Settings {
     /// Value that will be returned as the User-Agent HTTP header. If empty the
     /// default User-Agent string will be used. Also configurable using the
     /// "user-agent" command-line switch.
-    pub fn user_agent(mut self, value: String) -> Self {
+    pub fn user_agent(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.user_agent);
 
         self
@@ -199,7 +199,7 @@ impl Settings {
     /// User-Agent string. If empty the Chromium product version will be used. If
     /// |userAgent| is specified this value will be ignored. Also configurable
     /// using the "user-agent-product" command-line switch.
-    pub fn user_agent_product(mut self, value: String) -> Self {
+    pub fn user_agent_product(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.user_agent_product);
 
         self
@@ -210,7 +210,7 @@ impl Settings {
     /// locale is determined using environment variable parsing with the
     /// precedence order: LANGUAGE, LC_ALL, LC_MESSAGES and LANG. Also
     /// configurable using the "lang" command-line switch.
-    pub fn locale(mut self, value: String) -> Self {
+    pub fn locale(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.locale);
 
         self
@@ -222,7 +222,7 @@ impl Settings {
     /// MacOS a "~/Library/Logs/[app name]_debug.log" file will be written where
     /// [app name] is the name of the main app executable. Also configurable using
     /// the "log-file" command-line switch.
-    pub fn log_file(mut self, value: PathBuf) -> Result<Self> {
+    pub fn log_file(mut self, value: &PathBuf) -> Result<Self> {
         Self::set_path(value, &mut self.0.log_file)?;
 
         Ok(self)
@@ -250,7 +250,7 @@ impl Settings {
     /// Custom flags that will be used when initializing the V8 JavaScript engine.
     /// The consequences of using custom flags may not be well tested. Also
     /// configurable using the "js-flags" command-line switch.
-    pub fn javascript_flags(mut self, value: String) -> Self {
+    pub fn javascript_flags(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.javascript_flags);
 
         self
@@ -261,7 +261,7 @@ impl Settings {
     /// Windows/Linux or the app bundle Resources directory on MacOS. If this
     /// value is non-empty then it must be an absolute path. Also configurable
     /// using the "resources-dir-path" command-line switch.
-    pub fn resources_dir_path(mut self, value: PathBuf) -> Result<Self> {
+    pub fn resources_dir_path(mut self, value: &PathBuf) -> Result<Self> {
         Self::set_path(value, &mut self.0.resources_dir_path)?;
 
         Ok(self)
@@ -273,7 +273,7 @@ impl Settings {
     /// on MacOS where pack files are always loaded from the app bundle Resources
     /// directory. Also configurable using the "locales-dir-path" command-line
     /// switch.
-    pub fn locales_dir_path(mut self, value: PathBuf) -> Result<Self> {
+    pub fn locales_dir_path(mut self, value: &PathBuf) -> Result<Self> {
         Self::set_path(value, &mut self.0.locales_dir_path)?;
 
         Ok(self)
@@ -329,7 +329,7 @@ impl Settings {
     /// "navigator.language" JS attribute. Can be overridden for individual
     /// CefRequestContext instances via the
     /// CefRequestContextSettings.accept_language_list value.
-    pub fn accept_language_list(mut self, value: String) -> Self {
+    pub fn accept_language_list(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.accept_language_list);
 
         self
@@ -344,7 +344,7 @@ impl Settings {
     /// CefRequestContext. Individual CefRequestContext instances can be
     /// configured via the CefRequestContextSettings.cookieable_schemes_list and
     /// CefRequestContextSettings.cookieable_schemes_exclude_defaults values.
-    pub fn cookieable_schemes_list(mut self, value: String) -> Self {
+    pub fn cookieable_schemes_list(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.cookieable_schemes_list);
 
         self
@@ -367,7 +367,7 @@ impl Settings {
     /// "enable-chrome-browser-cloud-management" command-line flag, will also use
     /// the specified ID. See https://support.google.com/chrome/a/answer/9116814
     /// for details.
-    pub fn chrome_policy_id(mut self, value: String) -> Self {
+    pub fn chrome_policy_id(mut self, value: &String) -> Self {
         Self::set_string(value, &mut self.0.chrome_policy_id);
 
         self
@@ -389,7 +389,7 @@ impl Settings {
     }
 
     /// Tries to assign a PathBuf to a cef_string_t.
-    fn set_path(path: PathBuf, cef: &mut cef_string_t) -> Result<()> {
+    fn set_path(path: &PathBuf, cef: &mut cef_string_t) -> Result<()> {
         let path = canonicalize(path)?;
         let path = path
             .to_str()
@@ -401,7 +401,7 @@ impl Settings {
     }
 
     /// Tries to assign a String to a cef_string_t.
-    fn set_string(s: String, cef: &mut cef_string_t) {
+    fn set_string(s: &String, cef: &mut cef_string_t) {
         *cef = CefString::new(s.as_str()).into_raw();
     }
 }
