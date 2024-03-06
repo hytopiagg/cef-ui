@@ -11,6 +11,9 @@ anyhow = { workspace = true }
 anyhow = { workspace = true }
 paste = "1.0"
 dunce = "1.0"
+log = "0.4"
+tracing-log = "0.2.0"
+parking_lot = "0.12"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
@@ -18,3 +21,6 @@ cef-ui-bindings-linux-x86_64 = { path = "../bindings-linux-x86_64" }
 
 [dev-dependencies]
 bevy = "0.13.0"
+tracing = "0.1"
+tracing-log = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

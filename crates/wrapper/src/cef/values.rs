@@ -1,10 +1,13 @@
-use crate::{ref_counted, ref_counted_ptr, CefString};
+use crate::{ref_counted_ptr, CefString};
 use cef_ui_bindings_linux_x86_64::{
     cef_binary_value_create, cef_binary_value_t, cef_dictionary_value_create,
-    cef_dictionary_value_t, cef_list_value_create, cef_list_value_t,
-    cef_string_userfree_utf16_free, cef_value_create, cef_value_t, cef_value_type_t
+    cef_dictionary_value_t, cef_list_value_create, cef_list_value_t, cef_value_create, cef_value_t,
+    cef_value_type_t
 };
-use std::ptr::null_mut;
+use std::{
+    ffi::{c_int, c_void},
+    ptr::null_mut
+};
 
 /// Value types.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -52,7 +55,9 @@ impl From<ValueType> for cef_value_type_t {
     }
 }
 
-// Generate the cef_value_t wrapper.
+// Structure that wraps other data value types. Complex types (binary,
+// dictionary and list) will be referenced but not owned by this object. Can be
+// used on any process and thread.
 ref_counted_ptr!(Value, cef_value_t);
 
 impl Value {
@@ -149,19 +154,13 @@ impl Value {
     }
 
     /// Returns the underlying value as type string.
-    /// The resulting string must be freed by calling cef_string_userfree_free().
     pub fn get_string(&self) -> Option<String> {
         self.0
             .get_string
             .and_then(|get_string| {
                 let s = unsafe { get_string(self.as_ptr()) };
-                let cef = CefString::from_ptr(s).map_or(None, |s| Some(s.into()));
 
-                unsafe {
-                    cef_string_userfree_utf16_free(s);
-                }
-
-                cef
+                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
             })
     }
 
@@ -226,7 +225,7 @@ impl Value {
     pub fn set_int(&self, value: i32) -> bool {
         self.0
             .set_int
-            .map(|set_int| unsafe { set_int(self.as_ptr(), value as std::os::raw::c_int) != 0 })
+            .map(|set_int| unsafe { set_int(self.as_ptr(), value as c_int) != 0 })
             .unwrap_or(false)
     }
 
@@ -245,11 +244,9 @@ impl Value {
         self.0
             .set_string
             .map(|set_string| unsafe {
-                let Ok(s) = CefString::new(value) else {
-                    return false;
-                };
+                let value = CefString::new(value);
 
-                set_string(self.as_ptr(), s.as_ptr()) != 0
+                set_string(self.as_ptr(), value.as_ptr()) != 0
             })
             .unwrap_or(false)
     }
@@ -291,14 +288,15 @@ impl PartialEq<Self> for Value {
     }
 }
 
-// Generate the cef_binary_value_t wrapper.
+// Structure representing a binary value. Can be used on any process and
+// thread.
 ref_counted_ptr!(BinaryValue, cef_binary_value_t);
 
 impl BinaryValue {
     pub fn new(data: &[u8]) -> Self {
         unsafe {
             Self::from_ptr_unchecked(cef_binary_value_create(
-                data.as_ptr() as *const ::std::os::raw::c_void,
+                data.as_ptr() as *const c_void,
                 data.len()
             ))
         }
@@ -374,7 +372,7 @@ impl BinaryValue {
             .map(|get_data| unsafe {
                 get_data(
                     self.as_ptr(),
-                    buffer.as_mut_ptr() as *mut ::std::os::raw::c_void,
+                    buffer.as_mut_ptr() as *mut c_void,
                     buffer.len(),
                     offset
                 )
@@ -389,7 +387,8 @@ impl PartialEq for BinaryValue {
     }
 }
 
-// Generate the cef_dictionary_value_t wrapper.
+// Structure representing a dictionary value. Can be used on any process and
+// thread.
 ref_counted_ptr!(DictionaryValue, cef_dictionary_value_t);
 
 impl DictionaryValue {
@@ -476,14 +475,14 @@ impl DictionaryValue {
         self.0
             .has_key
             .map(|has_key| unsafe {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 has_key(self.as_ptr(), key.as_ptr()) != 0
             })
             .unwrap_or(false)
     }
+
+    // TODO: Implement this!
 
     /// Reads all keys for this dictionary into the specified vector.
     // int(CEF_CALLBACK* get_keys)(struct _cef_dictionary_value_t* self,
@@ -495,9 +494,7 @@ impl DictionaryValue {
         self.0
             .remove
             .map(|remove| unsafe {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 remove(self.as_ptr(), key.as_ptr()) != 0
             })
@@ -509,9 +506,7 @@ impl DictionaryValue {
         self.0
             .get_type
             .map(|get_type| unsafe {
-                let Ok(key) = CefString::new(key) else {
-                    return ValueType::Invalid;
-                };
+                let key = CefString::new(key);
 
                 get_type(self.as_ptr(), key.as_ptr()).into()
             })
@@ -527,9 +522,7 @@ impl DictionaryValue {
         self.0
             .get_value
             .and_then(|get_value| {
-                let Ok(key) = CefString::new(key) else {
-                    return None;
-                };
+                let key = CefString::new(key);
 
                 unsafe { Value::from_ptr(get_value(self.as_ptr(), key.as_ptr())) }
             })
@@ -540,9 +533,7 @@ impl DictionaryValue {
         self.0
             .get_bool
             .map(|get_bool| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { get_bool(self.as_ptr(), key.as_ptr()) != 0 }
             })
@@ -554,9 +545,7 @@ impl DictionaryValue {
         self.0
             .get_int
             .map(|get_int| {
-                let Ok(key) = CefString::new(key) else {
-                    return 0;
-                };
+                let key = CefString::new(key);
 
                 unsafe { get_int(self.as_ptr(), key.as_ptr()) as i32 }
             })
@@ -568,9 +557,7 @@ impl DictionaryValue {
         self.0
             .get_double
             .map(|get_double| {
-                let Ok(key) = CefString::new(key) else {
-                    return 0.0;
-                };
+                let key = CefString::new(key);
 
                 unsafe { get_double(self.as_ptr(), key.as_ptr()) }
             })
@@ -578,23 +565,14 @@ impl DictionaryValue {
     }
 
     /// Returns the value at the specified key as type string.
-    // The resulting string must be freed by calling cef_string_userfree_free().
     pub fn get_string(&self, key: &str) -> Option<String> {
         self.0
             .get_string
             .and_then(|get_string| {
-                let Ok(key) = CefString::new(key) else {
-                    return None;
-                };
-
+                let key = CefString::new(key);
                 let s = unsafe { get_string(self.as_ptr(), key.as_ptr()) };
-                let cef = CefString::from_ptr(s).map_or(None, |s| Some(s.into()));
 
-                unsafe {
-                    cef_string_userfree_utf16_free(s);
-                }
-
-                cef
+                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
             })
     }
 
@@ -604,9 +582,7 @@ impl DictionaryValue {
         self.0
             .get_binary
             .and_then(|get_binary| {
-                let Ok(key) = CefString::new(key) else {
-                    return None;
-                };
+                let key = CefString::new(key);
 
                 unsafe { BinaryValue::from_ptr(get_binary(self.as_ptr(), key.as_ptr())) }
             })
@@ -619,9 +595,7 @@ impl DictionaryValue {
         self.0
             .get_dictionary
             .and_then(|get_dictionary| {
-                let Ok(key) = CefString::new(key) else {
-                    return None;
-                };
+                let key = CefString::new(key);
 
                 unsafe { DictionaryValue::from_ptr(get_dictionary(self.as_ptr(), key.as_ptr())) }
             })
@@ -634,9 +608,7 @@ impl DictionaryValue {
         self.0
             .get_list
             .and_then(|get_list| {
-                let Ok(key) = CefString::new(key) else {
-                    return None;
-                };
+                let key = CefString::new(key);
 
                 unsafe { ListValue::from_ptr(get_list(self.as_ptr(), key.as_ptr())) }
             })
@@ -652,9 +624,7 @@ impl DictionaryValue {
         self.0
             .set_value
             .map(|set_value| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_value(self.as_ptr(), key.as_ptr(), value.into_raw()) != 0 }
             })
@@ -667,9 +637,7 @@ impl DictionaryValue {
         self.0
             .set_null
             .map(|set_null| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_null(self.as_ptr(), key.as_ptr()) != 0 }
             })
@@ -682,9 +650,7 @@ impl DictionaryValue {
         self.0
             .set_bool
             .map(|set_bool| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_bool(self.as_ptr(), key.as_ptr(), if value { 1 } else { 0 }) != 0 }
             })
@@ -697,11 +663,9 @@ impl DictionaryValue {
         self.0
             .set_int
             .map(|set_int| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
-                unsafe { set_int(self.as_ptr(), key.as_ptr(), value as std::os::raw::c_int) != 0 }
+                unsafe { set_int(self.as_ptr(), key.as_ptr(), value as c_int) != 0 }
             })
             .unwrap_or(false)
     }
@@ -712,9 +676,7 @@ impl DictionaryValue {
         self.0
             .set_double
             .map(|set_double| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_double(self.as_ptr(), key.as_ptr(), value) != 0 }
             })
@@ -727,13 +689,8 @@ impl DictionaryValue {
         self.0
             .set_string
             .map(|set_string| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
-
-                let Ok(value) = CefString::new(value) else {
-                    return false;
-                };
+                let key = CefString::new(key);
+                let value = CefString::new(value);
 
                 unsafe { set_string(self.as_ptr(), key.as_ptr(), value.as_ptr()) != 0 }
             })
@@ -749,9 +706,7 @@ impl DictionaryValue {
         self.0
             .set_binary
             .map(|set_binary| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_binary(self.as_ptr(), key.as_ptr(), value.into_raw()) != 0 }
             })
@@ -767,9 +722,7 @@ impl DictionaryValue {
         self.0
             .set_dictionary
             .map(|set_dictionary| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_dictionary(self.as_ptr(), key.as_ptr(), value.into_raw()) != 0 }
             })
@@ -785,9 +738,7 @@ impl DictionaryValue {
         self.0
             .set_list
             .map(|set_list| {
-                let Ok(key) = CefString::new(key) else {
-                    return false;
-                };
+                let key = CefString::new(key);
 
                 unsafe { set_list(self.as_ptr(), key.as_ptr(), value.into_raw()) != 0 }
             })
@@ -801,7 +752,7 @@ impl PartialEq for DictionaryValue {
     }
 }
 
-// Generate the cef_list_value_t wrapper.
+// Structure representing a list value. Can be used on any process and thread.
 ref_counted_ptr!(ListValue, cef_list_value_t);
 
 impl ListValue {
@@ -940,19 +891,13 @@ impl ListValue {
     }
 
     /// Returns the value at the specified index as type string.
-    /// The resulting string must be freed by calling cef_string_userfree_free().
     pub fn get_string(&self, index: usize) -> Option<String> {
         self.0
             .get_string
             .and_then(|get_string| {
                 let s = unsafe { get_string(self.as_ptr(), index) };
-                let cef = CefString::from_ptr(s).map_or(None, |s| Some(s.into()));
 
-                unsafe {
-                    cef_string_userfree_utf16_free(s);
-                }
-
-                cef
+                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
             })
     }
 
@@ -1024,9 +969,7 @@ impl ListValue {
     pub fn set_int(&self, index: usize, value: i32) -> bool {
         self.0
             .set_int
-            .map(|set_int| unsafe {
-                set_int(self.as_ptr(), index, value as std::os::raw::c_int) != 0
-            })
+            .map(|set_int| unsafe { set_int(self.as_ptr(), index, value as c_int) != 0 })
             .unwrap_or(false)
     }
 
@@ -1045,9 +988,7 @@ impl ListValue {
         self.0
             .set_string
             .map(|set_string| {
-                let Ok(value) = CefString::new(value) else {
-                    return false;
-                };
+                let value = CefString::new(value);
 
                 unsafe { set_string(self.as_ptr(), index, value.as_ptr()) != 0 }
             })

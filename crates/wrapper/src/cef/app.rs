@@ -1,11 +1,12 @@
-use crate::{bindings::cef_app_t, ref_counted, ref_counted_ptr, RefCountedPtr, Wrappable};
+use crate::{bindings::cef_app_t, ref_counted_ptr, RefCountedPtr, Wrappable};
 use cef_ui_bindings_linux_x86_64::{
     cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
     cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
 };
 use std::mem::zeroed;
 
-/// Implement this to provide application handlers.
+/// Implement this structure to provide handler implementations. Methods will be
+/// called by the process and/or thread indicated.
 pub trait AppCallbacks: Send + Sync + 'static {
     // Provides an opportunity to view and/or modify command-line arguments
     // before processing by CEF and Chromium. The |process_type| value will be
@@ -52,7 +53,6 @@ pub trait AppCallbacks: Send + Sync + 'static {
     // }
 }
 
-// Generate the cef_app_t wrapper.
 ref_counted_ptr!(App, cef_app_t);
 
 impl App {

@@ -1,6 +1,14 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
+use bevy::{
+    log::{
+        tracing_subscriber::{filter::LevelFilter, FmtSubscriber},
+        Level
+    },
+    utils::tracing::subscriber::set_global_default
+};
 use std::{env, path::PathBuf, process::exit};
-use wrapper::{App, AppCallbacks, CefString, Context, LogSeverity, MainArgs, Settings};
+use tracing_log::LogTracer;
+use wrapper::{App, AppCallbacks, Context, LogSeverity, MainArgs, Settings};
 
 pub struct MyCefApp;
 
@@ -14,6 +22,16 @@ fn main() {
 }
 
 fn try_main() -> Result<()> {
+    // This routes log macros through tracing.
+    LogTracer::init()?;
+
+    // Setup the tracing subscriber globally.
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(LevelFilter::from_level(Level::DEBUG))
+        .finish();
+
+    set_global_default(subscriber)?;
+
     // TODO: Set this properly based on the platform.
     let root_cache_dir = PathBuf::from("/tmp");
 

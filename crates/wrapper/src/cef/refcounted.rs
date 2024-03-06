@@ -142,7 +142,7 @@ macro_rules! ref_counted_ptr {
         #[derive(Clone)]
         pub struct $rust(crate::RefCountedPtr<$cef>);
 
-        ref_counted!($cef);
+        crate::ref_counted!($cef);
 
         unsafe impl Send for $rust {}
         unsafe impl Sync for $rust {}

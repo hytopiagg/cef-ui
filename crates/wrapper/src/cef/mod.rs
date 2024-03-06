@@ -1,6 +1,8 @@
 mod app;
+mod browser;
 mod color;
 mod context;
+mod frame;
 mod main_args;
 mod refcounted;
 mod settings;
@@ -9,8 +11,10 @@ mod types;
 mod values;
 
 pub use app::*;
+pub use browser::*;
 pub use color::*;
 pub use context::*;
+pub use frame::*;
 pub use main_args::*;
 pub use refcounted::*;
 pub use settings::*;
