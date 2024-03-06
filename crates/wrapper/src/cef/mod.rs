@@ -1,5 +1,6 @@
 mod app;
 mod browser;
+mod client;
 mod color;
 mod context;
 mod frame;
@@ -12,6 +13,7 @@ mod values;
 
 pub use app::*;
 pub use browser::*;
+pub use client::*;
 pub use color::*;
 pub use context::*;
 pub use frame::*;
