@@ -1,4 +1,43 @@
-use cef_ui_bindings_linux_x86_64::{cef_log_items_t, cef_log_severity_t};
+use cef_ui_bindings_linux_x86_64::{cef_log_items_t, cef_log_severity_t, cef_state_t};
+
+/// Represents the state of a setting.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum State {
+    /// Use the default state for the setting.
+    Default,
+
+    /// Enable or allow the setting.
+    Enabled,
+
+    /// Disable or disallow the setting.
+    Disabled
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State::Default
+    }
+}
+
+impl From<cef_state_t> for State {
+    fn from(value: cef_state_t) -> Self {
+        match value {
+            cef_state_t::STATE_DEFAULT => Self::Default,
+            cef_state_t::STATE_ENABLED => Self::Enabled,
+            cef_state_t::STATE_DISABLED => Self::Disabled
+        }
+    }
+}
+
+impl From<State> for cef_state_t {
+    fn from(value: State) -> Self {
+        match value {
+            State::Default => Self::STATE_DEFAULT,
+            State::Enabled => Self::STATE_ENABLED,
+            State::Disabled => Self::STATE_DISABLED
+        }
+    }
+}
 
 /// Log severity levels.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

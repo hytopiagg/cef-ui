@@ -1,6 +1,244 @@
-use crate::{ref_counted_ptr, CefString, CefStringList, DictionaryValue, Frame};
-use cef_ui_bindings_linux_x86_64::{cef_browser_host_t, cef_browser_t};
-use std::{ffi::c_int, ptr::null_mut};
+use crate::{ref_counted_ptr, CefString, CefStringList, Color, DictionaryValue, Frame, State};
+use cef_ui_bindings_linux_x86_64::{
+    cef_browser_host_t, cef_browser_settings_t, cef_browser_t, cef_string_t
+};
+use std::{
+    ffi::c_int,
+    mem::{size_of, zeroed},
+    ptr::null_mut
+};
+
+/// Browser initialization settings. Specify NULL or 0 to get the recommended
+/// default values. The consequences of using custom values may not be well
+/// tested. Many of these and other settings can also configured using command-
+/// line switches.
+#[derive(Debug)]
+pub struct BrowserSettings(cef_browser_settings_t);
+
+impl BrowserSettings {
+    pub fn new() -> Self {
+        let mut cef: cef_browser_settings_t = unsafe { zeroed() };
+
+        cef.size = size_of::<cef_browser_settings_t>();
+
+        Self(cef)
+    }
+
+    /// The maximum rate in frames per second (fps) that CefRenderHandler::OnPaint
+    /// will be called for a windowless browser. The actual fps may be lower if
+    /// the browser cannot generate frames at the requested rate. The minimum
+    /// value is 1 and the maximum value is 60 (default 30). This value can also
+    /// be changed dynamically via CefBrowserHost::SetWindowlessFrameRate.
+    pub fn windowless_frame_rate(mut self, windowless_frame_rate: i32) -> Self {
+        self.0.windowless_frame_rate = windowless_frame_rate as c_int;
+        self
+    }
+
+    /// Set standard font family.
+    pub fn standard_font_family(mut self, standard_font_family: &String) -> Self {
+        Self::set_string(standard_font_family, &mut self.0.standard_font_family);
+
+        self
+    }
+
+    /// Set fixed font family.
+    pub fn fixed_font_family(mut self, fixed_font_family: &String) -> Self {
+        Self::set_string(fixed_font_family, &mut self.0.fixed_font_family);
+
+        self
+    }
+
+    /// Set serif font family.
+    pub fn serif_font_family(mut self, serif_font_family: &String) -> Self {
+        Self::set_string(serif_font_family, &mut self.0.serif_font_family);
+
+        self
+    }
+
+    /// Set sans-serif font family.
+    pub fn sans_serif_font_family(mut self, sans_serif_font_family: &String) -> Self {
+        Self::set_string(sans_serif_font_family, &mut self.0.sans_serif_font_family);
+
+        self
+    }
+
+    /// Set cursive font family.
+    pub fn cursive_font_family(mut self, cursive_font_family: &String) -> Self {
+        Self::set_string(cursive_font_family, &mut self.0.cursive_font_family);
+
+        self
+    }
+
+    /// Set fantasy font family.
+    pub fn fantasy_font_family(mut self, fantasy_font_family: &String) -> Self {
+        Self::set_string(fantasy_font_family, &mut self.0.fantasy_font_family);
+
+        self
+    }
+
+    /// Set default font size.
+    pub fn default_font_size(mut self, default_font_size: i32) -> Self {
+        self.0.default_font_size = default_font_size as c_int;
+        self
+    }
+
+    /// Set default fixed font size.
+    pub fn default_fixed_font_size(mut self, default_fixed_font_size: i32) -> Self {
+        self.0.default_fixed_font_size = default_fixed_font_size as c_int;
+        self
+    }
+
+    /// Set minimum font size.
+    pub fn minimum_font_size(mut self, minimum_font_size: i32) -> Self {
+        self.0.minimum_font_size = minimum_font_size as c_int;
+        self
+    }
+
+    /// Set minimum logical font size.
+    pub fn minimum_logical_font_size(mut self, minimum_logical_font_size: i32) -> Self {
+        self.0.minimum_logical_font_size = minimum_logical_font_size as c_int;
+        self
+    }
+
+    /// Default encoding for Web content. If empty "ISO-8859-1" will be used. Also
+    /// configurable using the "default-encoding" command-line switch.
+    pub fn default_encoding(mut self, default_encoding: &String) -> Self {
+        Self::set_string(default_encoding, &mut self.0.default_encoding);
+
+        self
+    }
+
+    /// Controls the loading of fonts from remote sources. Also configurable using
+    /// the "disable-remote-fonts" command-line switch.
+    pub fn remote_fonts(mut self, remote_fonts: State) -> Self {
+        self.0.remote_fonts = remote_fonts.into();
+        self
+    }
+
+    /// Controls whether JavaScript can be executed. Also configurable using the
+    /// "disable-javascript" command-line switch.
+    pub fn javascript(mut self, javascript: State) -> Self {
+        self.0.javascript = javascript.into();
+        self
+    }
+
+    /// Controls whether JavaScript can be used to close windows that were not
+    /// opened via JavaScript. JavaScript can still be used to close windows that
+    /// were opened via JavaScript or that have no back/forward history. Also
+    /// configurable using the "disable-javascript-close-windows" command-line
+    /// switch.
+    pub fn javascript_close_windows(mut self, javascript_close_windows: State) -> Self {
+        self.0.javascript_close_windows = javascript_close_windows.into();
+        self
+    }
+
+    /// Controls whether JavaScript can access the clipboard. Also configurable
+    /// using the "disable-javascript-access-clipboard" command-line switch.
+    pub fn javascript_access_clipboard(mut self, javascript_access_clipboard: State) -> Self {
+        self.0.javascript_access_clipboard = javascript_access_clipboard.into();
+        self
+    }
+
+    /// Controls whether DOM pasting is supported in the editor via
+    /// execCommand("paste"). The |javascript_access_clipboard| setting must also
+    /// be enabled. Also configurable using the "disable-javascript-dom-paste"
+    /// command-line switch.
+    pub fn javascript_dom_paste(mut self, javascript_dom_paste: State) -> Self {
+        self.0.javascript_dom_paste = javascript_dom_paste.into();
+        self
+    }
+
+    /// Controls whether image URLs will be loaded from the network. A cached
+    /// image will still be rendered if requested. Also configurable using the
+    /// "disable-image-loading" command-line switch.
+    pub fn image_loading(mut self, image_loading: State) -> Self {
+        self.0.image_loading = image_loading.into();
+        self
+    }
+
+    /// Controls whether standalone images will be shrunk to fit the page. Also
+    /// configurable using the "image-shrink-standalone-to-fit" command-line
+    /// switch.
+    pub fn image_shrink_standalone_to_fit(mut self, image_shrink_standalone_to_fit: State) -> Self {
+        self.0
+            .image_shrink_standalone_to_fit = image_shrink_standalone_to_fit.into();
+        self
+    }
+
+    /// Controls whether text areas can be resized. Also configurable using the
+    /// "disable-text-area-resize" command-line switch.
+    pub fn text_area_resize(mut self, text_area_resize: State) -> Self {
+        self.0.text_area_resize = text_area_resize.into();
+        self
+    }
+
+    /// Controls whether the tab key can advance focus to links. Also configurable
+    /// using the "disable-tab-to-links" command-line switch.
+    pub fn tab_to_links(mut self, tab_to_links: State) -> Self {
+        self.0.tab_to_links = tab_to_links.into();
+        self
+    }
+
+    /// Controls whether local storage can be used. Also configurable using the
+    /// "disable-local-storage" command-line switch.
+    pub fn local_storage(mut self, local_storage: State) -> Self {
+        self.0.local_storage = local_storage.into();
+        self
+    }
+
+    /// Controls whether databases can be used. Also configurable using the
+    /// "disable-databases" command-line switch.
+    pub fn databases(mut self, databases: State) -> Self {
+        self.0.databases = databases.into();
+        self
+    }
+
+    /// Controls whether WebGL can be used. Note that WebGL requires hardware
+    /// support and may not work on all systems even when enabled. Also
+    /// configurable using the "disable-webgl" command-line switch.
+    pub fn webgl(mut self, webgl: State) -> Self {
+        self.0.webgl = webgl.into();
+        self
+    }
+
+    /// Background color used for the browser before a document is loaded and when
+    /// no document color is specified. The alpha component must be either fully
+    /// opaque (0xFF) or fully transparent (0x00). If the alpha component is fully
+    /// opaque then the RGB components will be used as the background color. If
+    /// the alpha component is fully transparent for a windowed browser then the
+    /// CefSettings.background_color value will be used. If the alpha component is
+    /// fully transparent for a windowless (off-screen) browser then transparent
+    /// painting will be enabled.
+    pub fn background_color(mut self, background_color: &Color) -> Self {
+        self.0.background_color = background_color.to_raw();
+        self
+    }
+
+    /// Controls whether the Chrome status bubble will be used. Only supported
+    /// with the Chrome runtime. For details about the status bubble see
+    /// https://www.chromium.org/user-experience/status-bubble/
+    pub fn chrome_status_bubble(mut self, chrome_status_bubble: State) -> Self {
+        self.0.chrome_status_bubble = chrome_status_bubble.into();
+        self
+    }
+
+    /// Controls whether the Chrome zoom bubble will be shown when zooming. Only
+    /// supported with the Chrome runtime.
+    pub fn chrome_zoom_bubble(mut self, chrome_zoom_bubble: State) -> Self {
+        self.0.chrome_zoom_bubble = chrome_zoom_bubble.into();
+        self
+    }
+
+    /// Converts to the raw cef type.
+    pub fn as_raw(&self) -> &cef_browser_settings_t {
+        &self.0
+    }
+
+    /// Tries to assign a String to a cef_string_t.
+    fn set_string(s: &String, cef: &mut cef_string_t) {
+        *cef = CefString::new(s.as_str()).into_raw();
+    }
+}
 
 // Structure used to represent a browser. When used in the browser process the
 // functions of this structure may be called on any thread unless otherwise

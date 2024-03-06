@@ -40,7 +40,7 @@ fn try_main() -> Result<()> {
     let main_args = MainArgs::new(env::args())?;
     let settings = Settings::new()
         .log_severity(LogSeverity::Warning)
-        .root_cache_path(root_cache_dir)?;
+        .root_cache_path(&root_cache_dir)?;
     let app = App::new(MyCefApp {});
 
     println!("{:?}", main_args);
