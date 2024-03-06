@@ -1,6 +1,8 @@
 use crate::{ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped};
 use anyhow::{anyhow, Result};
 use cef_ui_bindings_linux_x86_64::{
+    cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
+    cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
     cef_string_t, cef_string_userfree_t, cef_string_userfree_utf16_free, cef_string_utf16_set,
     cef_string_utf8_to_utf16, cef_string_visitor_t
 };
@@ -19,8 +21,8 @@ pub struct CefString(cef_string_t);
 
 impl CefString {
     /// Returns a null CefString.
-    pub fn null() -> cef_string_t {
-        unsafe { zeroed() }
+    pub fn null() -> Self {
+        Self(unsafe { zeroed() })
     }
 
     /// Try and create a CefString from a str.
@@ -29,22 +31,22 @@ impl CefString {
     }
 
     /// Convert to a CefString reference.
-    pub fn from_ptr<'a>(ptr: *const cef_string_t) -> Option<&'a CefString> {
+    pub fn from_ptr<'a>(ptr: *const cef_string_t) -> Option<&'a Self> {
         unsafe { (ptr as *const Self).as_ref() }
     }
 
     /// Convert to a CefString reference without checking if the pointer is null.
-    pub fn from_ptr_unchecked<'a>(ptr: *const cef_string_t) -> &'a CefString {
+    pub fn from_ptr_unchecked<'a>(ptr: *const cef_string_t) -> &'a Self {
         unsafe { &*(ptr as *const Self) }
     }
 
     /// Convert to a mutable CefString reference.
-    pub fn from_ptr_mut<'a>(ptr: *mut cef_string_t) -> Option<&'a mut CefString> {
+    pub fn from_ptr_mut<'a>(ptr: *mut cef_string_t) -> Option<&'a mut Self> {
         unsafe { (ptr as *mut Self).as_mut() }
     }
 
     /// Convert to a mutable CefString reference without checking if the pointer is null.
-    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: *mut cef_string_t) -> &'a mut CefString {
+    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: *mut cef_string_t) -> &'a mut Self {
         unsafe { &mut *(ptr as *mut Self) }
     }
 
@@ -53,9 +55,11 @@ impl CefString {
     pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Result<Self> {
         let mut cef = Self::null();
 
-        let ret = match unsafe { cef_string_utf16_set((*ptr).str_, (*ptr).length, &mut cef, 1) } {
+        let ret = match unsafe {
+            cef_string_utf16_set((*ptr).str_, (*ptr).length, cef.as_mut_ptr(), 1)
+        } {
             0 => Err(anyhow!("Failed to copy cef_string_t.")),
-            _ => Ok(Self(cef))
+            _ => Ok(cef)
         };
 
         unsafe {
@@ -74,6 +78,11 @@ impl CefString {
     /// Returns the string as a pointer.
     pub fn as_ptr(&self) -> *const cef_string_t {
         &self.0
+    }
+
+    /// Returns the string as a mutable pointer.
+    pub fn as_mut_ptr(&mut self) -> *mut cef_string_t {
+        &mut self.0
     }
 
     /// Transfers ownership of the pointer.
@@ -139,6 +148,101 @@ pub fn free_cef_string(s: &mut cef_string_t) {
     }
 
     *s = unsafe { zeroed() };
+}
+
+/// CEF string maps are a set of key/value string pairs.
+pub struct CefStringList(cef_string_list_t);
+
+impl CefStringList {
+    pub fn new() -> Self {
+        Self(unsafe { cef_string_list_alloc() })
+    }
+
+    /// Returns the string list as a mutable pointer.
+    pub fn as_mut_ptr(&mut self) -> cef_string_list_t {
+        self.0
+    }
+
+    /// Return the number of elements in the string list.
+    pub fn len(&self) -> usize {
+        unsafe { cef_string_list_size(self.0) }
+    }
+
+    /// Retrieve the value at the specified zero-based string list index. Returns
+    /// true (1) if the value was successfully retrieved.
+    pub fn get(&self, index: usize) -> Option<CefString> {
+        let mut cef = CefString::null();
+
+        match unsafe { cef_string_list_value(self.0, index, cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Append a new value at the end of the string list.
+    pub fn append(&mut self, value: &CefString) {
+        unsafe { cef_string_list_append(self.0, value.as_ptr()) }
+    }
+
+    /// Clear the string list.
+    pub fn clear(&mut self) {
+        unsafe { cef_string_list_clear(self.0) }
+    }
+
+    /// Creates a copy of an existing string list.
+    pub fn copy(&self) -> Self {
+        Self(unsafe { cef_string_list_copy(self.0) })
+    }
+
+    /// Returns an iterator for the string list.
+    pub fn iter(&self) -> CefStringListIter {
+        CefStringListIter::new(self)
+    }
+}
+
+impl Drop for CefStringList {
+    fn drop(&mut self) {
+        unsafe { cef_string_list_free(self.0) }
+    }
+}
+
+/// An iterator for CefStringList.
+pub struct CefStringListIter<'a> {
+    list:  &'a CefStringList,
+    index: usize
+}
+
+impl<'a> CefStringListIter<'a> {
+    pub fn new(list: &'a CefStringList) -> Self {
+        Self { list, index: 0 }
+    }
+}
+
+impl<'a> Iterator for CefStringListIter<'a> {
+    type Item = CefString;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let value = self.list.get(self.index);
+
+        self.index += 1;
+
+        value
+    }
+}
+
+impl From<CefStringList> for Vec<String> {
+    fn from(value: CefStringList) -> Self {
+        Vec::<String>::from(&value)
+    }
+}
+
+impl From<&CefStringList> for Vec<String> {
+    fn from(value: &CefStringList) -> Self {
+        value
+            .iter()
+            .map(|s| s.into())
+            .collect()
+    }
 }
 
 /// Implement this structure to receive string values asynchronously.

@@ -1,4 +1,4 @@
-use crate::{ref_counted_ptr, CefString};
+use crate::{ref_counted_ptr, CefString, CefStringList};
 use cef_ui_bindings_linux_x86_64::{
     cef_binary_value_create, cef_binary_value_t, cef_dictionary_value_create,
     cef_dictionary_value_t, cef_list_value_create, cef_list_value_t, cef_value_create, cef_value_t,
@@ -9,7 +9,7 @@ use std::{
     ptr::null_mut
 };
 
-/// Value types.
+/// Supported value types.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ValueType {
     Invalid,
@@ -130,27 +130,24 @@ impl Value {
     }
 
     /// Returns the underlying value as type bool.
-    pub fn get_bool(&self) -> bool {
+    pub fn get_bool(&self) -> Option<bool> {
         self.0
             .get_bool
             .map(|get_bool| unsafe { get_bool(self.as_ptr()) != 0 })
-            .unwrap_or(false)
     }
 
     /// Returns the underlying value as type int.
-    pub fn get_int(&self) -> i32 {
+    pub fn get_int(&self) -> Option<i32> {
         self.0
             .get_int
             .map(|get_int| unsafe { get_int(self.as_ptr()) as i32 })
-            .unwrap_or(0)
     }
 
     /// Returns the underlying value as type double.
-    pub fn get_double(&self) -> f64 {
+    pub fn get_double(&self) -> Option<f64> {
         self.0
             .get_double
             .map(|get_double| unsafe { get_double(self.as_ptr()) })
-            .unwrap_or(0.0)
     }
 
     /// Returns the underlying value as type string.
@@ -455,7 +452,7 @@ impl DictionaryValue {
     }
 
     /// Returns the number of values.
-    pub fn get_size(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.0
             .get_size
             .map(|get_size| unsafe { get_size(self.as_ptr()) })
@@ -482,11 +479,21 @@ impl DictionaryValue {
             .unwrap_or(false)
     }
 
-    // TODO: Implement this!
-
     /// Reads all keys for this dictionary into the specified vector.
-    // int(CEF_CALLBACK* get_keys)(struct _cef_dictionary_value_t* self,
-    // cef_string_list_t keys);
+    pub fn get_keys(&self) -> Vec<String> {
+        self.0
+            .get_keys
+            .map(|get_keys| {
+                let mut list = CefStringList::new();
+
+                unsafe {
+                    get_keys(self.as_ptr(), list.as_mut_ptr());
+                }
+
+                list.into()
+            })
+            .unwrap_or_default()
+    }
 
     /// Removes the value at the specified key. Returns true (1) is the value was
     /// removed successfully.
@@ -529,39 +536,30 @@ impl DictionaryValue {
     }
 
     /// Returns the value at the specified key as type bool.
-    pub fn get_bool(&self, key: &str) -> bool {
-        self.0
-            .get_bool
-            .map(|get_bool| {
-                let key = CefString::new(key);
+    pub fn get_bool(&self, key: &str) -> Option<bool> {
+        self.0.get_bool.map(|get_bool| {
+            let key = CefString::new(key);
 
-                unsafe { get_bool(self.as_ptr(), key.as_ptr()) != 0 }
-            })
-            .unwrap_or(false)
+            unsafe { get_bool(self.as_ptr(), key.as_ptr()) != 0 }
+        })
     }
 
     /// Returns the value at the specified key as type int.
-    pub fn get_int(&self, key: &str) -> i32 {
-        self.0
-            .get_int
-            .map(|get_int| {
-                let key = CefString::new(key);
+    pub fn get_int(&self, key: &str) -> Option<i32> {
+        self.0.get_int.map(|get_int| {
+            let key = CefString::new(key);
 
-                unsafe { get_int(self.as_ptr(), key.as_ptr()) as i32 }
-            })
-            .unwrap_or(0)
+            unsafe { get_int(self.as_ptr(), key.as_ptr()) as i32 }
+        })
     }
 
     /// Returns the value at the specified key as type double.
-    pub fn get_double(&self, key: &str) -> f64 {
-        self.0
-            .get_double
-            .map(|get_double| {
-                let key = CefString::new(key);
+    pub fn get_double(&self, key: &str) -> Option<f64> {
+        self.0.get_double.map(|get_double| {
+            let key = CefString::new(key);
 
-                unsafe { get_double(self.as_ptr(), key.as_ptr()) }
-            })
-            .unwrap_or(0.0)
+            unsafe { get_double(self.as_ptr(), key.as_ptr()) }
+        })
     }
 
     /// Returns the value at the specified key as type string.
@@ -824,7 +822,7 @@ impl ListValue {
     }
 
     /// Returns the number of values.
-    pub fn get_size(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.0
             .get_size
             .map(|get_size| unsafe { get_size(self.as_ptr()) })
@@ -867,27 +865,24 @@ impl ListValue {
     }
 
     /// Returns the value at the specified index as type bool.
-    pub fn get_bool(&self, index: usize) -> bool {
+    pub fn get_bool(&self, index: usize) -> Option<bool> {
         self.0
             .get_bool
             .map(|get_bool| unsafe { get_bool(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
     }
 
     /// Returns the value at the specified index as type int.
-    pub fn get_int(&self, index: usize) -> i32 {
+    pub fn get_int(&self, index: usize) -> Option<i32> {
         self.0
             .get_int
             .map(|get_int| unsafe { get_int(self.as_ptr(), index) as i32 })
-            .unwrap_or(0)
     }
 
     /// Returns the value at the specified index as type double.
-    pub fn get_double(&self, index: usize) -> f64 {
+    pub fn get_double(&self, index: usize) -> Option<f64> {
         self.0
             .get_double
             .map(|get_double| unsafe { get_double(self.as_ptr(), index) })
-            .unwrap_or(0.0)
     }
 
     /// Returns the value at the specified index as type string.
