@@ -1,4 +1,7 @@
-use cef_ui_bindings_linux_x86_64::{cef_log_items_t, cef_log_severity_t, cef_state_t};
+use crate::bindings::{cef_log_items_t, cef_log_severity_t, cef_state_t};
+use cef_ui_bindings_linux_x86_64::{
+    cef_insets_t, cef_point_t, cef_range_t, cef_rect_t, cef_size_t
+};
 
 /// Represents the state of a setting.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -149,6 +152,143 @@ impl From<LogItems> for cef_log_items_t {
             LogItems::FlagThreadId => Self::LOG_ITEMS_FLAG_THREAD_ID,
             LogItems::FlagTimeStamp => Self::LOG_ITEMS_FLAG_TIME_STAMP,
             LogItems::FlagTickCount => Self::LOG_ITEMS_FLAG_TICK_COUNT
+        }
+    }
+}
+
+/// Structure representing a point.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32
+}
+
+impl From<&cef_point_t> for Point {
+    fn from(value: &cef_point_t) -> Self {
+        Self {
+            x: value.x,
+            y: value.y
+        }
+    }
+}
+
+impl From<&Point> for cef_point_t {
+    fn from(value: &Point) -> Self {
+        Self {
+            x: value.x,
+            y: value.y
+        }
+    }
+}
+
+/// Structure representing a rectangle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Rect {
+    pub x:      i32,
+    pub y:      i32,
+    pub width:  i32,
+    pub height: i32
+}
+
+impl From<&cef_rect_t> for Rect {
+    fn from(value: &cef_rect_t) -> Self {
+        Self {
+            x:      value.x,
+            y:      value.y,
+            width:  value.width,
+            height: value.height
+        }
+    }
+}
+
+impl From<&Rect> for cef_rect_t {
+    fn from(value: &Rect) -> Self {
+        Self {
+            x:      value.x,
+            y:      value.y,
+            width:  value.width,
+            height: value.height
+        }
+    }
+}
+
+/// Structure representing a size.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Size {
+    pub width:  i32,
+    pub height: i32
+}
+
+impl From<&cef_size_t> for Size {
+    fn from(value: &cef_size_t) -> Self {
+        Self {
+            width:  value.width,
+            height: value.height
+        }
+    }
+}
+
+impl From<&Size> for cef_size_t {
+    fn from(value: &Size) -> Self {
+        Self {
+            width:  value.width,
+            height: value.height
+        }
+    }
+}
+
+/// Structure representing insets.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Insets {
+    pub top:    i32,
+    pub left:   i32,
+    pub bottom: i32,
+    pub right:  i32
+}
+
+impl From<&cef_insets_t> for Insets {
+    fn from(value: &cef_insets_t) -> Self {
+        Self {
+            top:    value.top,
+            left:   value.left,
+            bottom: value.bottom,
+            right:  value.right
+        }
+    }
+}
+
+impl From<&Insets> for cef_insets_t {
+    fn from(value: &Insets) -> Self {
+        Self {
+            top:    value.top,
+            left:   value.left,
+            bottom: value.bottom,
+            right:  value.right
+        }
+    }
+}
+
+/// Structure representing a range.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Range {
+    pub from: u32,
+    pub to:   u32
+}
+
+impl From<&cef_range_t> for Range {
+    fn from(value: &cef_range_t) -> Self {
+        Self {
+            from: value.from,
+            to:   value.to
+        }
+    }
+}
+
+impl From<&Range> for cef_range_t {
+    fn from(value: &Range) -> Self {
+        Self {
+            from: value.from,
+            to:   value.to
         }
     }
 }
