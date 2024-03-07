@@ -1,5 +1,4 @@
-use crate::{ref_counted_ptr, Browser, CefString, StringVisitor};
-use cef_ui_bindings_linux_x86_64::cef_frame_t;
+use crate::{bindings::cef_frame_t, ref_counted_ptr, Browser, CefString, StringVisitor};
 use std::ffi::c_int;
 
 // Structure used to represent a frame in the browser window. When used in the

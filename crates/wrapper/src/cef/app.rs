@@ -1,7 +1,9 @@
-use crate::{bindings::cef_app_t, ref_counted_ptr, RefCountedPtr, Wrappable};
-use cef_ui_bindings_linux_x86_64::{
-    cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
-    cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
+use crate::{
+    bindings::{
+        cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
+        cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
+    },
+    ref_counted_ptr, RefCountedPtr, Wrappable
 };
 use std::mem::zeroed;
 

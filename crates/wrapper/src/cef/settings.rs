@@ -1,6 +1,9 @@
-use crate::{cef::types::LogItems, free_cef_string, CefString, Color, LogSeverity};
+use crate::{
+    bindings::{cef_settings_t, cef_string_t},
+    cef::types::LogItems,
+    free_cef_string, CefString, Color, LogSeverity
+};
 use anyhow::{anyhow, Result};
-use cef_ui_bindings_linux_x86_64::{cef_settings_t, cef_string_t};
 use dunce::canonicalize;
 use std::{
     ffi::c_int,

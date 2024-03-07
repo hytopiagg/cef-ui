@@ -1,6 +1,7 @@
-use crate::{ref_counted_ptr, CefString, CefStringList, Color, DictionaryValue, Frame, State};
-use cef_ui_bindings_linux_x86_64::{
-    cef_browser_host_t, cef_browser_settings_t, cef_browser_t, cef_string_t
+use crate::{
+    bindings::{cef_browser_host_t, cef_browser_settings_t, cef_browser_t, cef_string_t},
+    free_cef_string, ref_counted_ptr, CefString, CefStringList, Color, DictionaryValue, Frame,
+    State
 };
 use std::{
     ffi::c_int,
@@ -237,6 +238,18 @@ impl BrowserSettings {
     /// Tries to assign a String to a cef_string_t.
     fn set_string(s: &String, cef: &mut cef_string_t) {
         *cef = CefString::new(s.as_str()).into_raw();
+    }
+}
+
+impl Drop for BrowserSettings {
+    fn drop(&mut self) {
+        free_cef_string(&mut self.0.standard_font_family);
+        free_cef_string(&mut self.0.fixed_font_family);
+        free_cef_string(&mut self.0.serif_font_family);
+        free_cef_string(&mut self.0.sans_serif_font_family);
+        free_cef_string(&mut self.0.cursive_font_family);
+        free_cef_string(&mut self.0.fantasy_font_family);
+        free_cef_string(&mut self.0.default_encoding);
     }
 }
 

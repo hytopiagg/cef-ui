@@ -1,11 +1,13 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Wrappable};
-use cef_ui_bindings_linux_x86_64::{
-    cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
-    cef_context_menu_handler_t, cef_dialog_handler_t, cef_display_handler_t,
-    cef_download_handler_t, cef_drag_handler_t, cef_find_handler_t, cef_focus_handler_t,
-    cef_frame_handler_t, cef_frame_t, cef_jsdialog_handler_t, cef_keyboard_handler_t,
-    cef_life_span_handler_t, cef_load_handler_t, cef_permission_handler_t, cef_print_handler_t,
-    cef_process_id_t, cef_process_message_t, cef_render_handler_t, cef_request_handler_t
+use crate::{
+    bindings::{
+        cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
+        cef_context_menu_handler_t, cef_dialog_handler_t, cef_display_handler_t,
+        cef_download_handler_t, cef_drag_handler_t, cef_find_handler_t, cef_focus_handler_t,
+        cef_frame_handler_t, cef_frame_t, cef_jsdialog_handler_t, cef_keyboard_handler_t,
+        cef_life_span_handler_t, cef_load_handler_t, cef_permission_handler_t, cef_print_handler_t,
+        cef_process_id_t, cef_process_message_t, cef_render_handler_t, cef_request_handler_t
+    },
+    ref_counted_ptr, RefCountedPtr, Wrappable
 };
 use std::{ffi::c_int, mem::zeroed};
 

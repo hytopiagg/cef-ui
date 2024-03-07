@@ -10,6 +10,7 @@ mod settings;
 mod string;
 mod types;
 mod values;
+mod window;
 
 pub use app::*;
 pub use browser::*;
@@ -23,3 +24,4 @@ pub use settings::*;
 pub use string::*;
 pub use types::*;
 pub use values::*;
+pub use window::*;

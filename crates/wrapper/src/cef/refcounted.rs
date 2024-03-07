@@ -1,4 +1,4 @@
-use cef_ui_bindings_linux_x86_64::cef_base_ref_counted_t;
+use crate::bindings::cef_base_ref_counted_t;
 use std::{
     ffi::c_int,
     mem::{forget, size_of},

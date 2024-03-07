@@ -1,4 +1,4 @@
-use cef_ui_bindings_linux_x86_64::cef_color_t;
+use crate::bindings::cef_color_t;
 use std::fmt::{Error, Formatter};
 
 /// Represents a 32-bit ARGB color value.
