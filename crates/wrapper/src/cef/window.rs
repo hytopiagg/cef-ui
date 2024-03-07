@@ -1,8 +1,25 @@
+// So cef_window_handle_t is, on each platform:
+// - Linux:   unsigned long
+// - MacOS:   void*
+// - Windows: HWND
+
 #[cfg(target_os = "linux")]
 mod window_info {
-    use crate::{bindings::cef_window_info_t, free_cef_string, CefString};
+    use crate::{bindings::cef_window_info_t, free_cef_string, CefString, Rect};
     use cef_ui_bindings_linux_x86_64::cef_string_t;
-    use std::{ffi::c_int, mem::zeroed};
+    use std::{
+        ffi::{c_int, c_ulong},
+        mem::zeroed
+    };
+
+    /// The raw window handle.
+    pub struct WindowHandle(c_ulong);
+
+    impl WindowHandle {
+        pub fn new(handle: c_ulong) -> Self {
+            Self(handle)
+        }
+    }
 
     /// Class representing window information.
     #[derive(Debug)]
@@ -25,18 +42,17 @@ mod window_info {
             self
         }
 
-        // TODO: Fix this!
+        /// Initial window bounds.
+        pub fn bounds(mut self, value: &Rect) -> Self {
+            self.0.bounds = value.into();
+            self
+        }
 
-        //     ///
-        //     /// Initial window bounds.
-        //     ///
-        //     cef_rect_t bounds;
-        //
-        //     ///
-        //     /// Pointer for the parent window.
-        //     ///
-        //     cef_window_handle_t parent_window;
-        //
+        /// Pointer for the parent window.
+        pub fn parent_window(mut self, value: WindowHandle) -> Self {
+            self.0.parent_window = value.0;
+            self
+        }
 
         /// Set to true (1) to create the browser using windowless (off-screen)
         /// rendering. No window will be created for the browser and all rendering
@@ -70,10 +86,11 @@ mod window_info {
 
         // TODO: Fix this!
 
-        //     ///
-        //     /// Pointer for the new browser window. Only used with windowed rendering.
-        //     ///
-        //     cef_window_handle_t window;
+        /// Pointer for the new browser window. Only used with windowed rendering.
+        pub fn window(mut self, value: WindowHandle) -> Self {
+            self.0.window = value.0;
+            self
+        }
 
         /// Converts to the raw cef type.
         pub fn as_raw(&self) -> &cef_window_info_t {
@@ -92,6 +109,8 @@ mod window_info {
         }
     }
 }
+
+// TODO: Fix this!
 
 #[cfg(target_os = "windows")]
 mod window_info {
@@ -149,6 +168,8 @@ mod window_info {
         }
     }
 }
+
+// TODO: Fix this!
 
 #[cfg(target_os = "macos")]
 mod window_info {
