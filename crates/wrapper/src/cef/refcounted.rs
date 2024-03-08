@@ -18,12 +18,16 @@ pub trait RefCounted: Sized {
 #[macro_export]
 macro_rules! ref_counted {
     ($cef:ty) => {
+        // We can't simply return self.base because some CEF types have the
+        // ref counting struct inside yet another struct. So we need to cast
+        // to a pointer to self and then to the ref counting struct.
         impl crate::RefCounted for $cef {
             fn base(&self) -> &crate::bindings::cef_base_ref_counted_t {
-                &self.base
+                unsafe { &*(self as *const Self as *const crate::bindings::cef_base_ref_counted_t) }
             }
+
             fn base_mut(&mut self) -> &mut crate::bindings::cef_base_ref_counted_t {
-                &mut self.base
+                unsafe { &mut *(self as *mut Self as *mut crate::bindings::cef_base_ref_counted_t) }
             }
         }
     };
