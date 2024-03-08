@@ -1,5 +1,6 @@
 mod app;
 mod browser;
+mod callbacks;
 mod client;
 mod color;
 mod context;
@@ -15,6 +16,7 @@ mod window;
 
 pub use app::*;
 pub use browser::*;
+pub use callbacks::*;
 pub use client::*;
 pub use color::*;
 pub use context::*;

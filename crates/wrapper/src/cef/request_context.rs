@@ -97,14 +97,20 @@ impl RequestContext {
     //     const cef_string_t* scheme_name,
     //     const cef_string_t* domain_name,
     //     struct _cef_scheme_handler_factory_t* factory);
-    //
-    //     ///
-    //     /// Clear all registered scheme handler factories. Returns false (0) on error.
-    //     /// This function may be called on any thread in the browser process.
-    //     ///
-    //     int(CEF_CALLBACK* clear_scheme_handler_factories)(
-    //     struct _cef_request_context_t* self);
-    //
+
+    /// Clear all registered scheme handler factories. Returns false (0) on error.
+    /// This function may be called on any thread in the browser process.
+    pub fn clear_scheme_handler_factories(&self) -> bool {
+        self.0
+            .clear_scheme_handler_factories
+            .map(|clear_scheme_handler_factories| unsafe {
+                clear_scheme_handler_factories(self.as_ptr()) != 0
+            })
+            .unwrap_or(false)
+    }
+
+    // TODO: Fix this!
+
     //     ///
     //     /// Clears all certificate exceptions that were added as part of handling
     //     /// cef_request_handler_t::on_certificate_error(). If you call this it is

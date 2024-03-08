@@ -271,7 +271,7 @@ impl StringVisitorWrapper {
 
     /// Forwards visit.
     extern "C" fn c_visit(this: *mut cef_string_visitor_t, s: *const cef_string_t) {
-        let this: &StringVisitorWrapper = unsafe { Wrapped::get_value(this) };
+        let this: &Self = unsafe { Wrapped::wrappable(this) };
         let s: String = CefString::from_ptr_unchecked(s).into();
 
         this.0.lock().visit(s.as_str());
