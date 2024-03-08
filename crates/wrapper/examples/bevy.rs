@@ -86,6 +86,7 @@ fn try_main() -> Result<()> {
         client,
         "https://www.google.com/",
         &browser_settings,
+        None,
         None
     );
 

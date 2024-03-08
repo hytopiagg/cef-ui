@@ -4,7 +4,7 @@ use crate::{
         cef_browser_t, cef_string_t
     },
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, State, WindowInfo
+    Frame, RequestContext, State, WindowInfo
 };
 use std::{
     ffi::c_int,
@@ -1356,17 +1356,17 @@ impl BrowserHost {
         client: Client,
         url: &str,
         settings: &BrowserSettings,
-        extra_info: Option<DictionaryValue> //,
-                                            //request_context: Option<RequestContext>
+        extra_info: Option<DictionaryValue>,
+        request_context: Option<RequestContext>
     ) -> Browser {
         unsafe {
             let url = CefString::new(url);
             let extra_info = extra_info
                 .map(|extra_info| extra_info.into_raw())
                 .unwrap_or_else(null_mut);
-            // let request_context = request_context
-            //     .map(|request_context| request_context.into_raw())
-            //     .unwrap_or_else(null_mut);
+            let request_context = request_context
+                .map(|request_context| request_context.into_raw())
+                .unwrap_or_else(null_mut);
 
             Browser::from_ptr_unchecked(cef_browser_host_create_browser_sync(
                 window_info.as_raw(),
@@ -1374,20 +1374,8 @@ impl BrowserHost {
                 url.as_ptr(),
                 settings.as_raw(),
                 extra_info,
-                //request_context
-                null_mut()
+                request_context
             ))
         }
     }
 }
-
-// extern "C" {
-//     pub fn cef_browser_host_create_browser_sync(
-//         windowInfo: *const cef_window_info_t,
-//         client: *mut _cef_client_t,
-//         url: *const cef_string_t,
-//         settings: *const _cef_browser_settings_t,
-//         extra_info: *mut _cef_dictionary_value_t,
-//         request_context: *mut _cef_request_context_t
-//     ) -> *mut cef_browser_t;
-// }
