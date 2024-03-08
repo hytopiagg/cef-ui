@@ -8,11 +8,22 @@ use bevy::{
 };
 use std::{env, path::PathBuf, process::exit};
 use tracing_log::LogTracer;
-use wrapper::{App, AppCallbacks, Context, LogSeverity, MainArgs, Settings};
+use winit::{
+    raw_window_handle::{HasWindowHandle, RawWindowHandle},
+    window::Window
+};
+use wrapper::{
+    App, AppCallbacks, BrowserHost, BrowserSettings, Client, ClientCallbacks, Context, LogSeverity,
+    MainArgs, Settings, WindowHandle, WindowInfo
+};
 
-pub struct MyCefApp;
+pub struct MyAppCallbacks;
 
-impl AppCallbacks for MyCefApp {}
+impl AppCallbacks for MyAppCallbacks {}
+
+pub struct MyClientCallbacks;
+
+impl ClientCallbacks for MyClientCallbacks {}
 
 fn main() {
     if let Err(e) = try_main() {
@@ -41,7 +52,7 @@ fn try_main() -> Result<()> {
     let settings = Settings::new()
         .log_severity(LogSeverity::Warning)
         .root_cache_path(&root_cache_dir)?;
-    let app = App::new(MyCefApp {});
+    let app = App::new(MyAppCallbacks {});
 
     println!("{:?}", main_args);
 
@@ -56,6 +67,31 @@ fn try_main() -> Result<()> {
     // Initialize CEF.
     context.initialize()?;
 
+    // let event_loop = EventLoop::new()?;
+    //
+    // Create a new window.
+    // let window = WindowBuilder::new()
+    //     .with_title("Bevy")
+    //     .build(&event_loop)?;
+    //
+    // let window_info = get_window_info(&window)?;
+
+    let window_info = WindowInfo::new().window_name(&String::from("Bevy"));
+    let browser_settings = BrowserSettings::new();
+    let client = Client::new(MyClientCallbacks);
+
+    // Create a new browser.
+    BrowserHost::create_browser_sync(
+        &window_info,
+        client,
+        "https://www.google.com/",
+        &browser_settings,
+        None
+    );
+
+    // Run the message loop.
+    context.run_message_loop();
+
     // Shutdown CEF.
     context.shutdown();
 
@@ -65,4 +101,18 @@ fn try_main() -> Result<()> {
     //     .run();
 
     Ok(())
+}
+
+/// Get the window info on Linux.
+#[cfg(target_os = "linux")]
+fn get_window_info(window: &Window) -> Result<WindowInfo> {
+    let window_info = WindowInfo::new().window_name(&String::from("Bevy"));
+    let window_info = match window.window_handle()?.as_raw() {
+        RawWindowHandle::Xlib(handle) => {
+            window_info.parent_window(WindowHandle::new(handle.window))
+        },
+        _ => panic!("Unsupported window handle type!")
+    };
+
+    Ok(window_info)
 }

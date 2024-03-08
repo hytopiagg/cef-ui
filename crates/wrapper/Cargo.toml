@@ -20,7 +20,8 @@ parking_lot = "0.12"
 cef-ui-bindings-linux-x86_64 = { path = "../bindings-linux-x86_64" }
 
 [dev-dependencies]
-bevy = "0.13.0"
+bevy = "0.13"
+winit = "0.29"
 tracing = "0.1"
 tracing-log = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

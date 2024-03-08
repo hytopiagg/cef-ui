@@ -45,6 +45,7 @@
               atk
               expat
               mesa
+              libglvnd
             ];
 
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
@@ -75,6 +76,7 @@
               pkgs.atk
               pkgs.expat
               pkgs.mesa
+              pkgs.libglvnd
             ];
 
             shellHook = ''

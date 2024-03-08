@@ -3,6 +3,7 @@ use crate::{
     App, MainArgs, Settings
 };
 use anyhow::{anyhow, Result};
+use cef_ui_bindings_linux_x86_64::cef_run_message_loop;
 use std::ptr::null_mut;
 
 pub struct Context {
@@ -70,6 +71,16 @@ impl Context {
             true => Ok(()),
             false => Err(anyhow!("Failed to initialize CEF."))
         }
+    }
+
+    /// Run the CEF message loop. Use this function instead of an application-
+    /// provided message loop to get the best balance between performance and CPU
+    /// usage. This function should only be called on the main application thread
+    /// and only if cef_initialize() is called with a
+    /// cef_settings_t.multi_threaded_message_loop value of false (0). This function
+    /// will block until a quit message is received by the system.
+    pub fn run_message_loop(&self) {
+        unsafe { cef_run_message_loop() };
     }
 
     /// This function should be called on the main application thread to shut down
