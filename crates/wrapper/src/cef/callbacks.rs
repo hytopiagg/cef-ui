@@ -30,7 +30,7 @@ impl Callback {
 ref_counted_ptr!(CompletionCallback, cef_completion_callback_t);
 
 impl CompletionCallback {
-    pub fn new(f: impl FnOnce() + Send + 'static) -> CompletionCallback {
+    pub fn new(f: impl FnOnce() + Send + 'static) -> Self {
         Self(CompletionCallbackWrapper::new(f).wrap())
     }
 
@@ -48,8 +48,8 @@ impl CompletionCallback {
 struct CompletionCallbackWrapper(Mutex<Option<Box<dyn FnOnce() + Send + 'static>>>);
 
 impl CompletionCallbackWrapper {
-    pub fn new(f: impl FnOnce() + Send + 'static) -> CompletionCallbackWrapper {
-        CompletionCallbackWrapper(Mutex::new(Some(Box::new(f))))
+    pub fn new(f: impl FnOnce() + Send + 'static) -> Self {
+        Self(Mutex::new(Some(Box::new(f))))
     }
 
     /// Forwards on_complete.

@@ -1,9 +1,71 @@
-use crate::{ref_counted_ptr, CefString, CefStringList};
-use cef_ui_bindings_linux_x86_64::cef_request_context_t;
+use crate::{
+    bindings::{cef_completion_callback_t, cef_request_context_t, cef_resolve_callback_t},
+    ref_counted_ptr, CefString, CefStringList, CompletionCallback, RefCountedPtr, Wrappable,
+    Wrapped
+};
+use parking_lot::Mutex;
+use std::{mem::zeroed, net::IpAddr};
 
-// TODO: Fix this!
+// Callback structure for cef_request_context_t::ResolveHost.
+ref_counted_ptr!(ResolveCallback, cef_resolve_callback_t);
 
-ref_counted_ptr!(RequestContext, cef_request_context_t);
+impl ResolveCallback {
+    // pub fn new(f: impl FnOnce() + Send + 'static) -> Self {
+    //     //Self(CompletionCallbackWrapper::new(f).wrap())
+    // }
+}
+
+// Translates CEF -> Rust callbacks.
+// struct ResolveCallbackWrapper(Mutex<Option<Box<dyn FnOnce(ErrorCode, &[IpAddr]) + Send + 'static>>>);
+
+// impl CompletionCallbackWrapper {
+//     pub fn new(f: impl FnOnce() + Send + 'static) -> CompletionCallbackWrapper {
+//         CompletionCallbackWrapper(Mutex::new(Some(Box::new(f))))
+//     }
+//
+//     /// Forwards on_complete.
+//     extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
+//         let this: &Self = unsafe { Wrapped::wrappable(this) };
+//
+//         if let Some(f) = this.0.lock().take() {
+//             f();
+//         }
+//     }
+// }
+//
+// impl Wrappable for CompletionCallbackWrapper {
+//     type Cef = cef_completion_callback_t;
+//
+//     /// Converts this to a smart pointer.
+//     fn wrap(self) -> RefCountedPtr<Self::Cef> {
+//         RefCountedPtr::wrap(
+//             cef_completion_callback_t {
+//                 base:        unsafe { zeroed() },
+//                 on_complete: Some(Self::c_on_complete)
+//             },
+//             self
+//         )
+//     }
+// }
+
+// ///
+// /// Callback structure for cef_request_context_t::ResolveHost.
+// ///
+// typedef struct _cef_resolve_callback_t {
+//     ///
+//     /// Base structure.
+//     ///
+//     cef_base_ref_counted_t base;
+//
+//     ///
+//     /// Called on the UI thread after the ResolveHost request has completed.
+//     /// |result| will be the result code. |resolved_ips| will be the list of
+//     /// resolved IP addresses or NULL if the resolution failed.
+//     ///
+//     void(CEF_CALLBACK* on_resolve_completed)(struct _cef_resolve_callback_t* self,
+//     cef_errorcode_t result,
+//     cef_string_list_t resolved_ips);
+// } cef_resolve_callback_t;
 
 /// A request context provides request handling for a set of related browser or
 /// URL request objects. A request context can be specified when creating a new
@@ -19,6 +81,8 @@ ref_counted_ptr!(RequestContext, cef_request_context_t);
 /// in single-process mode will share the same request context. This will be the
 /// first request context passed into a cef_browser_host_t static factory
 /// function and all other request context objects will be ignored.
+ref_counted_ptr!(RequestContext, cef_request_context_t);
+
 impl RequestContext {
     /// Returns true (1) if this object is pointing to the same context as |that|
     /// object.
@@ -109,40 +173,51 @@ impl RequestContext {
             .unwrap_or(false)
     }
 
+    /// Clears all certificate exceptions that were added as part of handling
+    /// cef_request_handler_t::on_certificate_error(). If you call this it is
+    /// recommended that you also call close_all_connections() or you risk not
+    /// being prompted again for server certificates if you reconnect quickly. If
+    /// |callback| is non-NULL it will be executed on the UI thread after
+    /// completion.
+    pub fn clear_certificate_exceptions(&self, callback: impl FnOnce() + Send + 'static) {
+        self.0
+            .clear_certificate_exceptions
+            .map(|clear_certificate_exceptions| unsafe {
+                let callback = CompletionCallback::new(callback);
+
+                clear_certificate_exceptions(self.as_ptr(), callback.into_raw())
+            });
+    }
+
+    /// Clears all HTTP authentication credentials that were added as part of
+    /// handling GetAuthCredentials. If |callback| is non-NULL it will be executed
+    /// on the UI thread after completion.
+    pub fn clear_http_auth_credentials(&self, callback: impl FnOnce() + Send + 'static) {
+        self.0
+            .clear_http_auth_credentials
+            .map(|clear_http_auth_credentials| unsafe {
+                let callback = CompletionCallback::new(callback);
+
+                clear_http_auth_credentials(self.as_ptr(), callback.into_raw())
+            });
+    }
+
+    /// Clears all active and idle connections that Chromium currently has. This
+    /// is only recommended if you have released all other CEF objects but don't
+    /// yet want to call cef_shutdown(). If |callback| is non-NULL it will be
+    /// executed on the UI thread after completion.
+    pub fn close_all_connections(&self, callback: impl FnOnce() + Send + 'static) {
+        self.0
+            .close_all_connections
+            .map(|close_all_connections| unsafe {
+                let callback = CompletionCallback::new(callback);
+
+                close_all_connections(self.as_ptr(), callback.into_raw())
+            });
+    }
+
     // TODO: Fix this!
 
-    //     ///
-    //     /// Clears all certificate exceptions that were added as part of handling
-    //     /// cef_request_handler_t::on_certificate_error(). If you call this it is
-    //     /// recommended that you also call close_all_connections() or you risk not
-    //     /// being prompted again for server certificates if you reconnect quickly. If
-    //     /// |callback| is non-NULL it will be executed on the UI thread after
-    //     /// completion.
-    //     ///
-    //     void(CEF_CALLBACK* clear_certificate_exceptions)(
-    //     struct _cef_request_context_t* self,
-    //     struct _cef_completion_callback_t* callback);
-    //
-    //     ///
-    //     /// Clears all HTTP authentication credentials that were added as part of
-    //     /// handling GetAuthCredentials. If |callback| is non-NULL it will be executed
-    //     /// on the UI thread after completion.
-    //     ///
-    //     void(CEF_CALLBACK* clear_http_auth_credentials)(
-    //     struct _cef_request_context_t* self,
-    //     struct _cef_completion_callback_t* callback);
-    //
-    //     ///
-    //     /// Clears all active and idle connections that Chromium currently has. This
-    //     /// is only recommended if you have released all other CEF objects but don't
-    //     /// yet want to call cef_shutdown(). If |callback| is non-NULL it will be
-    //     /// executed on the UI thread after completion.
-    //     ///
-    //     void(CEF_CALLBACK* close_all_connections)(
-    //     struct _cef_request_context_t* self,
-    //     struct _cef_completion_callback_t* callback);
-    //
-    //     ///
     //     /// Attempts to resolve |origin| to a list of associated IP addresses.
     //     /// |callback| will be executed on the UI thread after completion.
     //     ///
