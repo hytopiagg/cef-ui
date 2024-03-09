@@ -118,7 +118,7 @@ impl Client {
 struct ClientWrapper(Box<dyn ClientCallbacks>);
 
 impl ClientWrapper {
-    pub fn new<C: ClientCallbacks>(delegate: C) -> ClientWrapper {
+    pub fn new<C: ClientCallbacks>(delegate: C) -> Self {
         Self(Box::new(delegate))
     }
 
