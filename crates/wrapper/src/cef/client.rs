@@ -122,81 +122,97 @@ impl ClientWrapper {
         Self(Box::new(delegate))
     }
 
-    extern "C" fn get_audio_handler(this: *mut cef_client_t) -> *mut cef_audio_handler_t {
+    unsafe extern "C" fn get_audio_handler(this: *mut cef_client_t) -> *mut cef_audio_handler_t {
         todo!()
     }
 
-    extern "C" fn get_command_handler(this: *mut cef_client_t) -> *mut cef_command_handler_t {
+    unsafe extern "C" fn get_command_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_command_handler_t {
         todo!()
     }
 
-    extern "C" fn get_context_menu_handler(
+    unsafe extern "C" fn get_context_menu_handler(
         this: *mut cef_client_t
     ) -> *mut cef_context_menu_handler_t {
         todo!()
     }
 
-    extern "C" fn get_dialog_handler(this: *mut cef_client_t) -> *mut cef_dialog_handler_t {
+    unsafe extern "C" fn get_dialog_handler(this: *mut cef_client_t) -> *mut cef_dialog_handler_t {
         todo!()
     }
 
-    extern "C" fn get_display_handler(this: *mut cef_client_t) -> *mut cef_display_handler_t {
+    unsafe extern "C" fn get_display_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_display_handler_t {
         todo!()
     }
 
-    extern "C" fn get_download_handler(this: *mut cef_client_t) -> *mut cef_download_handler_t {
+    unsafe extern "C" fn get_download_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_download_handler_t {
         todo!()
     }
 
-    extern "C" fn get_drag_handler(this: *mut cef_client_t) -> *mut cef_drag_handler_t {
+    unsafe extern "C" fn get_drag_handler(this: *mut cef_client_t) -> *mut cef_drag_handler_t {
         todo!()
     }
 
-    extern "C" fn get_find_handler(this: *mut cef_client_t) -> *mut cef_find_handler_t {
+    unsafe extern "C" fn get_find_handler(this: *mut cef_client_t) -> *mut cef_find_handler_t {
         todo!()
     }
 
-    extern "C" fn get_focus_handler(this: *mut cef_client_t) -> *mut cef_focus_handler_t {
+    unsafe extern "C" fn get_focus_handler(this: *mut cef_client_t) -> *mut cef_focus_handler_t {
         todo!()
     }
 
-    extern "C" fn get_frame_handler(this: *mut cef_client_t) -> *mut cef_frame_handler_t {
+    unsafe extern "C" fn get_frame_handler(this: *mut cef_client_t) -> *mut cef_frame_handler_t {
         todo!()
     }
 
-    extern "C" fn get_permission_handler(this: *mut cef_client_t) -> *mut cef_permission_handler_t {
+    unsafe extern "C" fn get_permission_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_permission_handler_t {
         todo!()
     }
 
-    extern "C" fn get_jsdialog_handler(this: *mut cef_client_t) -> *mut cef_jsdialog_handler_t {
+    unsafe extern "C" fn get_jsdialog_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_jsdialog_handler_t {
         todo!()
     }
 
-    extern "C" fn get_keyboard_handler(this: *mut cef_client_t) -> *mut cef_keyboard_handler_t {
+    unsafe extern "C" fn get_keyboard_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_keyboard_handler_t {
         todo!()
     }
 
-    extern "C" fn get_life_span_handler(this: *mut cef_client_t) -> *mut cef_life_span_handler_t {
+    unsafe extern "C" fn get_life_span_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_life_span_handler_t {
         todo!()
     }
 
-    extern "C" fn get_load_handler(this: *mut cef_client_t) -> *mut cef_load_handler_t {
+    unsafe extern "C" fn get_load_handler(this: *mut cef_client_t) -> *mut cef_load_handler_t {
         todo!()
     }
 
-    extern "C" fn get_print_handler(this: *mut cef_client_t) -> *mut cef_print_handler_t {
+    unsafe extern "C" fn get_print_handler(this: *mut cef_client_t) -> *mut cef_print_handler_t {
         todo!()
     }
 
-    extern "C" fn get_render_handler(this: *mut cef_client_t) -> *mut cef_render_handler_t {
+    unsafe extern "C" fn get_render_handler(this: *mut cef_client_t) -> *mut cef_render_handler_t {
         todo!()
     }
 
-    extern "C" fn get_request_handler(this: *mut cef_client_t) -> *mut cef_request_handler_t {
+    unsafe extern "C" fn get_request_handler(
+        this: *mut cef_client_t
+    ) -> *mut cef_request_handler_t {
         todo!()
     }
 
-    extern "C" fn process_message_received(
+    unsafe extern "C" fn process_message_received(
         this: *mut cef_client_t,
         browser: *mut cef_browser_t,
         frame: *mut cef_frame_t,

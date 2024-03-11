@@ -73,7 +73,7 @@ impl AppWrapper {
         Self(Box::new(delegate))
     }
 
-    extern "C" fn c_on_before_command_line_processing(
+    unsafe extern "C" fn c_on_before_command_line_processing(
         this: *mut cef_app_t,
         process_type: *const cef_string_t,
         command_line: *mut cef_command_line_t
@@ -81,26 +81,26 @@ impl AppWrapper {
         todo!()
     }
 
-    extern "C" fn c_on_register_custom_schemes(
+    unsafe extern "C" fn c_on_register_custom_schemes(
         this: *mut cef_app_t,
         registrar: *mut cef_scheme_registrar_t
     ) {
         todo!();
     }
 
-    extern "C" fn c_get_resource_bundle_handler(
+    unsafe extern "C" fn c_get_resource_bundle_handler(
         this: *mut cef_app_t
     ) -> *mut cef_resource_bundle_handler_t {
         todo!()
     }
 
-    extern "C" fn c_get_browser_process_handler(
+    unsafe extern "C" fn c_get_browser_process_handler(
         this: *mut cef_app_t
     ) -> *mut cef_browser_process_handler_t {
         todo!()
     }
 
-    extern "C" fn c_get_render_process_handler(
+    unsafe extern "C" fn c_get_render_process_handler(
         this: *mut cef_app_t
     ) -> *mut cef_render_process_handler_t {
         todo!()
