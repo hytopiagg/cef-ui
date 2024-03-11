@@ -1,14 +1,11 @@
 use crate::{
     bindings::{cef_request_context_t, cef_resolve_callback_t},
-    ref_counted_ptr, Browser, CefString, CefStringList, CompletionCallback, ErrorCode, Frame,
-    RefCountedPtr, Request, Wrappable, Wrapped
+    ref_counted_ptr, CefString, CefStringList, CompletionCallback, ErrorCode, RefCountedPtr,
+    RequestContextHandler, Wrappable, Wrapped
 };
-use cef_ui_bindings_linux_x86_64::{
-    cef_browser_t, cef_errorcode_t, cef_frame_t, cef_request_context_handler_t, cef_request_t,
-    cef_resource_request_handler_t, cef_string_list_t, cef_string_t
-};
+use cef_ui_bindings_linux_x86_64::{cef_errorcode_t, cef_string_list_t};
 use parking_lot::Mutex;
-use std::{ffi::c_int, mem::zeroed};
+use std::mem::zeroed;
 
 // Callback structure for cef_request_context_t::ResolveHost.
 // Called on the UI thread after the ResolveHost request has completed.
@@ -62,105 +59,6 @@ impl Wrappable for ResolveCallbackWrapper {
     }
 }
 
-/// Implement this structure to provide handler implementations. The handler
-/// instance will not be released until all objects related to the context have
-/// been destroyed.
-pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
-    /// Called on the browser process UI thread immediately after the request
-    /// context has been initialized.
-    fn on_request_context_initialized(&self, request_context: RequestContext) {}
-
-    // /// Called on the browser process IO thread before a resource request is
-    // /// initiated. The |browser| and |frame| values represent the source of the
-    // /// request, and may be NULL for requests originating from service workers or
-    // /// cef_urlrequest_t. |request| represents the request contents and cannot be
-    // /// modified in this callback. |is_navigation| will be true (1) if the
-    // /// resource request is a navigation. |is_download| will be true (1) if the
-    // /// resource request is a download. |request_initiator| is the origin (scheme
-    // /// + domain) of the page that initiated the request. Set
-    // /// |disable_default_handling| to true (1) to disable default handling of the
-    // /// request, in which case it will need to be handled via
-    // /// cef_resource_request_handler_t::GetResourceHandler or it will be canceled.
-    // /// To allow the resource load to proceed with default handling return NULL.
-    // /// To specify a handler for the resource return a
-    // /// cef_resource_request_handler_t object. This function will not be called if
-    // /// the client associated with |browser| returns a non-NULL value from
-    // /// cef_request_handler_t::GetResourceRequestHandler for the same request
-    // /// (identified by cef_request_t::GetIdentifier).
-    // // fn get_resource_request_handler(
-    // //     &self,
-    // //     browser: Option<Browser>,
-    // //     frame: Option<Frame>,
-    // //     request: Request,
-    // //     is_navigation: bool,
-    // //     is_download: bool,
-    // //     request_initiator: &str,
-    // //     disable_default_handling: &mut bool
-    // // ) -> Option<ResourceRequestHandler> {
-    // //     None
-    // // }
-}
-
-ref_counted_ptr!(RequestContextHandler, cef_request_context_handler_t);
-
-impl RequestContextHandler {
-    pub fn new<C: RequestContextHandlerCallbacks>(callbacks: C) -> Self {
-        Self(RequestContextHandlerWrapper::new(callbacks).wrap())
-    }
-}
-
-/// Translates CEF -> Rust callbacks.
-struct RequestContextHandlerWrapper(Box<dyn RequestContextHandlerCallbacks>);
-
-impl RequestContextHandlerWrapper {
-    pub fn new(delegate: impl RequestContextHandlerCallbacks) -> Self {
-        Self(Box::new(delegate))
-    }
-
-    unsafe extern "C" fn c_on_request_context_initialized(
-        this: *mut cef_request_context_handler_t,
-        request_context: *mut cef_request_context_t
-    ) {
-        let this: &Self = Wrapped::wrappable(this);
-        let request_context = RequestContext::from_ptr_unchecked(request_context);
-
-        this.0
-            .on_request_context_initialized(request_context);
-    }
-
-    // TODO: Fix this!
-
-    unsafe extern "C" fn c_get_resource_request_handler(
-        this: *mut cef_request_context_handler_t,
-        browser: *mut cef_browser_t,
-        frame: *mut cef_frame_t,
-        request: *mut cef_request_t,
-        is_navigation: c_int,
-        is_download: c_int,
-        request_initiator: *const cef_string_t,
-        disable_default_handling: *mut c_int
-    ) -> *mut cef_resource_request_handler_t {
-        todo!()
-    }
-}
-
-impl Wrappable for RequestContextHandlerWrapper {
-    type Cef = cef_request_context_handler_t;
-
-    /// Converts this to a smart pointer.
-    fn wrap(self) -> RefCountedPtr<Self::Cef> {
-        RefCountedPtr::wrap(
-            // TODO: Fix this!
-            cef_request_context_handler_t {
-                base:                           unsafe { zeroed() },
-                on_request_context_initialized: Some(Self::c_on_request_context_initialized),
-                get_resource_request_handler:   None
-            },
-            self
-        )
-    }
-}
-
 // A request context provides request handling for a set of related browser or
 // URL request objects. A request context can be specified when creating a new
 // browser via the cef_browser_host_t static factory functions or when creating
@@ -206,13 +104,16 @@ impl RequestContext {
             .unwrap_or(false)
     }
 
-    // TODO: Fix this!
+    /// Returns the handler for this context if any.
+    pub fn get_handler(&self) -> Option<RequestContextHandler> {
+        self.0
+            .get_handler
+            .and_then(|get_handler| unsafe {
+                let request_context_handler = get_handler(self.as_ptr());
 
-    //     ///
-    //     /// Returns the handler for this context if any.
-    //     ///
-    //     struct _cef_request_context_handler_t*(CEF_CALLBACK* get_handler)(
-    //     struct _cef_request_context_t* self);
+                RequestContextHandler::from_ptr(request_context_handler)
+            })
+    }
 
     /// Returns the cache path for this object. If NULL an "incognito mode" in-
     /// memory cache is being used.
