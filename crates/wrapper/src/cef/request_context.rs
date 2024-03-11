@@ -1,86 +1,78 @@
 use crate::{
-    bindings::{cef_completion_callback_t, cef_request_context_t, cef_resolve_callback_t},
-    ref_counted_ptr, CefString, CefStringList, CompletionCallback, RefCountedPtr, Wrappable,
-    Wrapped
+    bindings::{cef_request_context_t, cef_resolve_callback_t},
+    ref_counted_ptr, CefString, CefStringList, CompletionCallback, ErrorCode, RefCountedPtr,
+    Wrappable, Wrapped
 };
+use cef_ui_bindings_linux_x86_64::{cef_errorcode_t, cef_string_list_t};
 use parking_lot::Mutex;
-use std::{mem::zeroed, net::IpAddr};
+use std::mem::zeroed;
 
 // Callback structure for cef_request_context_t::ResolveHost.
+// Called on the UI thread after the ResolveHost request has completed.
+// |result| will be the result code. |resolved_ips| will be the list of
+// resolved IP addresses or NULL if the resolution failed.
 ref_counted_ptr!(ResolveCallback, cef_resolve_callback_t);
 
 impl ResolveCallback {
-    // pub fn new(f: impl FnOnce() + Send + 'static) -> Self {
-    //     //Self(CompletionCallbackWrapper::new(f).wrap())
-    // }
+    pub fn new(f: impl FnOnce(ErrorCode, Vec<String>) + Send + 'static) -> Self {
+        Self(ResolveCallbackWrapper::new(f).wrap())
+    }
 }
 
-// Translates CEF -> Rust callbacks.
-// struct ResolveCallbackWrapper(Mutex<Option<Box<dyn FnOnce(ErrorCode, &[IpAddr]) + Send + 'static>>>);
+/// Translates CEF -> Rust callbacks.
+struct ResolveCallbackWrapper(
+    Mutex<Option<Box<dyn FnOnce(ErrorCode, Vec<String>) + Send + 'static>>>
+);
 
-// impl CompletionCallbackWrapper {
-//     pub fn new(f: impl FnOnce() + Send + 'static) -> CompletionCallbackWrapper {
-//         CompletionCallbackWrapper(Mutex::new(Some(Box::new(f))))
-//     }
-//
-//     /// Forwards on_complete.
-//     extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
-//         let this: &Self = unsafe { Wrapped::wrappable(this) };
-//
-//         if let Some(f) = this.0.lock().take() {
-//             f();
-//         }
-//     }
-// }
-//
-// impl Wrappable for CompletionCallbackWrapper {
-//     type Cef = cef_completion_callback_t;
-//
-//     /// Converts this to a smart pointer.
-//     fn wrap(self) -> RefCountedPtr<Self::Cef> {
-//         RefCountedPtr::wrap(
-//             cef_completion_callback_t {
-//                 base:        unsafe { zeroed() },
-//                 on_complete: Some(Self::c_on_complete)
-//             },
-//             self
-//         )
-//     }
-// }
+impl ResolveCallbackWrapper {
+    pub fn new(f: impl FnOnce(ErrorCode, Vec<String>) + Send + 'static) -> Self {
+        Self(Mutex::new(Some(Box::new(f))))
+    }
 
-// ///
-// /// Callback structure for cef_request_context_t::ResolveHost.
-// ///
-// typedef struct _cef_resolve_callback_t {
-//     ///
-//     /// Base structure.
-//     ///
-//     cef_base_ref_counted_t base;
-//
-//     ///
-//     /// Called on the UI thread after the ResolveHost request has completed.
-//     /// |result| will be the result code. |resolved_ips| will be the list of
-//     /// resolved IP addresses or NULL if the resolution failed.
-//     ///
-//     void(CEF_CALLBACK* on_resolve_completed)(struct _cef_resolve_callback_t* self,
-//     cef_errorcode_t result,
-//     cef_string_list_t resolved_ips);
-// } cef_resolve_callback_t;
+    extern "C" fn c_on_resolve_completed(
+        this: *mut cef_resolve_callback_t,
+        result: cef_errorcode_t,
+        resolved_ips: cef_string_list_t
+    ) {
+        let this: &Self = unsafe { Wrapped::wrappable(this) };
+        let result = result.into();
+        let resolved_ips = CefStringList::from_ptr(resolved_ips).map_or(Vec::new(), |s| s.into());
 
-/// A request context provides request handling for a set of related browser or
-/// URL request objects. A request context can be specified when creating a new
-/// browser via the cef_browser_host_t static factory functions or when creating
-/// a new URL request via the cef_urlrequest_t static factory functions. Browser
-/// objects with different request contexts will never be hosted in the same
-/// render process. Browser objects with the same request context may or may not
-/// be hosted in the same render process depending on the process model. Browser
-/// objects created indirectly via the JavaScript window.open function or
-/// targeted links will share the same render process and the same request
-/// context as the source browser. When running in single-process mode there is
-/// only a single render process (the main process) and so all browsers created
-/// in single-process mode will share the same request context. This will be the
-/// first request context passed into a cef_browser_host_t static factory
-/// function and all other request context objects will be ignored.
+        if let Some(f) = this.0.lock().take() {
+            f(result, resolved_ips);
+        }
+    }
+}
+
+impl Wrappable for ResolveCallbackWrapper {
+    type Cef = cef_resolve_callback_t;
+
+    /// Converts this to a smart pointer.
+    fn wrap(self) -> RefCountedPtr<Self::Cef> {
+        RefCountedPtr::wrap(
+            cef_resolve_callback_t {
+                base:                 unsafe { zeroed() },
+                on_resolve_completed: Some(Self::c_on_resolve_completed)
+            },
+            self
+        )
+    }
+}
+
+// A request context provides request handling for a set of related browser or
+// URL request objects. A request context can be specified when creating a new
+// browser via the cef_browser_host_t static factory functions or when creating
+// a new URL request via the cef_urlrequest_t static factory functions. Browser
+// objects with different request contexts will never be hosted in the same
+// render process. Browser objects with the same request context may or may not
+// be hosted in the same render process depending on the process model. Browser
+// objects created indirectly via the JavaScript window.open function or
+// targeted links will share the same render process and the same request
+// context as the source browser. When running in single-process mode there is
+// only a single render process (the main process) and so all browsers created
+// in single-process mode will share the same request context. This will be the
+// first request context passed into a cef_browser_host_t static factory
+// function and all other request context objects will be ignored.
 ref_counted_ptr!(RequestContext, cef_request_context_t);
 
 impl RequestContext {
@@ -216,15 +208,25 @@ impl RequestContext {
             });
     }
 
+    /// Attempts to resolve |origin| to a list of associated IP addresses.
+    /// |callback| will be executed on the UI thread after completion.
+    pub fn resolve_host(
+        &self,
+        origin: &str,
+        callback: impl FnOnce(ErrorCode, Vec<String>) + Send + 'static
+    ) {
+        self.0
+            .resolve_host
+            .map(|resolve_host| {
+                let origin = CefString::new(origin);
+                let callback = ResolveCallback::new(callback);
+
+                unsafe { resolve_host(self.as_ptr(), origin.as_ptr(), callback.into_raw()) }
+            });
+    }
+
     // TODO: Fix this!
 
-    //     /// Attempts to resolve |origin| to a list of associated IP addresses.
-    //     /// |callback| will be executed on the UI thread after completion.
-    //     ///
-    //     void(CEF_CALLBACK* resolve_host)(struct _cef_request_context_t* self,
-    //     const cef_string_t* origin,
-    //     struct _cef_resolve_callback_t* callback);
-    //
     //     ///
     //     /// Load an extension.
     //     ///

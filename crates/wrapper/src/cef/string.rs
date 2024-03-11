@@ -153,11 +153,32 @@ pub fn free_cef_string(s: &mut cef_string_t) {
 }
 
 /// CEF string maps are a set of key/value string pairs.
+#[repr(transparent)]
 pub struct CefStringList(cef_string_list_t);
 
 impl CefStringList {
     pub fn new() -> Self {
         Self(unsafe { cef_string_list_alloc() })
+    }
+
+    /// Convert to a CefStringList reference.
+    pub fn from_ptr<'a>(ptr: cef_string_list_t) -> Option<&'a Self> {
+        unsafe { (ptr as *const Self).as_ref() }
+    }
+
+    /// Convert to a CefStringList reference without checking if the pointer is null.
+    pub fn from_ptr_unchecked<'a>(ptr: cef_string_list_t) -> &'a Self {
+        unsafe { &*(ptr as *const Self) }
+    }
+
+    /// Convert to a mutable CefStringList reference.
+    pub fn from_ptr_mut<'a>(ptr: cef_string_list_t) -> Option<&'a mut Self> {
+        unsafe { (ptr as *mut Self).as_mut() }
+    }
+
+    /// Convert to a mutable CefStringList reference without checking if the pointer is null.
+    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_list_t) -> &'a mut Self {
+        unsafe { &mut *(ptr as *mut Self) }
     }
 
     /// Returns the string list as a mutable pointer.
@@ -261,7 +282,7 @@ impl StringVisitor {
     }
 }
 
-// Translates CEF -> Rust callbacks.
+/// Translates CEF -> Rust callbacks.
 struct StringVisitorWrapper(Mutex<Box<dyn StringVisitorCallbacks>>);
 
 impl StringVisitorWrapper {
@@ -269,7 +290,6 @@ impl StringVisitorWrapper {
         Self(Mutex::new(Box::new(callbacks)))
     }
 
-    /// Forwards visit.
     extern "C" fn c_visit(this: *mut cef_string_visitor_t, s: *const cef_string_t) {
         let this: &Self = unsafe { Wrapped::wrappable(this) };
         let s: String = CefString::from_ptr_unchecked(s).into();

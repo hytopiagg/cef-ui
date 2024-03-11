@@ -114,7 +114,7 @@ impl Client {
     }
 }
 
-// Translates CEF -> Rust callbacks.
+/// Translates CEF -> Rust callbacks.
 struct ClientWrapper(Box<dyn ClientCallbacks>);
 
 impl ClientWrapper {

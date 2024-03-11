@@ -27,24 +27,16 @@ impl Callback {
 }
 
 // Generic callback structure used for asynchronous completion.
+// Method that will be called once the task is complete.
 ref_counted_ptr!(CompletionCallback, cef_completion_callback_t);
 
 impl CompletionCallback {
     pub fn new(f: impl FnOnce() + Send + 'static) -> Self {
         Self(CompletionCallbackWrapper::new(f).wrap())
     }
-
-    /// Prematurely trigger the callback.
-    pub fn on_complete(&self) {
-        if let Some(on_complete) = self.0.on_complete {
-            unsafe {
-                on_complete(self.as_ptr());
-            }
-        }
-    }
 }
 
-// Translates CEF -> Rust callbacks.
+/// Translates CEF -> Rust callbacks.
 struct CompletionCallbackWrapper(Mutex<Option<Box<dyn FnOnce() + Send + 'static>>>);
 
 impl CompletionCallbackWrapper {
@@ -52,7 +44,6 @@ impl CompletionCallbackWrapper {
         Self(Mutex::new(Some(Box::new(f))))
     }
 
-    /// Forwards on_complete.
     extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
         let this: &Self = unsafe { Wrapped::wrappable(this) };
 

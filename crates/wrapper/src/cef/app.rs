@@ -65,7 +65,7 @@ impl App {
     }
 }
 
-// Translates CEF -> Rust callbacks.
+/// Translates CEF -> Rust callbacks.
 struct AppWrapper(Box<dyn AppCallbacks>);
 
 impl AppWrapper {
