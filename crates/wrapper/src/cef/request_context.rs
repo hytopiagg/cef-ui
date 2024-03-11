@@ -1,7 +1,7 @@
 use crate::{
     bindings::{cef_request_context_t, cef_resolve_callback_t},
-    ref_counted_ptr, CefString, CefStringList, CompletionCallback, ErrorCode, RefCountedPtr,
-    Wrappable, Wrapped
+    ref_counted_ptr, Browser, CefString, CefStringList, CompletionCallback, ErrorCode, Frame,
+    RefCountedPtr, Request, Wrappable, Wrapped
 };
 use cef_ui_bindings_linux_x86_64::{
     cef_browser_t, cef_errorcode_t, cef_frame_t, cef_request_context_handler_t, cef_request_t,
@@ -70,35 +70,35 @@ pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
     /// context has been initialized.
     fn on_request_context_initialized(&self, request_context: RequestContext) {}
 
-    //     ///
-    //     /// Called on the browser process IO thread before a resource request is
-    //     /// initiated. The |browser| and |frame| values represent the source of the
-    //     /// request, and may be NULL for requests originating from service workers or
-    //     /// cef_urlrequest_t. |request| represents the request contents and cannot be
-    //     /// modified in this callback. |is_navigation| will be true (1) if the
-    //     /// resource request is a navigation. |is_download| will be true (1) if the
-    //     /// resource request is a download. |request_initiator| is the origin (scheme
-    //     /// + domain) of the page that initiated the request. Set
-    //     /// |disable_default_handling| to true (1) to disable default handling of the
-    //     /// request, in which case it will need to be handled via
-    //     /// cef_resource_request_handler_t::GetResourceHandler or it will be canceled.
-    //     /// To allow the resource load to proceed with default handling return NULL.
-    //     /// To specify a handler for the resource return a
-    //     /// cef_resource_request_handler_t object. This function will not be called if
-    //     /// the client associated with |browser| returns a non-NULL value from
-    //     /// cef_request_handler_t::GetResourceRequestHandler for the same request
-    //     /// (identified by cef_request_t::GetIdentifier).
-    //     ///
-    //     struct _cef_resource_request_handler_t*(
-    //     CEF_CALLBACK* get_resource_request_handler)(
-    //     struct _cef_request_context_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     struct _cef_request_t* request,
-    //     int is_navigation,
-    //     int is_download,
-    //     const cef_string_t* request_initiator,
-    //     int* disable_default_handling);
+    // /// Called on the browser process IO thread before a resource request is
+    // /// initiated. The |browser| and |frame| values represent the source of the
+    // /// request, and may be NULL for requests originating from service workers or
+    // /// cef_urlrequest_t. |request| represents the request contents and cannot be
+    // /// modified in this callback. |is_navigation| will be true (1) if the
+    // /// resource request is a navigation. |is_download| will be true (1) if the
+    // /// resource request is a download. |request_initiator| is the origin (scheme
+    // /// + domain) of the page that initiated the request. Set
+    // /// |disable_default_handling| to true (1) to disable default handling of the
+    // /// request, in which case it will need to be handled via
+    // /// cef_resource_request_handler_t::GetResourceHandler or it will be canceled.
+    // /// To allow the resource load to proceed with default handling return NULL.
+    // /// To specify a handler for the resource return a
+    // /// cef_resource_request_handler_t object. This function will not be called if
+    // /// the client associated with |browser| returns a non-NULL value from
+    // /// cef_request_handler_t::GetResourceRequestHandler for the same request
+    // /// (identified by cef_request_t::GetIdentifier).
+    // // fn get_resource_request_handler(
+    // //     &self,
+    // //     browser: Option<Browser>,
+    // //     frame: Option<Frame>,
+    // //     request: Request,
+    // //     is_navigation: bool,
+    // //     is_download: bool,
+    // //     request_initiator: &str,
+    // //     disable_default_handling: &mut bool
+    // // ) -> Option<ResourceRequestHandler> {
+    // //     None
+    // // }
 }
 
 ref_counted_ptr!(RequestContextHandler, cef_request_context_handler_t);
@@ -128,6 +128,8 @@ impl RequestContextHandlerWrapper {
             .on_request_context_initialized(request_context);
     }
 
+    // TODO: Fix this!
+
     unsafe extern "C" fn c_get_resource_request_handler(
         this: *mut cef_request_context_handler_t,
         browser: *mut cef_browser_t,
@@ -148,10 +150,11 @@ impl Wrappable for RequestContextHandlerWrapper {
     /// Converts this to a smart pointer.
     fn wrap(self) -> RefCountedPtr<Self::Cef> {
         RefCountedPtr::wrap(
+            // TODO: Fix this!
             cef_request_context_handler_t {
                 base:                           unsafe { zeroed() },
                 on_request_context_initialized: Some(Self::c_on_request_context_initialized),
-                get_resource_request_handler:   Some(Self::c_get_resource_request_handler)
+                get_resource_request_handler:   None
             },
             self
         )

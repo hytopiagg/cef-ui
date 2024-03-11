@@ -1026,6 +1026,8 @@ pub enum ErrorCode {
     DictionaryLoadFailed // Error -813 was removed (DICTIONARY_ORIGIN_CHECK_FAILED)
 }
 
+// TODO: Make all conversions from C return an Option<T>?
+
 impl From<cef_errorcode_t> for ErrorCode {
     fn from(value: cef_errorcode_t) -> Self {
         match value {
