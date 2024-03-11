@@ -261,30 +261,30 @@ impl<W: Wrappable> Wrapped<W> {
     }
 
     /// Increments the reference count (c version).
-    extern "C" fn c_add_ref(this: *mut cef_base_ref_counted_t) {
-        let this = unsafe { &mut *(this as *mut Self) };
+    unsafe extern "C" fn c_add_ref(this: *mut cef_base_ref_counted_t) {
+        let this = &mut *(this as *mut Self);
 
         this.add_ref();
     }
 
     /// Returns true if the reference count is 1 (c version).
-    extern "C" fn c_has_one_ref(this: *mut cef_base_ref_counted_t) -> c_int {
-        let this = unsafe { &*(this as *const Self) };
+    unsafe extern "C" fn c_has_one_ref(this: *mut cef_base_ref_counted_t) -> c_int {
+        let this = &*(this as *const Self);
 
         this.has_one_ref() as c_int
     }
 
     /// Returns true if the reference count is at least 1 (c version).
-    extern "C" fn c_has_at_least_one_ref(this: *mut cef_base_ref_counted_t) -> c_int {
-        let this = unsafe { &*(this as *const Self) };
+    unsafe extern "C" fn c_has_at_least_one_ref(this: *mut cef_base_ref_counted_t) -> c_int {
+        let this = &*(this as *const Self);
 
         this.has_at_least_one_ref() as c_int
     }
 
     /// Decrements the reference count. If the reference count
     /// reaches 0, then the object is deallocated (c version).
-    pub extern "C" fn c_release(this: *mut cef_base_ref_counted_t) -> c_int {
-        let this = unsafe { &mut *(this as *mut Self) };
+    unsafe extern "C" fn c_release(this: *mut cef_base_ref_counted_t) -> c_int {
+        let this = &mut *(this as *mut Self);
 
         this.release() as c_int
     }

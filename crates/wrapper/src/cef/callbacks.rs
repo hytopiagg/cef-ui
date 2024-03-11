@@ -44,8 +44,8 @@ impl CompletionCallbackWrapper {
         Self(Mutex::new(Some(Box::new(f))))
     }
 
-    extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
-        let this: &Self = unsafe { Wrapped::wrappable(this) };
+    unsafe extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
+        let this: &Self = Wrapped::wrappable(this);
 
         if let Some(f) = this.0.lock().take() {
             f();
