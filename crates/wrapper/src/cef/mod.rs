@@ -3,6 +3,7 @@ mod browser;
 mod callbacks;
 mod client;
 mod color;
+mod command_line;
 mod context;
 mod frame;
 mod main_args;
@@ -23,6 +24,7 @@ pub use browser::*;
 pub use callbacks::*;
 pub use client::*;
 pub use color::*;
+pub use command_line::*;
 pub use context::*;
 pub use frame::*;
 pub use main_args::*;
@@ -37,3 +39,8 @@ pub use string::*;
 pub use types::*;
 pub use values::*;
 pub use window::*;
+
+// TODO: Evaluate that your code is actually save! You were doing some unsafe
+//  things getting pointers to CefString's and then letting the original value
+//  be dropped before you used the pointer. This is because you were using the
+//  original value by value instead of by reference.

@@ -6,6 +6,8 @@ use std::mem::zeroed;
 /// functions of this structure will be called on the IO thread unless otherwise
 /// indicated.
 pub trait ResourceRequestHandlerCallbacks: Send + Sync + 'static {
+    // TODO: Fix this!
+
     //     ///
     //     /// Called on the IO thread before a resource request is loaded. The |browser|
     //     /// and |frame| values represent the source of the request, and may be NULL
