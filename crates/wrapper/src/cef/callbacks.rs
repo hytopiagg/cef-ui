@@ -44,6 +44,7 @@ impl CompletionCallbackWrapper {
         Self(Mutex::new(Some(Box::new(f))))
     }
 
+    /// Method that will be called once the task is complete.
     unsafe extern "C" fn c_on_complete(this: *mut cef_completion_callback_t) {
         let this: &Self = Wrapped::wrappable(this);
 

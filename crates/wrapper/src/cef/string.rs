@@ -290,6 +290,7 @@ impl StringVisitorWrapper {
         Self(Mutex::new(Box::new(callbacks)))
     }
 
+    /// Method that will be executed.
     unsafe extern "C" fn c_visit(this: *mut cef_string_visitor_t, s: *const cef_string_t) {
         let this: &Self = Wrapped::wrappable(this);
         let s: String = CefString::from_ptr_unchecked(s).into();

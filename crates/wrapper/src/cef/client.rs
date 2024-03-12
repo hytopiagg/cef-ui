@@ -122,96 +122,125 @@ impl ClientWrapper {
         Self(Box::new(delegate))
     }
 
+    /// Return the handler for audio rendering events.
     unsafe extern "C" fn get_audio_handler(this: *mut cef_client_t) -> *mut cef_audio_handler_t {
         todo!()
     }
 
+    /// Return the handler for commands. If no handler is provided the default
+    /// implementation will be used.
     unsafe extern "C" fn get_command_handler(
         this: *mut cef_client_t
     ) -> *mut cef_command_handler_t {
         todo!()
     }
 
+    /// Return the handler for context menus. If no handler is provided the
+    /// default implementation will be used.
     unsafe extern "C" fn get_context_menu_handler(
         this: *mut cef_client_t
     ) -> *mut cef_context_menu_handler_t {
         todo!()
     }
 
+    /// Return the handler for dialogs. If no handler is provided the default
+    /// implementation will be used.
     unsafe extern "C" fn get_dialog_handler(this: *mut cef_client_t) -> *mut cef_dialog_handler_t {
         todo!()
     }
 
+    /// Return the handler for browser display state events.
     unsafe extern "C" fn get_display_handler(
         this: *mut cef_client_t
     ) -> *mut cef_display_handler_t {
         todo!()
     }
 
+    /// Return the handler for download events. If no handler is returned
+    /// downloads will not be allowed.
     unsafe extern "C" fn get_download_handler(
         this: *mut cef_client_t
     ) -> *mut cef_download_handler_t {
         todo!()
     }
 
+    /// Return the handler for drag events.
     unsafe extern "C" fn get_drag_handler(this: *mut cef_client_t) -> *mut cef_drag_handler_t {
         todo!()
     }
 
+    /// Return the handler for find result events.
     unsafe extern "C" fn get_find_handler(this: *mut cef_client_t) -> *mut cef_find_handler_t {
         todo!()
     }
 
+    /// Return the handler for focus events.
     unsafe extern "C" fn get_focus_handler(this: *mut cef_client_t) -> *mut cef_focus_handler_t {
         todo!()
     }
 
+    /// Return the handler for events related to cef_frame_t lifespan. This
+    /// function will be called once during cef_browser_t creation and the result
+    /// will be cached for performance reasons.
     unsafe extern "C" fn get_frame_handler(this: *mut cef_client_t) -> *mut cef_frame_handler_t {
         todo!()
     }
 
+    /// Return the handler for permission requests.
     unsafe extern "C" fn get_permission_handler(
         this: *mut cef_client_t
     ) -> *mut cef_permission_handler_t {
         todo!()
     }
 
+    /// Return the handler for JavaScript dialogs. If no handler is provided the
+    /// default implementation will be used.
     unsafe extern "C" fn get_jsdialog_handler(
         this: *mut cef_client_t
     ) -> *mut cef_jsdialog_handler_t {
         todo!()
     }
 
+    /// Return the handler for keyboard events.
     unsafe extern "C" fn get_keyboard_handler(
         this: *mut cef_client_t
     ) -> *mut cef_keyboard_handler_t {
         todo!()
     }
 
+    /// Return the handler for browser life span events.
     unsafe extern "C" fn get_life_span_handler(
         this: *mut cef_client_t
     ) -> *mut cef_life_span_handler_t {
         todo!()
     }
 
+    /// Return the handler for browser load status events.
     unsafe extern "C" fn get_load_handler(this: *mut cef_client_t) -> *mut cef_load_handler_t {
         todo!()
     }
 
+    /// Return the handler for printing on Linux. If a print handler is not
+    /// provided then printing will not be supported on the Linux platform.
     unsafe extern "C" fn get_print_handler(this: *mut cef_client_t) -> *mut cef_print_handler_t {
         todo!()
     }
 
+    /// Return the handler for off-screen rendering events.
     unsafe extern "C" fn get_render_handler(this: *mut cef_client_t) -> *mut cef_render_handler_t {
         todo!()
     }
 
+    /// Return the handler for browser request events.
     unsafe extern "C" fn get_request_handler(
         this: *mut cef_client_t
     ) -> *mut cef_request_handler_t {
         todo!()
     }
 
+    /// Called when a new message is received from a different process. Return
+    /// true (1) if the message was handled or false (0) otherwise.  It is safe to
+    /// keep a reference to |message| outside of this callback.
     unsafe extern "C" fn process_message_received(
         this: *mut cef_client_t,
         browser: *mut cef_browser_t,
