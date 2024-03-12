@@ -1,13 +1,13 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, Point, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
+    Frame, PaintElementType, Point, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
     cef_browser_t, cef_point_t, cef_string_t
 };
 use std::{
-    ffi::c_int,
+    ffi::{c_int, c_void},
     mem::{size_of, zeroed},
     ptr::{null, null_mut}
 };
@@ -773,45 +773,49 @@ impl BrowserHost {
             .unwrap_or(false)
     }
 
-    // TODO: Fix these!
-
-    // ///
-    // /// Send a function call message over the DevTools protocol. |message| must be
-    // /// a UTF8-encoded JSON dictionary that contains "id" (int), "function"
-    // /// (string) and "params" (dictionary, optional) values. See the DevTools
-    // /// protocol documentation at https://chromedevtools.github.io/devtools-
-    // /// protocol/ for details of supported functions and the expected "params"
-    // /// dictionary contents. |message| will be copied if necessary. This function
-    // /// will return true (1) if called on the UI thread and the message was
-    // /// successfully submitted for validation, otherwise false (0). Validation
-    // /// will be applied asynchronously and any messages that fail due to
-    // /// formatting errors or missing parameters may be discarded without
-    // /// notification. Prefer ExecuteDevToolsMethod if a more structured approach
-    // /// to message formatting is desired.
-    // ///
-    // /// Every valid function call will result in an asynchronous function result
-    // /// or error message that references the sent message "id". Event messages are
-    // /// received while notifications are enabled (for example, between function
-    // /// calls for "Page.enable" and "Page.disable"). All received messages will be
-    // /// delivered to the observer(s) registered with AddDevToolsMessageObserver.
-    // /// See cef_dev_tools_message_observer_t::OnDevToolsMessage documentation for
-    // /// details of received message contents.
-    // ///
-    // /// Usage of the SendDevToolsMessage, ExecuteDevToolsMethod and
-    // /// AddDevToolsMessageObserver functions does not require an active DevTools
-    // /// front-end or remote-debugging session. Other active DevTools sessions will
-    // /// continue to function independently. However, any modification of global
-    // /// browser state by one session may not be reflected in the UI of other
-    // /// sessions.
-    // ///
-    // /// Communication with the DevTools front-end (when displayed) can be logged
-    // /// for development purposes by passing the `--devtools-protocol-log-
-    // /// file=<path>` command-line flag.
-    // ///
-    // int(CEF_CALLBACK* send_dev_tools_message)(struct _cef_browser_host_t* self,
-    // const void* message,
-    // size_t message_size);
-    //
+    /// Send a function call message over the DevTools protocol. |message| must be
+    /// a UTF8-encoded JSON dictionary that contains "id" (int), "function"
+    /// (string) and "params" (dictionary, optional) values. See the DevTools
+    /// protocol documentation at https://chromedevtools.github.io/devtools-
+    /// protocol/ for details of supported functions and the expected "params"
+    /// dictionary contents. |message| will be copied if necessary. This function
+    /// will return true (1) if called on the UI thread and the message was
+    /// successfully submitted for validation, otherwise false (0). Validation
+    /// will be applied asynchronously and any messages that fail due to
+    /// formatting errors or missing parameters may be discarded without
+    /// notification. Prefer ExecuteDevToolsMethod if a more structured approach
+    /// to message formatting is desired.
+    ///
+    /// Every valid function call will result in an asynchronous function result
+    /// or error message that references the sent message "id". Event messages are
+    /// received while notifications are enabled (for example, between function
+    /// calls for "Page.enable" and "Page.disable"). All received messages will be
+    /// delivered to the observer(s) registered with AddDevToolsMessageObserver.
+    /// See cef_dev_tools_message_observer_t::OnDevToolsMessage documentation for
+    /// details of received message contents.
+    ///
+    /// Usage of the SendDevToolsMessage, ExecuteDevToolsMethod and
+    /// AddDevToolsMessageObserver functions does not require an active DevTools
+    /// front-end or remote-debugging session. Other active DevTools sessions will
+    /// continue to function independently. However, any modification of global
+    /// browser state by one session may not be reflected in the UI of other
+    /// sessions.
+    ///
+    /// Communication with the DevTools front-end (when displayed) can be logged
+    /// for development purposes by passing the `--devtools-protocol-log-
+    /// file=<path>` command-line flag.
+    pub fn send_dev_tools_message(&self, message: &[u8]) -> bool {
+        self.0
+            .send_dev_tools_message
+            .map(|send_dev_tools_message| unsafe {
+                send_dev_tools_message(
+                    self.as_ptr(),
+                    message.as_ptr() as *const c_void,
+                    message.len()
+                ) != 0
+            })
+            .unwrap_or(false)
+    }
 
     /// Execute a function call over the DevTools protocol. This is a more
     /// structured version of SendDevToolsMessage. |message_id| is an incremental
@@ -943,16 +947,16 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
-
-    // ///
-    // /// Invalidate the view. The browser will call cef_render_handler_t::OnPaint
-    // /// asynchronously. This function is only used when window rendering is
-    // /// disabled.
-    // ///
-    // void(CEF_CALLBACK* invalidate)(struct _cef_browser_host_t* self,
-    // cef_paint_element_type_t type);
-    //
+    /// Invalidate the view. The browser will call cef_render_handler_t::OnPaint
+    /// asynchronously. This function is only used when window rendering is
+    /// disabled.
+    pub fn invalidate(&self, element_type: PaintElementType) {
+        if let Some(invalidate) = self.0.invalidate {
+            unsafe {
+                invalidate(self.as_ptr(), element_type.into());
+            }
+        }
+    }
 
     /// Issue a BeginFrame request to Chromium.  Only valid when
     /// cef_window_tInfo::external_begin_frame_enabled is set to true (1).

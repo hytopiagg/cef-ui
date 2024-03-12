@@ -1,6 +1,6 @@
 use bindings::{
-    cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_point_t, cef_range_t,
-    cef_rect_t, cef_size_t, cef_state_t, cef_zoom_command_t
+    cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_paint_element_type_t,
+    cef_point_t, cef_range_t, cef_rect_t, cef_size_t, cef_state_t, cef_zoom_command_t
 };
 
 // Ranges:
@@ -1026,10 +1026,14 @@ pub enum ErrorCode {
     DictionaryLoadFailed // Error -813 was removed (DICTIONARY_ORIGIN_CHECK_FAILED)
 }
 
-// TODO: Make all conversions from C return an Option<T>?
-
 impl From<cef_errorcode_t> for ErrorCode {
     fn from(value: cef_errorcode_t) -> Self {
+        ErrorCode::from(&value)
+    }
+}
+
+impl From<&cef_errorcode_t> for ErrorCode {
+    fn from(value: &cef_errorcode_t) -> Self {
         match value {
             cef_errorcode_t::ERR_NONE => ErrorCode::None,
             cef_errorcode_t::ERR_IO_PENDING => ErrorCode::IoPending,
@@ -1274,6 +1278,12 @@ impl From<cef_errorcode_t> for ErrorCode {
 
 impl From<ErrorCode> for cef_errorcode_t {
     fn from(value: ErrorCode) -> Self {
+        cef_errorcode_t::from(&value)
+    }
+}
+
+impl From<&ErrorCode> for cef_errorcode_t {
+    fn from(value: &ErrorCode) -> Self {
         match value {
             ErrorCode::None => cef_errorcode_t::ERR_NONE,
             ErrorCode::IoPending => cef_errorcode_t::ERR_IO_PENDING,
@@ -1511,7 +1521,7 @@ impl From<ErrorCode> for cef_errorcode_t {
             ErrorCode::DnsNameHttpsOnly => cef_errorcode_t::ERR_DNS_NAME_HTTPS_ONLY,
             ErrorCode::DnsRequestCancelled => cef_errorcode_t::ERR_DNS_REQUEST_CANCELLED,
             ErrorCode::DnsNoMatchingSupportedAlpn => cef_errorcode_t::ERR_DNS_NO_MATCHING_SUPPORTED_ALPN,
-            ErrorCode::DictionaryLoadFailed => cef_errorcode_t::ERR_DICTIONARY_LOAD_FAILED,
+            ErrorCode::DictionaryLoadFailed => cef_errorcode_t::ERR_DICTIONARY_LOAD_FAILED
         }
     }
 }
@@ -1537,6 +1547,12 @@ impl Default for State {
 
 impl From<cef_state_t> for State {
     fn from(value: cef_state_t) -> Self {
+        State::from(&value)
+    }
+}
+
+impl From<&cef_state_t> for State {
+    fn from(value: &cef_state_t) -> Self {
         match value {
             cef_state_t::STATE_DEFAULT => Self::Default,
             cef_state_t::STATE_ENABLED => Self::Enabled,
@@ -1547,6 +1563,12 @@ impl From<cef_state_t> for State {
 
 impl From<State> for cef_state_t {
     fn from(value: State) -> Self {
+        cef_state_t::from(&value)
+    }
+}
+
+impl From<&State> for cef_state_t {
+    fn from(value: &State) -> Self {
         match value {
             State::Default => Self::STATE_DEFAULT,
             State::Enabled => Self::STATE_ENABLED,
@@ -1589,6 +1611,12 @@ impl Default for LogSeverity {
 
 impl From<cef_log_severity_t> for LogSeverity {
     fn from(value: cef_log_severity_t) -> Self {
+        LogSeverity::from(&value)
+    }
+}
+
+impl From<&cef_log_severity_t> for LogSeverity {
+    fn from(value: &cef_log_severity_t) -> Self {
         match value {
             cef_log_severity_t::LOGSEVERITY_DEFAULT => Self::Default,
             cef_log_severity_t::LOGSEVERITY_VERBOSE => Self::Verbose,
@@ -1603,6 +1631,12 @@ impl From<cef_log_severity_t> for LogSeverity {
 
 impl From<LogSeverity> for cef_log_severity_t {
     fn from(value: LogSeverity) -> Self {
+        cef_log_severity_t::from(&value)
+    }
+}
+
+impl From<&LogSeverity> for cef_log_severity_t {
+    fn from(value: &LogSeverity) -> Self {
         match value {
             LogSeverity::Default => Self::LOGSEVERITY_DEFAULT,
             LogSeverity::Verbose => Self::LOGSEVERITY_VERBOSE,
@@ -1645,6 +1679,12 @@ impl Default for LogItems {
 
 impl From<cef_log_items_t> for LogItems {
     fn from(value: cef_log_items_t) -> Self {
+        LogItems::from(&value)
+    }
+}
+
+impl From<&cef_log_items_t> for LogItems {
+    fn from(value: &cef_log_items_t) -> Self {
         match value {
             cef_log_items_t::LOG_ITEMS_DEFAULT => Self::Default,
             cef_log_items_t::LOG_ITEMS_NONE => Self::None,
@@ -1658,6 +1698,12 @@ impl From<cef_log_items_t> for LogItems {
 
 impl From<LogItems> for cef_log_items_t {
     fn from(value: LogItems) -> Self {
+        cef_log_items_t::from(&value)
+    }
+}
+
+impl From<&LogItems> for cef_log_items_t {
+    fn from(value: &LogItems) -> Self {
         match value {
             LogItems::Default => Self::LOG_ITEMS_DEFAULT,
             LogItems::None => Self::LOG_ITEMS_NONE,
@@ -1710,6 +1756,46 @@ impl From<&ZoomCommand> for cef_zoom_command_t {
             ZoomCommand::Out => cef_zoom_command_t::CEF_ZOOM_COMMAND_OUT,
             ZoomCommand::Reset => cef_zoom_command_t::CEF_ZOOM_COMMAND_RESET,
             ZoomCommand::In => cef_zoom_command_t::CEF_ZOOM_COMMAND_IN
+        }
+    }
+}
+
+/// Paint element types.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PaintElementType {
+    /// View.
+    View,
+
+    /// Popup.
+    Popup
+}
+
+impl From<cef_paint_element_type_t> for PaintElementType {
+    fn from(value: cef_paint_element_type_t) -> Self {
+        PaintElementType::from(&value)
+    }
+}
+
+impl From<&cef_paint_element_type_t> for PaintElementType {
+    fn from(value: &cef_paint_element_type_t) -> Self {
+        match value {
+            cef_paint_element_type_t::PET_VIEW => PaintElementType::View,
+            cef_paint_element_type_t::PET_POPUP => PaintElementType::Popup
+        }
+    }
+}
+
+impl From<PaintElementType> for cef_paint_element_type_t {
+    fn from(value: PaintElementType) -> Self {
+        cef_paint_element_type_t::from(&value)
+    }
+}
+
+impl From<&PaintElementType> for cef_paint_element_type_t {
+    fn from(value: &PaintElementType) -> Self {
+        match value {
+            PaintElementType::View => cef_paint_element_type_t::PET_VIEW,
+            PaintElementType::Popup => cef_paint_element_type_t::PET_POPUP
         }
     }
 }
