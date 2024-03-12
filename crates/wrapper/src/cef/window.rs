@@ -6,17 +6,14 @@
 #[cfg(target_os = "linux")]
 mod window_info {
     use crate::{bindings::cef_window_info_t, free_cef_string, CefString, Rect};
-    use cef_ui_bindings_linux_x86_64::cef_string_t;
-    use std::{
-        ffi::{c_int, c_ulong},
-        mem::zeroed
-    };
+    use cef_ui_bindings_linux_x86_64::{cef_string_t, cef_window_handle_t};
+    use std::{ffi::c_int, mem::zeroed};
 
     /// The raw window handle.
-    pub struct WindowHandle(c_ulong);
+    pub struct WindowHandle(cef_window_handle_t);
 
     impl WindowHandle {
-        pub fn new(handle: c_ulong) -> Self {
+        pub fn new(handle: cef_window_handle_t) -> Self {
             Self(handle)
         }
     }
