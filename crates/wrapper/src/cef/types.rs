@@ -1684,6 +1684,12 @@ pub enum ZoomCommand {
 
 impl From<cef_zoom_command_t> for ZoomCommand {
     fn from(value: cef_zoom_command_t) -> Self {
+        ZoomCommand::from(&value)
+    }
+}
+
+impl From<&cef_zoom_command_t> for ZoomCommand {
+    fn from(value: &cef_zoom_command_t) -> Self {
         match value {
             cef_zoom_command_t::CEF_ZOOM_COMMAND_OUT => ZoomCommand::Out,
             cef_zoom_command_t::CEF_ZOOM_COMMAND_RESET => ZoomCommand::Reset,
@@ -1694,6 +1700,12 @@ impl From<cef_zoom_command_t> for ZoomCommand {
 
 impl From<ZoomCommand> for cef_zoom_command_t {
     fn from(value: ZoomCommand) -> Self {
+        cef_zoom_command_t::from(&value)
+    }
+}
+
+impl From<&ZoomCommand> for cef_zoom_command_t {
+    fn from(value: &ZoomCommand) -> Self {
         match value {
             ZoomCommand::Out => cef_zoom_command_t::CEF_ZOOM_COMMAND_OUT,
             ZoomCommand::Reset => cef_zoom_command_t::CEF_ZOOM_COMMAND_RESET,
@@ -1709,12 +1721,24 @@ pub struct Point {
     pub y: i32
 }
 
+impl From<cef_point_t> for Point {
+    fn from(value: cef_point_t) -> Self {
+        Point::from(&value)
+    }
+}
+
 impl From<&cef_point_t> for Point {
     fn from(value: &cef_point_t) -> Self {
         Self {
             x: value.x,
             y: value.y
         }
+    }
+}
+
+impl From<Point> for cef_point_t {
+    fn from(value: Point) -> Self {
+        cef_point_t::from(&value)
     }
 }
 
@@ -1736,6 +1760,12 @@ pub struct Rect {
     pub height: i32
 }
 
+impl From<cef_rect_t> for Rect {
+    fn from(value: cef_rect_t) -> Self {
+        Rect::from(&value)
+    }
+}
+
 impl From<&cef_rect_t> for Rect {
     fn from(value: &cef_rect_t) -> Self {
         Self {
@@ -1744,6 +1774,12 @@ impl From<&cef_rect_t> for Rect {
             width:  value.width,
             height: value.height
         }
+    }
+}
+
+impl From<Rect> for cef_rect_t {
+    fn from(value: Rect) -> Self {
+        cef_rect_t::from(&value)
     }
 }
 
@@ -1765,12 +1801,24 @@ pub struct Size {
     pub height: i32
 }
 
+impl From<cef_size_t> for Size {
+    fn from(value: cef_size_t) -> Self {
+        Size::from(&value)
+    }
+}
+
 impl From<&cef_size_t> for Size {
     fn from(value: &cef_size_t) -> Self {
         Self {
             width:  value.width,
             height: value.height
         }
+    }
+}
+
+impl From<Size> for cef_size_t {
+    fn from(value: Size) -> Self {
+        cef_size_t::from(&value)
     }
 }
 
@@ -1792,6 +1840,12 @@ pub struct Insets {
     pub right:  i32
 }
 
+impl From<cef_insets_t> for Insets {
+    fn from(value: cef_insets_t) -> Self {
+        Insets::from(&value)
+    }
+}
+
 impl From<&cef_insets_t> for Insets {
     fn from(value: &cef_insets_t) -> Self {
         Self {
@@ -1800,6 +1854,12 @@ impl From<&cef_insets_t> for Insets {
             bottom: value.bottom,
             right:  value.right
         }
+    }
+}
+
+impl From<Insets> for cef_insets_t {
+    fn from(value: Insets) -> Self {
+        cef_insets_t::from(&value)
     }
 }
 
@@ -1821,12 +1881,24 @@ pub struct Range {
     pub to:   u32
 }
 
+impl From<cef_range_t> for Range {
+    fn from(value: cef_range_t) -> Self {
+        Range::from(&value)
+    }
+}
+
 impl From<&cef_range_t> for Range {
     fn from(value: &cef_range_t) -> Self {
         Self {
             from: value.from,
             to:   value.to
         }
+    }
+}
+
+impl From<Range> for cef_range_t {
+    fn from(value: Range) -> Self {
+        cef_range_t::from(&value)
     }
 }
 
