@@ -8,8 +8,14 @@ use crate::{
     ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped
 };
 use anyhow::{anyhow, Result};
+use cef_ui_bindings_linux_x86_64::{
+    cef_string_map_alloc, cef_string_map_append, cef_string_map_clear, cef_string_map_find,
+    cef_string_map_free, cef_string_map_key, cef_string_map_size, cef_string_map_t,
+    cef_string_map_value
+};
 use parking_lot::Mutex;
 use std::{
+    collections::HashMap,
     ffi::c_char,
     fmt::Debug,
     mem::{forget, zeroed},
@@ -22,14 +28,14 @@ use std::{
 pub struct CefString(cef_string_t);
 
 impl CefString {
-    /// Returns a null CefString.
-    pub fn null() -> Self {
-        Self(unsafe { zeroed() })
-    }
-
     /// Try and create a CefString from a str.
     pub fn new(s: &str) -> Self {
         Self(Self::utf8_to_utf16(s))
+    }
+
+    /// Returns true if the CefString is empty.
+    pub fn is_empty(&self) -> bool {
+        self.0.str_.is_null() || self.0.length == 0
     }
 
     /// Convert to a CefString reference.
@@ -55,7 +61,7 @@ impl CefString {
     /// Try and create a CefString from a cef_string_userfree_t pointer. This function
     /// will free the memory associated with the original cef_string_userfree_t value.
     pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Result<Self> {
-        let mut cef = Self::null();
+        let mut cef = Self::default();
 
         let ret = match unsafe {
             cef_string_utf16_set((*ptr).str_, (*ptr).length, cef.as_mut_ptr(), 1)
@@ -115,6 +121,12 @@ impl CefString {
     }
 }
 
+impl Default for CefString {
+    fn default() -> Self {
+        Self(unsafe { zeroed() })
+    }
+}
+
 impl Drop for CefString {
     fn drop(&mut self) {
         self.free();
@@ -135,7 +147,12 @@ impl From<CefString> for String {
 
 impl<'a> From<&'a CefString> for String {
     fn from(value: &'a CefString) -> Self {
-        String::from_utf16_lossy(unsafe { from_raw_parts(value.0.str_, value.0.length) })
+        match value.is_empty() {
+            true => String::new(),
+            false => {
+                String::from_utf16_lossy(unsafe { from_raw_parts(value.0.str_, value.0.length) })
+            },
+        }
     }
 }
 
@@ -194,7 +211,7 @@ impl CefStringList {
     /// Retrieve the value at the specified zero-based string list index. Returns
     /// true (1) if the value was successfully retrieved.
     pub fn get(&self, index: usize) -> Option<CefString> {
-        let mut cef = CefString::null();
+        let mut cef = CefString::default();
 
         match unsafe { cef_string_list_value(self.0, index, cef.as_mut_ptr()) } {
             0 => None,
@@ -203,7 +220,7 @@ impl CefStringList {
     }
 
     /// Append a new value at the end of the string list.
-    pub fn append(&mut self, value: &CefString) {
+    pub fn push(&mut self, value: &CefString) {
         unsafe { cef_string_list_append(self.0, value.as_ptr()) }
     }
 
@@ -264,6 +281,141 @@ impl From<&CefStringList> for Vec<String> {
         value
             .iter()
             .map(|s| s.into())
+            .collect()
+    }
+}
+
+/// CEF string maps are a set of key/value string pairs.
+#[repr(transparent)]
+pub struct CefStringMap(cef_string_map_t);
+
+impl CefStringMap {
+    pub fn new() -> Self {
+        Self(unsafe { cef_string_map_alloc() })
+    }
+
+    /// Convert to a CefStringMap reference.
+    pub fn from_ptr<'a>(ptr: cef_string_map_t) -> Option<&'a Self> {
+        unsafe { (ptr as *const Self).as_ref() }
+    }
+
+    /// Convert to a CefStringMap reference without checking if the pointer is null.
+    pub fn from_ptr_unchecked<'a>(ptr: cef_string_map_t) -> &'a Self {
+        unsafe { &*(ptr as *const Self) }
+    }
+
+    /// Convert to a mutable CefStringMap reference.
+    pub fn from_ptr_mut<'a>(ptr: cef_string_map_t) -> Option<&'a mut Self> {
+        unsafe { (ptr as *mut Self).as_mut() }
+    }
+
+    /// Convert to a mutable CefStringMap reference without checking if the pointer is null.
+    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_map_t) -> &'a mut Self {
+        unsafe { &mut *(ptr as *mut Self) }
+    }
+
+    /// Returns the string map as a mutable pointer.
+    pub fn as_mut_ptr(&mut self) -> cef_string_map_t {
+        self.0
+    }
+
+    /// Return the number of elements in the string map.
+    pub fn len(&self) -> usize {
+        unsafe { cef_string_map_size(self.0) }
+    }
+
+    /// Return the value assigned to the specified key.
+    pub fn get(&self, key: &CefString) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe { cef_string_map_find(self.0, key.as_ptr(), cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Return the key at the specified zero-based string map index.
+    pub fn key(&self, index: usize) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe { cef_string_map_key(self.0, index, cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Return the value at the specified zero-based string map index.
+    pub fn value(&self, index: usize) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe { cef_string_map_value(self.0, index, cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Append a new key/value pair at the end of the string map. If the key exists,
+    /// overwrite the existing value with a new value w/o changing the pair order.
+    pub fn push(&mut self, key: &CefString, value: &CefString) -> bool {
+        unsafe { cef_string_map_append(self.0, key.as_ptr(), value.as_ptr()) != 0 }
+    }
+
+    /// Clear the string map.
+    pub fn clear(&mut self) {
+        unsafe { cef_string_map_clear(self.0) }
+    }
+
+    /// Returns an iterator for the string map.
+    pub fn iter(&self) -> CefStringMapIter {
+        CefStringMapIter::new(self)
+    }
+}
+
+impl Drop for CefStringMap {
+    fn drop(&mut self) {
+        unsafe { cef_string_map_free(self.0) }
+    }
+}
+
+/// An iterator for CefStringMap
+pub struct CefStringMapIter<'a> {
+    map:   &'a CefStringMap,
+    index: usize
+}
+
+impl<'a> CefStringMapIter<'a> {
+    pub fn new(map: &'a CefStringMap) -> Self {
+        Self { map, index: 0 }
+    }
+}
+
+impl<'a> Iterator for CefStringMapIter<'a> {
+    type Item = (CefString, CefString);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let key = self.map.key(self.index);
+        let value = self.map.value(self.index);
+
+        self.index += 1;
+
+        match (key, value) {
+            (Some(key), Some(value)) => Some((key, value)),
+            _ => None
+        }
+    }
+}
+
+impl From<CefStringMap> for HashMap<String, String> {
+    fn from(value: CefStringMap) -> Self {
+        HashMap::<String, String>::from(&value)
+    }
+}
+
+impl From<&CefStringMap> for HashMap<String, String> {
+    fn from(value: &CefStringMap) -> Self {
+        value
+            .iter()
+            .map(|(k, v)| (k.into(), v.into()))
             .collect()
     }
 }
