@@ -1,9 +1,6 @@
-use crate::{
-    bindings::{cef_execute_process, cef_initialize, cef_shutdown},
-    App, MainArgs, Settings
-};
+use crate::{App, MainArgs, Settings};
 use anyhow::{anyhow, Result};
-use cef_ui_bindings_linux_x86_64::cef_run_message_loop;
+use bindings::{cef_execute_process, cef_initialize, cef_run_message_loop, cef_shutdown};
 use std::ptr::null_mut;
 
 pub struct Context {

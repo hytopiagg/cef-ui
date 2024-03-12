@@ -1,22 +1,20 @@
-// So cef_window_handle_t is, on each platform:
-// - Linux:   unsigned long
-// - MacOS:   void*
-// - Windows: HWND
+use bindings::cef_window_handle_t;
+
+/// The raw window handle.
+pub struct WindowHandle(cef_window_handle_t);
+
+impl WindowHandle {
+    pub fn new(handle: cef_window_handle_t) -> Self {
+        Self(handle)
+    }
+}
 
 #[cfg(target_os = "linux")]
 mod window_info {
-    use crate::{bindings::cef_window_info_t, free_cef_string, CefString, Rect};
-    use cef_ui_bindings_linux_x86_64::{cef_string_t, cef_window_handle_t};
+    use super::WindowHandle;
+    use crate::{free_cef_string, CefString, Rect};
+    use bindings::{cef_string_t, cef_window_info_t};
     use std::{ffi::c_int, mem::zeroed};
-
-    /// The raw window handle.
-    pub struct WindowHandle(cef_window_handle_t);
-
-    impl WindowHandle {
-        pub fn new(handle: cef_window_handle_t) -> Self {
-            Self(handle)
-        }
-    }
 
     /// Class representing window information.
     #[derive(Debug)]

@@ -1,5 +1,5 @@
 use crate::{ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped};
-use cef_ui_bindings_linux_x86_64::{cef_callback_t, cef_completion_callback_t};
+use bindings::{cef_callback_t, cef_completion_callback_t};
 use parking_lot::Mutex;
 use std::mem::zeroed;
 

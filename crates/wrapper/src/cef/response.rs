@@ -1,5 +1,5 @@
 use crate::{ref_counted_ptr, CefString, ErrorCode};
-use cef_ui_bindings_linux_x86_64::{cef_response_create, cef_response_t};
+use bindings::{cef_response_create, cef_response_t};
 use std::ffi::c_int;
 
 // Structure used to represent a web response. The functions of this structure
