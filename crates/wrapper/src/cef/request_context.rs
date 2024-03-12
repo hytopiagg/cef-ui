@@ -1,9 +1,8 @@
 use crate::{
-    bindings::{cef_request_context_t, cef_resolve_callback_t},
     ref_counted_ptr, CefString, CefStringList, CompletionCallback, ErrorCode, RefCountedPtr,
     RequestContextHandler, Wrappable, Wrapped
 };
-use cef_ui_bindings_linux_x86_64::{cef_errorcode_t, cef_string_list_t};
+use bindings::{cef_errorcode_t, cef_request_context_t, cef_resolve_callback_t, cef_string_list_t};
 use parking_lot::Mutex;
 use std::mem::zeroed;
 

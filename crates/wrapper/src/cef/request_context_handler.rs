@@ -2,7 +2,7 @@ use crate::{
     ref_counted_ptr, Browser, CefString, Frame, RefCountedPtr, Request, RequestContext,
     ResourceRequestHandler, Wrappable, Wrapped
 };
-use cef_ui_bindings_linux_x86_64::{
+use bindings::{
     cef_browser_t, cef_frame_t, cef_request_context_handler_t, cef_request_context_t,
     cef_request_t, cef_resource_request_handler_t, cef_string_t
 };

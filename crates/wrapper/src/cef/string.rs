@@ -1,17 +1,12 @@
-use crate::{
-    bindings::{
-        cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
-        cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
-        cef_string_t, cef_string_userfree_t, cef_string_userfree_utf16_free, cef_string_utf16_set,
-        cef_string_utf8_to_utf16, cef_string_visitor_t
-    },
-    ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped
-};
+use crate::{ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped};
 use anyhow::{anyhow, Result};
-use cef_ui_bindings_linux_x86_64::{
+use bindings::{
+    cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
+    cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
     cef_string_map_alloc, cef_string_map_append, cef_string_map_clear, cef_string_map_find,
     cef_string_map_free, cef_string_map_key, cef_string_map_size, cef_string_map_t,
-    cef_string_map_value
+    cef_string_map_value, cef_string_t, cef_string_userfree_t, cef_string_userfree_utf16_free,
+    cef_string_utf16_set, cef_string_utf8_to_utf16, cef_string_visitor_t
 };
 use parking_lot::Mutex;
 use std::{

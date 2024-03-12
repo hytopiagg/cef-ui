@@ -1,6 +1,6 @@
-use crate::bindings::{cef_log_items_t, cef_log_severity_t, cef_state_t};
-use cef_ui_bindings_linux_x86_64::{
-    cef_errorcode_t, cef_insets_t, cef_point_t, cef_range_t, cef_rect_t, cef_size_t
+use bindings::{
+    cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_point_t, cef_range_t,
+    cef_rect_t, cef_size_t, cef_state_t
 };
 
 // Ranges:

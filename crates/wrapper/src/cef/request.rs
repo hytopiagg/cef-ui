@@ -1,5 +1,5 @@
 use crate::{ref_counted_ptr, CefString};
-use cef_ui_bindings_linux_x86_64::{cef_request_create, cef_request_t};
+use bindings::{cef_request_create, cef_request_t};
 use std::ffi::c_int;
 
 // Structure used to represent a web request. The functions of this structure

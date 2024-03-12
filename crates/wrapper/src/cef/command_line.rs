@@ -1,7 +1,5 @@
 use crate::{ref_counted_ptr, CefString, CefStringList, CefStringMap};
-use cef_ui_bindings_linux_x86_64::{
-    cef_command_line_create, cef_command_line_get_global, cef_command_line_t
-};
+use bindings::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t};
 use std::{
     collections::HashMap,
     ffi::{c_char, c_int, CString},

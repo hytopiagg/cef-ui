@@ -1,10 +1,10 @@
 use crate::{
-    bindings::{
-        cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
-        cef_browser_t, cef_string_t
-    },
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, RequestContext, State, WindowInfo
+    Frame, RequestContext, State, WindowHandle, WindowInfo
+};
+use bindings::{
+    cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
+    cef_browser_t, cef_string_t
 };
 use std::{
     ffi::c_int,

@@ -17,7 +17,7 @@ parking_lot = "0.12"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
-cef-ui-bindings-linux-x86_64 = { path = "../bindings-linux-x86_64" }
+bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../bindings-linux-x86_64" }
 
 [dev-dependencies]
 bevy = "0.13"
