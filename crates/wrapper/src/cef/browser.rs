@@ -1,6 +1,6 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, RequestContext, State, WindowHandle, WindowInfo
+    Frame, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -509,26 +509,27 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    /// Retrieve the window handle (if any) for this browser. If this browser is
+    /// wrapped in a cef_browser_view_t this function should be called on the
+    /// browser process UI thread and it will return the handle for the top-level
+    /// native window.
+    pub fn get_window_handle(&self) -> Option<WindowHandle> {
+        self.0
+            .get_window_handle
+            .map(|get_window_handle| unsafe { WindowHandle::new(get_window_handle(self.as_ptr())) })
+    }
 
-    // ///
-    // /// Retrieve the window handle (if any) for this browser. If this browser is
-    // /// wrapped in a cef_browser_view_t this function should be called on the
-    // /// browser process UI thread and it will return the handle for the top-level
-    // /// native window.
-    // ///
-    // cef_window_handle_t(CEF_CALLBACK* get_window_handle)(
-    // struct _cef_browser_host_t* self);
-    //
-    // ///
-    // /// Retrieve the window handle (if any) of the browser that opened this
-    // /// browser. Will return NULL for non-popup browsers or if this browser is
-    // /// wrapped in a cef_browser_view_t. This function can be used in combination
-    // /// with custom handling of modal windows.
-    // ///
-    // cef_window_handle_t(CEF_CALLBACK* get_opener_window_handle)(
-    // struct _cef_browser_host_t* self);
-    //
+    /// Retrieve the window handle (if any) of the browser that opened this
+    /// browser. Will return NULL for non-popup browsers or if this browser is
+    /// wrapped in a cef_browser_view_t. This function can be used in combination
+    /// with custom handling of modal windows.
+    pub fn get_opener_window_handle(&self) -> Option<WindowHandle> {
+        self.0
+            .get_opener_window_handle
+            .map(|get_opener_window_handle| unsafe {
+                WindowHandle::new(get_opener_window_handle(self.as_ptr()))
+            })
+    }
 
     /// Returns true (1) if this browser is wrapped in a cef_browser_view_t.
     pub fn has_view(&self) -> bool {
@@ -538,35 +539,41 @@ impl BrowserHost {
             .unwrap_or(false)
     }
 
-    // TODO: Fix these!
+    /// Returns the client for this browser.
+    pub fn get_client(&self) -> Option<Client> {
+        self.0
+            .get_client
+            .and_then(|get_client| unsafe { Client::from_ptr(get_client(self.as_ptr())) })
+    }
 
-    // ///
-    // /// Returns the client for this browser.
-    // ///
-    // struct _cef_client_t*(CEF_CALLBACK* get_client)(
-    // struct _cef_browser_host_t* self);
-    //
-    // ///
-    // /// Returns the request context for this browser.
-    // ///
-    // struct _cef_request_context_t*(CEF_CALLBACK* get_request_context)(
-    // struct _cef_browser_host_t* self);
-    //
-    // ///
-    // /// Returns true (1) if this browser can execute the specified zoom command.
-    // /// This function can only be called on the UI thread.
-    // ///
-    // int(CEF_CALLBACK* can_zoom)(struct _cef_browser_host_t* self,
-    // cef_zoom_command_t command);
-    //
-    // ///
-    // /// Execute a zoom command in this browser. If called on the UI thread the
-    // /// change will be applied immediately. Otherwise, the change will be applied
-    // /// asynchronously on the UI thread.
-    // ///
-    // void(CEF_CALLBACK* zoom)(struct _cef_browser_host_t* self,
-    // cef_zoom_command_t command);
-    //
+    /// Returns the request context for this browser.
+    pub fn get_request_context(&self) -> Option<RequestContext> {
+        self.0
+            .get_request_context
+            .and_then(|get_request_context| unsafe {
+                RequestContext::from_ptr(get_request_context(self.as_ptr()))
+            })
+    }
+
+    /// Returns true (1) if this browser can execute the specified zoom command.
+    /// This function can only be called on the UI thread.
+    pub fn can_zoom(&self, command: ZoomCommand) -> bool {
+        self.0
+            .can_zoom
+            .map(|can_zoom| unsafe { can_zoom(self.as_ptr(), command.into()) != 0 })
+            .unwrap_or(false)
+    }
+
+    /// Execute a zoom command in this browser. If called on the UI thread the
+    /// change will be applied immediately. Otherwise, the change will be applied
+    /// asynchronously on the UI thread.
+    pub fn zoom(&self, command: ZoomCommand) {
+        if let Some(zoom) = self.0.zoom {
+            unsafe {
+                zoom(self.as_ptr(), command.into());
+            }
+        }
+    }
 
     /// Get the default zoom level. This value will be 0.0 by default but can be
     /// configured with the Chrome runtime. This function can only be called on

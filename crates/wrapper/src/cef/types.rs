@@ -1,6 +1,6 @@
 use bindings::{
     cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_point_t, cef_range_t,
-    cef_rect_t, cef_size_t, cef_state_t
+    cef_rect_t, cef_size_t, cef_state_t, cef_zoom_command_t
 };
 
 // Ranges:
@@ -1665,6 +1665,39 @@ impl From<LogItems> for cef_log_items_t {
             LogItems::FlagThreadId => Self::LOG_ITEMS_FLAG_THREAD_ID,
             LogItems::FlagTimeStamp => Self::LOG_ITEMS_FLAG_TIME_STAMP,
             LogItems::FlagTickCount => Self::LOG_ITEMS_FLAG_TICK_COUNT
+        }
+    }
+}
+
+/// Specifies the zoom commands supported by CefBrowserHost::Zoom.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum ZoomCommand {
+    /// Zoom out.
+    Out,
+
+    /// Reset the zoom level to the default.
+    Reset,
+
+    /// Zoom in.
+    In
+}
+
+impl From<cef_zoom_command_t> for ZoomCommand {
+    fn from(value: cef_zoom_command_t) -> Self {
+        match value {
+            cef_zoom_command_t::CEF_ZOOM_COMMAND_OUT => ZoomCommand::Out,
+            cef_zoom_command_t::CEF_ZOOM_COMMAND_RESET => ZoomCommand::Reset,
+            cef_zoom_command_t::CEF_ZOOM_COMMAND_IN => ZoomCommand::In
+        }
+    }
+}
+
+impl From<ZoomCommand> for cef_zoom_command_t {
+    fn from(value: ZoomCommand) -> Self {
+        match value {
+            ZoomCommand::Out => cef_zoom_command_t::CEF_ZOOM_COMMAND_OUT,
+            ZoomCommand::Reset => cef_zoom_command_t::CEF_ZOOM_COMMAND_RESET,
+            ZoomCommand::In => cef_zoom_command_t::CEF_ZOOM_COMMAND_IN
         }
     }
 }
