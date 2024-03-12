@@ -1,15 +1,15 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
+    Frame, Point, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
-    cef_browser_t, cef_string_t
+    cef_browser_t, cef_point_t, cef_string_t
 };
 use std::{
     ffi::c_int,
     mem::{size_of, zeroed},
-    ptr::null_mut
+    ptr::{null, null_mut}
 };
 
 /// Browser initialization settings. Specify NULL or 0 to get the recommended
@@ -722,24 +722,38 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    /// Open developer tools (DevTools) in its own browser. The DevTools browser
+    /// will remain associated with this browser. If the DevTools browser is
+    /// already open then it will be focused, in which case the |windowInfo|,
+    /// |client| and |settings| parameters will be ignored. If
+    /// |inspect_element_at| is non-NULL then the element at the specified (x,y)
+    /// location will be inspected. The |windowInfo| parameter will be ignored if
+    /// this browser is wrapped in a cef_browser_view_t.
+    pub fn show_dev_tools(
+        &self,
+        window_info: &WindowInfo,
+        client: Client,
+        settings: &BrowserSettings,
+        inspect_element_at: Option<Point>
+    ) {
+        if let Some(show_dev_tools) = self.0.show_dev_tools {
+            unsafe {
+                let inspect_element_at =
+                    inspect_element_at.map(|inspect_element_at| inspect_element_at.into());
+                let inspect_element_at = inspect_element_at
+                    .as_ref()
+                    .map_or(null(), |p| p as *const cef_point_t);
 
-    // ///
-    // /// Open developer tools (DevTools) in its own browser. The DevTools browser
-    // /// will remain associated with this browser. If the DevTools browser is
-    // /// already open then it will be focused, in which case the |windowInfo|,
-    // /// |client| and |settings| parameters will be ignored. If
-    // /// |inspect_element_at| is non-NULL then the element at the specified (x,y)
-    // /// location will be inspected. The |windowInfo| parameter will be ignored if
-    // /// this browser is wrapped in a cef_browser_view_t.
-    // ///
-    // void(CEF_CALLBACK* show_dev_tools)(
-    // struct _cef_browser_host_t* self,
-    // const struct _cef_window_info_t* windowInfo,
-    // struct _cef_client_t* client,
-    // const struct _cef_browser_settings_t* settings,
-    // const cef_point_t* inspect_element_at);
-    //
+                show_dev_tools(
+                    self.as_ptr(),
+                    window_info.as_raw(),
+                    client.into_raw(),
+                    settings.as_raw(),
+                    inspect_element_at
+                );
+            }
+        }
+    }
 
     /// Explicitly close the associated DevTools browser, if any.
     pub fn close_dev_tools(&self) {
