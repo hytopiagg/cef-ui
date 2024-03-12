@@ -1,8 +1,9 @@
-use crate::{ref_counted_ptr, CefString, CefStringList};
+use crate::{ref_counted_ptr, CefString, CefStringList, CefStringMap};
 use cef_ui_bindings_linux_x86_64::{
     cef_command_line_create, cef_command_line_get_global, cef_command_line_t
 };
 use std::{
+    collections::HashMap,
     ffi::{c_char, c_int, CString},
     ptr::null_mut
 };
@@ -189,14 +190,37 @@ impl CommandLine {
             })
     }
 
-    // TODO: Fix this!
+    /// Returns the map of switch names and values. If a switch has no value an
+    /// NULL string is returned.
+    pub fn get_switches(&self) -> HashMap<String, Option<String>> {
+        self.0
+            .get_switches
+            .map(|get_switches| {
+                let mut switches = CefStringMap::new();
 
-    //     ///
-    //     /// Returns the map of switch names and values. If a switch has no value an
-    //     /// NULL string is returned.
-    //     ///
-    //     void(CEF_CALLBACK* get_switches)(struct _cef_command_line_t* self,
-    //     cef_string_map_t switches);
+                unsafe {
+                    get_switches(self.as_ptr(), switches.as_mut_ptr());
+                }
+
+                // This is so silly, the docs say that a map can contain null values,
+                // but this isn't actually true. It will still emit a valid CefString,
+                // but it will contain an empty string (a null internal pointer). So
+                // we have to check for that and convert it to None.
+                switches
+                    .iter()
+                    .map(|(k, v)| {
+                        (
+                            k.into(),
+                            match v.is_empty() {
+                                true => None,
+                                false => Some(v.into())
+                            }
+                        )
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
 
     /// Add a switch to the end of the command line.
     pub fn append_switch(&self, name: &str) {
