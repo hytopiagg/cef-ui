@@ -3163,25 +3163,22 @@ pub enum cef_paint_element_type_t {
     PET_VIEW = 0,
     PET_POPUP = 1
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_event_flags_t {
-    EVENTFLAG_NONE = 0,
-    EVENTFLAG_CAPS_LOCK_ON = 1,
-    EVENTFLAG_SHIFT_DOWN = 2,
-    EVENTFLAG_CONTROL_DOWN = 4,
-    EVENTFLAG_ALT_DOWN = 8,
-    EVENTFLAG_LEFT_MOUSE_BUTTON = 16,
-    EVENTFLAG_MIDDLE_MOUSE_BUTTON = 32,
-    EVENTFLAG_RIGHT_MOUSE_BUTTON = 64,
-    EVENTFLAG_COMMAND_DOWN = 128,
-    EVENTFLAG_NUM_LOCK_ON = 256,
-    EVENTFLAG_IS_KEY_PAD = 512,
-    EVENTFLAG_IS_LEFT = 1024,
-    EVENTFLAG_IS_RIGHT = 2048,
-    EVENTFLAG_ALTGR_DOWN = 4096,
-    EVENTFLAG_IS_REPEAT = 8192
-}
+pub const cef_event_flags_t_EVENTFLAG_NONE: cef_event_flags_t = 0;
+pub const cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON: cef_event_flags_t = 1;
+pub const cef_event_flags_t_EVENTFLAG_SHIFT_DOWN: cef_event_flags_t = 2;
+pub const cef_event_flags_t_EVENTFLAG_CONTROL_DOWN: cef_event_flags_t = 4;
+pub const cef_event_flags_t_EVENTFLAG_ALT_DOWN: cef_event_flags_t = 8;
+pub const cef_event_flags_t_EVENTFLAG_LEFT_MOUSE_BUTTON: cef_event_flags_t = 16;
+pub const cef_event_flags_t_EVENTFLAG_MIDDLE_MOUSE_BUTTON: cef_event_flags_t = 32;
+pub const cef_event_flags_t_EVENTFLAG_RIGHT_MOUSE_BUTTON: cef_event_flags_t = 64;
+pub const cef_event_flags_t_EVENTFLAG_COMMAND_DOWN: cef_event_flags_t = 128;
+pub const cef_event_flags_t_EVENTFLAG_NUM_LOCK_ON: cef_event_flags_t = 256;
+pub const cef_event_flags_t_EVENTFLAG_IS_KEY_PAD: cef_event_flags_t = 512;
+pub const cef_event_flags_t_EVENTFLAG_IS_LEFT: cef_event_flags_t = 1024;
+pub const cef_event_flags_t_EVENTFLAG_IS_RIGHT: cef_event_flags_t = 2048;
+pub const cef_event_flags_t_EVENTFLAG_ALTGR_DOWN: cef_event_flags_t = 4096;
+pub const cef_event_flags_t_EVENTFLAG_IS_REPEAT: cef_event_flags_t = 8192;
+pub type cef_event_flags_t = ::std::os::raw::c_uint;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum cef_menu_item_type_t {

@@ -4195,6 +4195,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bevy",
+ "bitflags 2.4.2",
  "cef-ui-bindings-linux-x86_64",
  "dunce",
  "log",
