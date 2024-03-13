@@ -14,6 +14,7 @@ dunce = "1.0"
 log = "0.4"
 tracing-log = "0.2.0"
 parking_lot = "0.12"
+bitflags = "2.4"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
