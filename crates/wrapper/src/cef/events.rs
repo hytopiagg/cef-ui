@@ -1,0 +1,364 @@
+use bindings::{
+    cef_event_flags_t, cef_event_flags_t_EVENTFLAG_ALTGR_DOWN,
+    cef_event_flags_t_EVENTFLAG_ALT_DOWN, cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON,
+    cef_event_flags_t_EVENTFLAG_COMMAND_DOWN, cef_event_flags_t_EVENTFLAG_CONTROL_DOWN,
+    cef_event_flags_t_EVENTFLAG_IS_KEY_PAD, cef_event_flags_t_EVENTFLAG_IS_LEFT,
+    cef_event_flags_t_EVENTFLAG_IS_REPEAT, cef_event_flags_t_EVENTFLAG_IS_RIGHT,
+    cef_event_flags_t_EVENTFLAG_LEFT_MOUSE_BUTTON, cef_event_flags_t_EVENTFLAG_MIDDLE_MOUSE_BUTTON,
+    cef_event_flags_t_EVENTFLAG_NUM_LOCK_ON, cef_event_flags_t_EVENTFLAG_RIGHT_MOUSE_BUTTON,
+    cef_event_flags_t_EVENTFLAG_SHIFT_DOWN, cef_key_event_t, cef_key_event_type_t, char16_t
+};
+use bitflags::bitflags;
+use std::{ffi::c_int, mem::zeroed};
+
+bitflags! {
+    /// Supported event bit flags.
+    #[allow(non_upper_case_globals)]
+    pub struct EventFlags: cef_event_flags_t {
+        const CapsLockOn = cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON;
+        const ShiftDown = cef_event_flags_t_EVENTFLAG_SHIFT_DOWN;
+        const ControlDown = cef_event_flags_t_EVENTFLAG_CONTROL_DOWN;
+        const AltDown = cef_event_flags_t_EVENTFLAG_ALT_DOWN;
+        const LeftMouseButton = cef_event_flags_t_EVENTFLAG_LEFT_MOUSE_BUTTON;
+        const MiddleMouseButton = cef_event_flags_t_EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+        const RightMouseButton = cef_event_flags_t_EVENTFLAG_RIGHT_MOUSE_BUTTON;
+        const CommandDown = cef_event_flags_t_EVENTFLAG_COMMAND_DOWN;
+        const NumLockOn = cef_event_flags_t_EVENTFLAG_NUM_LOCK_ON;
+        const IsKeyPad = cef_event_flags_t_EVENTFLAG_IS_KEY_PAD;
+        const IsLeft = cef_event_flags_t_EVENTFLAG_IS_LEFT;
+        const IsRight = cef_event_flags_t_EVENTFLAG_IS_RIGHT;
+        const AltgrDown = cef_event_flags_t_EVENTFLAG_ALTGR_DOWN;
+        const IsRepeat = cef_event_flags_t_EVENTFLAG_IS_REPEAT;
+    }
+}
+
+impl From<cef_event_flags_t> for EventFlags {
+    fn from(value: cef_event_flags_t) -> Self {
+        EventFlags::from(&value)
+    }
+}
+impl From<&cef_event_flags_t> for EventFlags {
+    fn from(value: &cef_event_flags_t) -> Self {
+        EventFlags::from_bits_truncate(*value)
+    }
+}
+
+impl From<EventFlags> for cef_event_flags_t {
+    fn from(value: EventFlags) -> Self {
+        cef_event_flags_t::from(&value)
+    }
+}
+
+impl From<&EventFlags> for cef_event_flags_t {
+    fn from(value: &EventFlags) -> Self {
+        value.bits()
+    }
+}
+
+/// Key event types.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum KeyEventType {
+    /// Notification that a key transitioned from "up" to "down".
+    RawKeyDown,
+
+    /// Notification that a key was pressed. This does not necessarily correspond
+    /// to a character depending on the key and language. Use KEYEVENT_CHAR for
+    /// character input.
+    KeyDown,
+
+    /// Notification that a key was released.
+    KeyUp,
+
+    /// Notification that a character was typed. Use this for text input. Key
+    /// down events may generate 0, 1, or more than one character event depending
+    /// on the key, locale, and operating system.
+    Char
+}
+
+impl From<cef_key_event_type_t> for KeyEventType {
+    fn from(value: cef_key_event_type_t) -> Self {
+        KeyEventType::from(&value)
+    }
+}
+
+impl From<&cef_key_event_type_t> for KeyEventType {
+    fn from(value: &cef_key_event_type_t) -> Self {
+        match value {
+            cef_key_event_type_t::KEYEVENT_RAWKEYDOWN => KeyEventType::RawKeyDown,
+            cef_key_event_type_t::KEYEVENT_KEYDOWN => KeyEventType::KeyDown,
+            cef_key_event_type_t::KEYEVENT_KEYUP => KeyEventType::KeyUp,
+            cef_key_event_type_t::KEYEVENT_CHAR => KeyEventType::Char
+        }
+    }
+}
+
+impl From<KeyEventType> for cef_key_event_type_t {
+    fn from(value: KeyEventType) -> Self {
+        cef_key_event_type_t::from(&value)
+    }
+}
+
+impl From<&KeyEventType> for cef_key_event_type_t {
+    fn from(value: &KeyEventType) -> Self {
+        match value {
+            KeyEventType::RawKeyDown => cef_key_event_type_t::KEYEVENT_RAWKEYDOWN,
+            KeyEventType::KeyDown => cef_key_event_type_t::KEYEVENT_KEYDOWN,
+            KeyEventType::KeyUp => cef_key_event_type_t::KEYEVENT_KEYUP,
+            KeyEventType::Char => cef_key_event_type_t::KEYEVENT_CHAR
+        }
+    }
+}
+
+/// Lifted from WebCore/platform/chromium/KeyboardCodes.h for the list of values.
+#[repr(transparent)]
+pub struct WindowsKeyCode(i32);
+
+#[allow(non_upper_case_globals)]
+impl WindowsKeyCode {
+    pub const LButton: Self = Self(0x01);
+    pub const RButton: Self = Self(0x02);
+    pub const Cancel: Self = Self(0x03);
+    pub const MButton: Self = Self(0x04);
+    pub const XButton1: Self = Self(0x05);
+    pub const XButton2: Self = Self(0x06);
+    pub const Back: Self = Self(0x08);
+    pub const Tab: Self = Self(0x09);
+    pub const Clear: Self = Self(0x0C);
+    pub const Return: Self = Self(0x0D);
+    pub const Shift: Self = Self(0x10);
+    pub const Control: Self = Self(0x11);
+    pub const Menu: Self = Self(0x12);
+    pub const Pause: Self = Self(0x13);
+    pub const Capital: Self = Self(0x14);
+    pub const Kana: Self = Self(0x15);
+    pub const Hangeul: Self = Self(0x15);
+    pub const Hangul: Self = Self(0x15);
+    pub const Junja: Self = Self(0x17);
+    pub const Final: Self = Self(0x18);
+    pub const Hanja: Self = Self(0x19);
+    pub const Kanji: Self = Self(0x19);
+    pub const Escape: Self = Self(0x1B);
+    pub const Convert: Self = Self(0x1C);
+    pub const NonConvert: Self = Self(0x1D);
+    pub const Accept: Self = Self(0x1E);
+    pub const ModeChange: Self = Self(0x1F);
+    pub const Space: Self = Self(0x20);
+    pub const Prior: Self = Self(0x21);
+    pub const Next: Self = Self(0x22);
+    pub const End: Self = Self(0x23);
+    pub const Home: Self = Self(0x24);
+    pub const Left: Self = Self(0x25);
+    pub const Up: Self = Self(0x26);
+    pub const Right: Self = Self(0x27);
+    pub const Down: Self = Self(0x28);
+    pub const Select: Self = Self(0x29);
+    pub const Print: Self = Self(0x2A);
+    pub const Execute: Self = Self(0x2B);
+    pub const Snapshot: Self = Self(0x2C);
+    pub const Insert: Self = Self(0x2D);
+    pub const Delete: Self = Self(0x2E);
+    pub const Help: Self = Self(0x2F);
+    pub const Key0: Self = Self(0x30);
+    pub const Key1: Self = Self(0x31);
+    pub const Key2: Self = Self(0x32);
+    pub const Key3: Self = Self(0x33);
+    pub const Key4: Self = Self(0x34);
+    pub const Key5: Self = Self(0x35);
+    pub const Key6: Self = Self(0x36);
+    pub const Key7: Self = Self(0x37);
+    pub const Key8: Self = Self(0x38);
+    pub const Key9: Self = Self(0x39);
+    pub const A: Self = Self(0x41);
+    pub const B: Self = Self(0x42);
+    pub const C: Self = Self(0x43);
+    pub const D: Self = Self(0x44);
+    pub const E: Self = Self(0x45);
+    pub const F: Self = Self(0x46);
+    pub const G: Self = Self(0x47);
+    pub const H: Self = Self(0x48);
+    pub const I: Self = Self(0x49);
+    pub const J: Self = Self(0x4A);
+    pub const K: Self = Self(0x4B);
+    pub const L: Self = Self(0x4C);
+    pub const M: Self = Self(0x4D);
+    pub const N: Self = Self(0x4E);
+    pub const O: Self = Self(0x4F);
+    pub const P: Self = Self(0x50);
+    pub const Q: Self = Self(0x51);
+    pub const R: Self = Self(0x52);
+    pub const S: Self = Self(0x53);
+    pub const T: Self = Self(0x54);
+    pub const U: Self = Self(0x55);
+    pub const V: Self = Self(0x56);
+    pub const W: Self = Self(0x57);
+    pub const X: Self = Self(0x58);
+    pub const Y: Self = Self(0x59);
+    pub const Z: Self = Self(0x5A);
+    pub const LWin: Self = Self(0x5B);
+    pub const RWin: Self = Self(0x5C);
+    pub const Apps: Self = Self(0x5D);
+    pub const Sleep: Self = Self(0x5F);
+    pub const Numpad0: Self = Self(0x60);
+    pub const Numpad1: Self = Self(0x61);
+    pub const Numpad2: Self = Self(0x62);
+    pub const Numpad3: Self = Self(0x63);
+    pub const Numpad4: Self = Self(0x64);
+    pub const Numpad5: Self = Self(0x65);
+    pub const Numpad6: Self = Self(0x66);
+    pub const Numpad7: Self = Self(0x67);
+    pub const Numpad8: Self = Self(0x68);
+    pub const Numpad9: Self = Self(0x69);
+    pub const Multiply: Self = Self(0x6A);
+    pub const Add: Self = Self(0x6B);
+    pub const Separator: Self = Self(0x6C);
+    pub const Subtract: Self = Self(0x6D);
+    pub const Decimal: Self = Self(0x6E);
+    pub const Divide: Self = Self(0x6F);
+    pub const F1: Self = Self(0x70);
+    pub const F2: Self = Self(0x71);
+    pub const F3: Self = Self(0x72);
+    pub const F4: Self = Self(0x73);
+    pub const F5: Self = Self(0x74);
+    pub const F6: Self = Self(0x75);
+    pub const F7: Self = Self(0x76);
+    pub const F8: Self = Self(0x77);
+    pub const F9: Self = Self(0x78);
+    pub const F10: Self = Self(0x79);
+    pub const F11: Self = Self(0x7A);
+    pub const F12: Self = Self(0x7B);
+    pub const F13: Self = Self(0x7C);
+    pub const F14: Self = Self(0x7D);
+    pub const F15: Self = Self(0x7E);
+    pub const F16: Self = Self(0x7F);
+    pub const F17: Self = Self(0x80);
+    pub const F18: Self = Self(0x81);
+    pub const F19: Self = Self(0x82);
+    pub const F20: Self = Self(0x83);
+    pub const F21: Self = Self(0x84);
+    pub const F22: Self = Self(0x85);
+    pub const F23: Self = Self(0x86);
+    pub const F24: Self = Self(0x87);
+    pub const NumLock: Self = Self(0x90);
+    pub const Scroll: Self = Self(0x91);
+    pub const LShift: Self = Self(0xA0);
+    pub const RShift: Self = Self(0xA1);
+    pub const LControl: Self = Self(0xA2);
+    pub const RControl: Self = Self(0xA3);
+    pub const LMenu: Self = Self(0xA4);
+    pub const RMenu: Self = Self(0xA5);
+    pub const BrowserBack: Self = Self(0xA6);
+    pub const BrowserForward: Self = Self(0xA7);
+    pub const BrowserRefresh: Self = Self(0xA8);
+    pub const BrowserStop: Self = Self(0xA9);
+    pub const BrowserSearch: Self = Self(0xAA);
+    pub const BrowserFavorites: Self = Self(0xAB);
+    pub const BrowserHome: Self = Self(0xAC);
+    pub const VolumeMute: Self = Self(0xAD);
+    pub const VolumeDown: Self = Self(0xAE);
+    pub const VolumeUp: Self = Self(0xAF);
+    pub const MediaNextTrack: Self = Self(0xB0);
+    pub const MediaPrevTrack: Self = Self(0xB1);
+    pub const MediaStop: Self = Self(0xB2);
+    pub const MediaPlayPause: Self = Self(0xB3);
+    pub const LaunchMail: Self = Self(0xB4);
+    pub const LaunchMediaSelect: Self = Self(0xB5);
+    pub const LaunchApp1: Self = Self(0xB6);
+    pub const LaunchApp2: Self = Self(0xB7);
+    pub const OEM1: Self = Self(0xBA);
+    pub const OEMPlus: Self = Self(0xBB);
+    pub const OEMComma: Self = Self(0xBC);
+    pub const OEMMinus: Self = Self(0xBD);
+    pub const OEMPeriod: Self = Self(0xBE);
+    pub const OEM2: Self = Self(0xBF);
+    pub const OEM3: Self = Self(0xC0);
+    pub const OEM4: Self = Self(0xDB);
+    pub const OEM5: Self = Self(0xDC);
+    pub const OEM6: Self = Self(0xDD);
+    pub const OEM7: Self = Self(0xDE);
+    pub const OEM8: Self = Self(0xDF);
+    pub const OEM102: Self = Self(0xE2);
+    pub const OEM103: Self = Self(0xE3);
+    pub const OEM104: Self = Self(0xE4);
+    pub const ProcessKey: Self = Self(0xE5);
+    pub const Packet: Self = Self(0xE7);
+    pub const Attn: Self = Self(0xF6);
+    pub const Crsel: Self = Self(0xF7);
+    pub const Exsel: Self = Self(0xF8);
+    pub const Ereof: Self = Self(0xF9);
+    pub const Play: Self = Self(0xFA);
+    pub const Zoom: Self = Self(0xFB);
+    pub const Noname: Self = Self(0xFC);
+    pub const Pa1: Self = Self(0xFD);
+    pub const OEMClear: Self = Self(0xFE);
+    pub const Unknown: Self = Self(0);
+}
+
+/// Structure representing keyboard event information.
+pub struct KeyEvent(cef_key_event_t);
+
+impl KeyEvent {
+    pub fn new() -> Self {
+        Self(unsafe { zeroed() })
+    }
+
+    /// The type of keyboard event.
+    pub fn event_type(mut self, event_type: KeyEventType) -> Self {
+        self.0.type_ = event_type.into();
+        self
+    }
+
+    /// Bit flags describing any pressed modifier keys. See
+    /// cef_event_flags_t for values.
+    pub fn modifiers(mut self, modifiers: EventFlags) -> Self {
+        self.0.modifiers = modifiers.into();
+        self
+    }
+
+    /// The Windows key code for the key event. This value is used by the DOM
+    /// specification. Sometimes it comes directly from the event (i.e. on
+    /// Windows) and sometimes it's determined using a mapping function. See
+    /// WebCore/platform/chromium/KeyboardCodes.h for the list of values.
+    pub fn windows_key_code(mut self, windows_key_code: WindowsKeyCode) -> Self {
+        self.0.windows_key_code = windows_key_code.0 as c_int;
+        self
+    }
+
+    /// The actual key code genenerated by the platform.
+    pub fn native_key_code(mut self, native_key_code: i32) -> Self {
+        self.0.native_key_code = native_key_code as c_int;
+        self
+    }
+
+    /// Indicates whether the event is considered a "system key" event (see
+    /// http://msdn.microsoft.com/en-us/library/ms646286(VS.85).aspx for details).
+    /// This value will always be false on non-Windows platforms.
+    pub fn is_system_key(mut self, is_system_key: bool) -> Self {
+        self.0.is_system_key = is_system_key as c_int;
+        self
+    }
+
+    /// The character generated by the keystroke.
+    pub fn character(mut self, character: u16) -> Self {
+        self.0.character = character as char16_t;
+        self
+    }
+
+    /// Same as |character| but unmodified by any concurrently-held modifiers
+    /// (except shift). This is useful for working out shortcut keys.
+    pub fn unmodified_character(mut self, unmodified_character: u16) -> Self {
+        self.0.unmodified_character = unmodified_character as char16_t;
+        self
+    }
+
+    /// True if the focus is currently on an editable field on the page. This is
+    /// useful for determining if standard key events should be intercepted.
+    pub fn focus_on_editable_field(mut self, focus_on_editable_field: bool) -> Self {
+        self.0.focus_on_editable_field = focus_on_editable_field as c_int;
+        self
+    }
+
+    /// Converts to the raw cef type.
+    pub fn as_raw(&self) -> &cef_key_event_t {
+        &self.0
+    }
+}
