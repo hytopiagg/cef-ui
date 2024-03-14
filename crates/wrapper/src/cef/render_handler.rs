@@ -1,7 +1,7 @@
 use crate::{
-    ref_counted_ptr, Browser, CefString, DragData, DragOperations, HorizontalAlignment,
-    PaintElementType, Point, Range, Rect, RefCountedPtr, ScreenInfo, Size, TextInputMode,
-    TouchHandleState, Wrappable, Wrapped
+    ref_counted_ptr, AccessibilityHandler, Browser, CefString, DragData, DragOperations,
+    HorizontalAlignment, PaintElementType, Point, Range, Rect, RefCountedPtr, ScreenInfo, Size,
+    TextInputMode, TouchHandleState, Wrappable, Wrapped
 };
 use bindings::{
     cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
@@ -12,6 +12,7 @@ use bindings::{
 use std::{
     ffi::{c_int, c_void},
     mem::zeroed,
+    ptr::null_mut,
     slice::from_raw_parts
 };
 
@@ -19,12 +20,11 @@ use std::{
 /// The functions of this structure will be called on the UI thread.
 #[allow(unused_variables)]
 pub trait RenderHandlerCallbacks: Send + Sync + 'static {
-    // TODO: Fix these!
-
-    // /// Return the handler for accessibility notifications. If no handler is
-    // /// provided the default implementation will be used.
-    // // struct _cef_accessibility_handler_t*(CEF_CALLBACK* get_accessibility_handler)(
-    // // struct _cef_render_handler_t* self);
+    /// Return the handler for accessibility notifications. If no handler is
+    /// provided the default implementation will be used.
+    fn get_accessibility_handler(&self) -> Option<AccessibilityHandler> {
+        None
+    }
 
     // /// Called to retrieve the root window rectangle in screen DIP coordinates.
     // /// Return true (1) if the rectangle was provided. If this function returns
@@ -182,7 +182,12 @@ impl RenderHandlerWrapper {
     unsafe extern "C" fn c_get_accessibility_handler(
         this: *mut cef_render_handler_t
     ) -> *mut cef_accessibility_handler_t {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+
+        this.0
+            .get_accessibility_handler()
+            .map(|handler| handler.into_raw())
+            .unwrap_or(null_mut())
     }
 
     /// Called to retrieve the root window rectangle in screen DIP coordinates.
@@ -500,10 +505,8 @@ impl Wrappable for RenderHandlerWrapper {
     fn wrap(self) -> RefCountedPtr<cef_render_handler_t> {
         RefCountedPtr::wrap(
             cef_render_handler_t {
-                base: unsafe { zeroed() },
-
-                // TODO: Fix these!
-                get_accessibility_handler:        None,
+                base:                             unsafe { zeroed() },
+                get_accessibility_handler:        Some(Self::c_get_accessibility_handler),
                 get_root_screen_rect:             Some(Self::c_get_root_screen_rect),
                 get_view_rect:                    Some(Self::c_get_view_rect),
                 get_screen_point:                 Some(Self::c_get_screen_point),

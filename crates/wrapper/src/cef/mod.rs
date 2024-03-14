@@ -1,3 +1,4 @@
+mod accessibility_handler;
 mod app;
 mod browser;
 mod callbacks;
@@ -22,6 +23,7 @@ mod types;
 mod values;
 mod window;
 
+pub use accessibility_handler::*;
 pub use app::*;
 pub use browser::*;
 pub use callbacks::*;
