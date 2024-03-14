@@ -7,7 +7,8 @@ use bindings::{
     cef_event_flags_t_EVENTFLAG_LEFT_MOUSE_BUTTON, cef_event_flags_t_EVENTFLAG_MIDDLE_MOUSE_BUTTON,
     cef_event_flags_t_EVENTFLAG_NUM_LOCK_ON, cef_event_flags_t_EVENTFLAG_RIGHT_MOUSE_BUTTON,
     cef_event_flags_t_EVENTFLAG_SHIFT_DOWN, cef_key_event_t, cef_key_event_type_t,
-    cef_mouse_button_type_t, cef_mouse_event_t, char16_t
+    cef_mouse_button_type_t, cef_mouse_event_t, cef_pointer_type_t, cef_touch_event_t,
+    cef_touch_event_type_t, char16_t
 };
 use bitflags::bitflags;
 use std::ffi::c_int;
@@ -423,6 +424,158 @@ impl From<&MouseEvent> for cef_mouse_event_t {
             x:         value.x as c_int,
             y:         value.y as c_int,
             modifiers: value.modifiers.into()
+        }
+    }
+}
+
+/// Touch points states types.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum TouchEventType {
+    Released,
+    Pressed,
+    Moved,
+    Cancelled
+}
+
+impl From<cef_touch_event_type_t> for TouchEventType {
+    fn from(value: cef_touch_event_type_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_touch_event_type_t> for TouchEventType {
+    fn from(value: &cef_touch_event_type_t) -> Self {
+        match value {
+            cef_touch_event_type_t::CEF_TET_RELEASED => TouchEventType::Released,
+            cef_touch_event_type_t::CEF_TET_PRESSED => TouchEventType::Pressed,
+            cef_touch_event_type_t::CEF_TET_MOVED => TouchEventType::Moved,
+            cef_touch_event_type_t::CEF_TET_CANCELLED => TouchEventType::Cancelled
+        }
+    }
+}
+
+impl From<TouchEventType> for cef_touch_event_type_t {
+    fn from(value: TouchEventType) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TouchEventType> for cef_touch_event_type_t {
+    fn from(value: &TouchEventType) -> Self {
+        match value {
+            TouchEventType::Released => cef_touch_event_type_t::CEF_TET_RELEASED,
+            TouchEventType::Pressed => cef_touch_event_type_t::CEF_TET_PRESSED,
+            TouchEventType::Moved => cef_touch_event_type_t::CEF_TET_MOVED,
+            TouchEventType::Cancelled => cef_touch_event_type_t::CEF_TET_CANCELLED
+        }
+    }
+}
+
+/// The device type that caused the event.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum PointerType {
+    Touch,
+    Mouse,
+    Pen,
+    Eraser,
+    Unknown
+}
+
+impl From<cef_pointer_type_t> for PointerType {
+    fn from(value: cef_pointer_type_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_pointer_type_t> for PointerType {
+    fn from(value: &cef_pointer_type_t) -> Self {
+        match value {
+            cef_pointer_type_t::CEF_POINTER_TYPE_TOUCH => PointerType::Touch,
+            cef_pointer_type_t::CEF_POINTER_TYPE_MOUSE => PointerType::Mouse,
+            cef_pointer_type_t::CEF_POINTER_TYPE_PEN => PointerType::Pen,
+            cef_pointer_type_t::CEF_POINTER_TYPE_ERASER => PointerType::Eraser,
+            cef_pointer_type_t::CEF_POINTER_TYPE_UNKNOWN => PointerType::Unknown
+        }
+    }
+}
+
+impl From<PointerType> for cef_pointer_type_t {
+    fn from(value: PointerType) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&PointerType> for cef_pointer_type_t {
+    fn from(value: &PointerType) -> Self {
+        match value {
+            PointerType::Touch => cef_pointer_type_t::CEF_POINTER_TYPE_TOUCH,
+            PointerType::Mouse => cef_pointer_type_t::CEF_POINTER_TYPE_MOUSE,
+            PointerType::Pen => cef_pointer_type_t::CEF_POINTER_TYPE_PEN,
+            PointerType::Eraser => cef_pointer_type_t::CEF_POINTER_TYPE_ERASER,
+            PointerType::Unknown => cef_pointer_type_t::CEF_POINTER_TYPE_UNKNOWN
+        }
+    }
+}
+
+/// Structure representing touch event information.
+pub struct TouchEvent {
+    /// Id of a touch point. Must be unique per touch, can be any number except
+    /// -1. Note that a maximum of 16 concurrent touches will be tracked; touches
+    /// beyond that will be ignored.
+    pub id: i32,
+
+    /// X coordinate relative to the left side of the view.
+    pub x: f32,
+
+    /// Y coordinate relative to the top side of the view.
+    pub y: f32,
+
+    /// X radius in pixels. Set to 0 if not applicable.
+    pub radius_x: f32,
+
+    /// Y radius in pixels. Set to 0 if not applicable.
+    pub radius_y: f32,
+
+    /// Rotation angle in radians. Set to 0 if not applicable.
+    pub rotation_angle: f32,
+
+    /// The normalized pressure of the pointer input in the range of [0,1].
+    /// Set to 0 if not applicable.
+    pub pressure: f32,
+
+    /// The state of the touch point. Touches begin with one CEF_TET_PRESSED event
+    /// followed by zero or more CEF_TET_MOVED events and finally one
+    /// CEF_TET_RELEASED or CEF_TET_CANCELLED event. Events not respecting this
+    /// order will be ignored.
+    pub event_type: TouchEventType,
+
+    /// Bit flags describing any pressed modifier keys. See
+    /// cef_event_flags_t for values.
+    pub modifiers: EventFlags,
+
+    /// The device type that caused the event.
+    pub pointer_type: PointerType
+}
+
+impl From<TouchEvent> for cef_touch_event_t {
+    fn from(value: TouchEvent) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TouchEvent> for cef_touch_event_t {
+    fn from(value: &TouchEvent) -> Self {
+        Self {
+            id:             value.id as c_int,
+            x:              value.x,
+            y:              value.y,
+            radius_x:       value.radius_x,
+            radius_y:       value.radius_y,
+            rotation_angle: value.rotation_angle,
+            pressure:       value.pressure,
+            type_:          value.event_type.into(),
+            modifiers:      value.modifiers.into(),
+            pointer_type:   value.pointer_type.into()
         }
     }
 }
