@@ -1,7 +1,7 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, KeyEvent, PaintElementType, Point, RequestContext, State, WindowHandle, WindowInfo,
-    ZoomCommand
+    Frame, KeyEvent, MouseButtonType, MouseEvent, PaintElementType, Point, RequestContext, State,
+    WindowHandle, WindowInfo, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -973,44 +973,64 @@ impl BrowserHost {
     pub fn send_key_event(&self, event: KeyEvent) {
         if let Some(send_key_event) = self.0.send_key_event {
             unsafe {
-                send_key_event(self.as_ptr(), event.as_raw());
+                send_key_event(self.as_ptr(), &event.into());
+            }
+        }
+    }
+
+    /// Send a mouse click event to the browser. The |x| and |y| coordinates are
+    /// relative to the upper-left corner of the view.
+    pub fn send_mouse_click_event(
+        &self,
+        event: &MouseEvent,
+        mouse_button: MouseButtonType,
+        mouse_up: bool,
+        click_count: i32
+    ) {
+        if let Some(send_mouse_click_event) = self.0.send_mouse_click_event {
+            unsafe {
+                send_mouse_click_event(
+                    self.as_ptr(),
+                    &event.into(),
+                    mouse_button.into(),
+                    mouse_up as c_int,
+                    click_count as c_int
+                );
+            }
+        }
+    }
+
+    /// Send a mouse move event to the browser. The |x| and |y| coordinates are
+    /// relative to the upper-left corner of the view.
+    pub fn send_mouse_move_event(&self, event: &MouseEvent, mouse_leave: bool) {
+        if let Some(send_mouse_move_event) = self.0.send_mouse_move_event {
+            unsafe {
+                send_mouse_move_event(self.as_ptr(), &event.into(), mouse_leave as c_int);
+            }
+        }
+    }
+
+    /// Send a mouse wheel event to the browser. The |x| and |y| coordinates are
+    /// relative to the upper-left corner of the view. The |deltaX| and |deltaY|
+    /// values represent the movement delta in the X and Y directions
+    /// respectively. In order to scroll inside select popups with window
+    /// rendering disabled cef_render_handler_t::GetScreenPoint should be
+    /// implemented properly.
+    pub fn send_mouse_wheel_event(&self, event: &MouseEvent, delta_x: i32, delta_y: i32) {
+        if let Some(send_mouse_wheel_event) = self.0.send_mouse_wheel_event {
+            unsafe {
+                send_mouse_wheel_event(
+                    self.as_ptr(),
+                    &event.into(),
+                    delta_x as c_int,
+                    delta_y as c_int
+                );
             }
         }
     }
 
     // TODO: Fix these!
 
-    // ///
-    // /// Send a mouse click event to the browser. The |x| and |y| coordinates are
-    // /// relative to the upper-left corner of the view.
-    // ///
-    // void(CEF_CALLBACK* send_mouse_click_event)(struct _cef_browser_host_t* self,
-    // const cef_mouse_event_t* event,
-    // cef_mouse_button_type_t type,
-    // int mouseUp,
-    // int clickCount);
-    //
-    // ///
-    // /// Send a mouse move event to the browser. The |x| and |y| coordinates are
-    // /// relative to the upper-left corner of the view.
-    // ///
-    // void(CEF_CALLBACK* send_mouse_move_event)(struct _cef_browser_host_t* self,
-    // const cef_mouse_event_t* event,
-    // int mouseLeave);
-    //
-    // ///
-    // /// Send a mouse wheel event to the browser. The |x| and |y| coordinates are
-    // /// relative to the upper-left corner of the view. The |deltaX| and |deltaY|
-    // /// values represent the movement delta in the X and Y directions
-    // /// respectively. In order to scroll inside select popups with window
-    // /// rendering disabled cef_render_handler_t::GetScreenPoint should be
-    // /// implemented properly.
-    // ///
-    // void(CEF_CALLBACK* send_mouse_wheel_event)(struct _cef_browser_host_t* self,
-    // const cef_mouse_event_t* event,
-    // int deltaX,
-    // int deltaY);
-    //
     // ///
     // /// Send a touch event to the browser for a windowless browser.
     // ///
