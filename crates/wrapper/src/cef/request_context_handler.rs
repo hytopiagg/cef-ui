@@ -119,7 +119,7 @@ impl RequestContextHandlerWrapper {
             request,
             is_navigation,
             is_download,
-            request_initiator.as_str(),
+            &request_initiator,
             &mut local_disable_default_handling
         );
 
