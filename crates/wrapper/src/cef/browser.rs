@@ -1,7 +1,7 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
     Frame, KeyEvent, MouseButtonType, MouseEvent, PaintElementType, Point, RequestContext, State,
-    WindowHandle, WindowInfo, ZoomCommand
+    TouchEvent, WindowHandle, WindowInfo, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -1029,14 +1029,14 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
-
-    // ///
-    // /// Send a touch event to the browser for a windowless browser.
-    // ///
-    // void(CEF_CALLBACK* send_touch_event)(struct _cef_browser_host_t* self,
-    // const cef_touch_event_t* event);
-    //
+    /// Send a touch event to the browser for a windowless browser.
+    pub fn send_touch_event(&self, event: &TouchEvent) {
+        if let Some(send_touch_event) = self.0.send_touch_event {
+            unsafe {
+                send_touch_event(self.as_ptr(), &event.into());
+            }
+        }
+    }
 
     /// Send a capture lost event to the browser.
     pub fn send_capture_lost_event(&self) {
