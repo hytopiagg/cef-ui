@@ -1,8 +1,15 @@
+use crate::EventFlags;
 use bindings::{
-    cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_paint_element_type_t,
-    cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t, cef_state_t,
+    cef_errorcode_t, cef_event_flags_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t,
+    cef_log_severity_t, cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t,
+    cef_screen_info_t, cef_size_t, cef_state_t, cef_touch_handle_state_flags_t,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN, cef_touch_handle_state_t,
     cef_zoom_command_t
 };
+use bitflags::bitflags;
 use std::ffi::c_int;
 
 // Ranges:
@@ -1762,6 +1769,55 @@ impl From<&ZoomCommand> for cef_zoom_command_t {
     }
 }
 
+/// Specifies the horizontal text alignment mode.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum HorizontalAlignment {
+    /// Align the text's left edge with that of its display area.
+    Left,
+
+    /// Align the text's center with that of its display area.
+    Center,
+
+    /// Align the text's right edge with that of its display area.
+    Right
+}
+
+impl From<cef_horizontal_alignment_t> for HorizontalAlignment {
+    fn from(value: cef_horizontal_alignment_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_horizontal_alignment_t> for HorizontalAlignment {
+    fn from(value: &cef_horizontal_alignment_t) -> Self {
+        match value {
+            cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_LEFT => HorizontalAlignment::Left,
+            cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_CENTER => {
+                HorizontalAlignment::Center
+            },
+            cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_RIGHT => HorizontalAlignment::Right
+        }
+    }
+}
+
+impl From<HorizontalAlignment> for cef_horizontal_alignment_t {
+    fn from(value: HorizontalAlignment) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&HorizontalAlignment> for cef_horizontal_alignment_t {
+    fn from(value: &HorizontalAlignment) -> Self {
+        match value {
+            HorizontalAlignment::Left => cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_LEFT,
+            HorizontalAlignment::Center => {
+                cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_CENTER
+            },
+            HorizontalAlignment::Right => cef_horizontal_alignment_t::CEF_HORIZONTAL_ALIGNMENT_RIGHT
+        }
+    }
+}
+
 /// Paint element types.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PaintElementType {
@@ -2061,6 +2117,112 @@ impl From<&ScreenInfo> for cef_screen_info_t {
             is_monochrome:       value.is_monochrome as c_int,
             rect:                value.rect.into(),
             available_rect:      value.available_rect.into()
+        }
+    }
+}
+
+bitflags! {
+    /// Supported touch handle state bit flags.
+    #[allow(non_upper_case_globals)]
+    #[derive(Default, Clone, Copy)]
+    pub struct TouchHandleStateFlags: cef_touch_handle_state_flags_t {
+        const Enabled = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED;
+        const Orientation = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION;
+        const Origin = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN;
+        const Alpha = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA;
+    }
+}
+
+impl From<cef_touch_handle_state_flags_t> for TouchHandleStateFlags {
+    fn from(value: cef_touch_handle_state_flags_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_touch_handle_state_flags_t> for TouchHandleStateFlags {
+    fn from(value: &cef_touch_handle_state_flags_t) -> Self {
+        Self::from_bits_truncate(*value)
+    }
+}
+
+impl From<TouchHandleStateFlags> for cef_touch_handle_state_flags_t {
+    fn from(value: TouchHandleStateFlags) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TouchHandleStateFlags> for cef_touch_handle_state_flags_t {
+    fn from(value: &TouchHandleStateFlags) -> Self {
+        value.bits()
+    }
+}
+
+/// Values indicating what state of the touch handle is set.
+pub struct TouchHandleState {
+    /// Touch handle id. Increments for each new touch handle.
+    pub touch_handle_id: i32,
+
+    /// Combination of cef_touch_handle_state_flags_t values indicating what state
+    /// is set.
+    pub flags: TouchHandleStateFlags,
+
+    /// Enabled state. Only set if |flags| contains CEF_THS_FLAG_ENABLED.
+    pub enabled: bool,
+
+    /// Orientation state. Only set if |flags| contains CEF_THS_FLAG_ORIENTATION.
+    pub orientation: HorizontalAlignment,
+
+    /// Whether to mirror vertically.
+    pub mirror_vertical: bool,
+
+    /// Whether to mirror horizontally.
+    pub mirror_horizontal: bool,
+
+    /// Origin state. Only set if |flags| contains CEF_THS_FLAG_ORIGIN.
+    pub origin: Point,
+
+    /// Alpha state. Only set if |flags| contains CEF_THS_FLAG_ALPHA.
+    pub alpha: f32
+}
+
+impl From<cef_touch_handle_state_t> for TouchHandleState {
+    fn from(value: cef_touch_handle_state_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_touch_handle_state_t> for TouchHandleState {
+    fn from(value: &cef_touch_handle_state_t) -> Self {
+        Self {
+            touch_handle_id:   value.touch_handle_id,
+            flags:             value.flags.into(),
+            enabled:           value.enabled != 0,
+            orientation:       value.orientation.into(),
+            mirror_vertical:   value.mirror_vertical != 0,
+            mirror_horizontal: value.mirror_horizontal != 0,
+            origin:            value.origin.into(),
+            alpha:             value.alpha
+        }
+    }
+}
+
+impl From<TouchHandleState> for cef_touch_handle_state_t {
+    fn from(value: TouchHandleState) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TouchHandleState> for cef_touch_handle_state_t {
+    fn from(value: &TouchHandleState) -> Self {
+        Self {
+            touch_handle_id:   value.touch_handle_id as c_int,
+            flags:             value.flags.bits(),
+            enabled:           value.enabled as c_int,
+            orientation:       value.orientation.into(),
+            mirror_vertical:   value.mirror_vertical as c_int,
+            mirror_horizontal: value.mirror_horizontal as c_int,
+            origin:            value.origin.into(),
+            alpha:             value.alpha
         }
     }
 }

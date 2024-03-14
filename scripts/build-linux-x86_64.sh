@@ -46,6 +46,7 @@ bindgen "$EVERYTHING_HEADER" \
     --no-doc-comments \
     --default-enum-style=rust \
     --constified-enum=cef_event_flags_t \
+    --constified-enum=cef_touch_handle_state_flags_t \
     --output "$BINDINGS" -- \
     -I "$INCLUDE/capi" \
     -I "$INCLUDE" \
