@@ -1,6 +1,6 @@
 use crate::{
-    ref_counted_ptr, Browser, PaintElementType, Point, Rect, RefCountedPtr, ScreenInfo, Wrappable,
-    Wrapped
+    ref_counted_ptr, Browser, HorizontalAlignment, PaintElementType, Point, Rect, RefCountedPtr,
+    ScreenInfo, Size, TouchHandleState, Wrappable, Wrapped
 };
 use bindings::{
     cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
@@ -51,19 +51,13 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// drawn correctly.
     fn get_screen_info(&self, browser: Browser) -> Option<ScreenInfo>;
 
-    // TODO: Fix these!
+    /// Called when the browser wants to show or hide the popup widget. The popup
+    /// should be shown if |show| is true (1) and hidden if |show| is false (0).
+    fn on_popup_show(&self, browser: Browser, show: bool);
 
-    // /// Called when the browser wants to show or hide the popup widget. The popup
-    // /// should be shown if |show| is true (1) and hidden if |show| is false (0).
-    // // void(CEF_CALLBACK* on_popup_show)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // int show);
-
-    // /// Called when the browser wants to move or resize the popup widget. |rect|
-    // /// contains the new location and size in view coordinates.
-    // // void(CEF_CALLBACK* on_popup_size)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // const cef_rect_t* rect);
+    /// Called when the browser wants to move or resize the popup widget. |rect|
+    /// contains the new location and size in view coordinates.
+    fn on_popup_size(&self, browser: Browser, rect: &Rect);
 
     /// Called when an element should be painted. Pixel values passed to this
     /// function are scaled relative to view coordinates based on the value of
@@ -84,36 +78,30 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
         height: usize
     );
 
+    /// Called when an element has been rendered to the shared texture handle.
+    /// |type| indicates whether the element is the view or the popup widget.
+    /// |dirtyRects| contains the set of rectangles in pixel coordinates that need
+    /// to be repainted. |shared_handle| is the handle for a D3D11 Texture2D that
+    /// can be accessed via ID3D11Device using the OpenSharedResource function.
+    /// This function is only called when cef_window_tInfo::shared_texture_enabled
+    /// is set to true (1), and is currently only supported on Windows.
+    fn on_accelerated_paint(
+        &self,
+        browser: Browser,
+        paint_element_type: PaintElementType,
+        dirty_rects: &[Rect],
+        shared_handle: *mut c_void
+    );
+
+    /// Called to retrieve the size of the touch handle for the specified
+    /// |orientation|.
+    fn get_touch_handle_size(&self, browser: Browser, orientation: HorizontalAlignment) -> Size;
+
+    /// Called when touch handle state is updated. The client is responsible for
+    /// rendering the touch handles.
+    fn on_touch_handle_state_changed(&self, browser: Browser, state: &TouchHandleState);
+
     // TODO: Fix these!
-
-    // /// Called when an element has been rendered to the shared texture handle.
-    // /// |type| indicates whether the element is the view or the popup widget.
-    // /// |dirtyRects| contains the set of rectangles in pixel coordinates that need
-    // /// to be repainted. |shared_handle| is the handle for a D3D11 Texture2D that
-    // /// can be accessed via ID3D11Device using the OpenSharedResource function.
-    // /// This function is only called when cef_window_tInfo::shared_texture_enabled
-    // /// is set to true (1), and is currently only supported on Windows.
-    // // void(CEF_CALLBACK* on_accelerated_paint)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_paint_element_type_t type,
-    // // size_t dirtyRectsCount,
-    // // cef_rect_t const* dirtyRects,
-    // // void* shared_handle);
-
-    // /// Called to retrieve the size of the touch handle for the specified
-    // /// |orientation|.
-    // // void(CEF_CALLBACK* get_touch_handle_size)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_horizontal_alignment_t orientation,
-    // // cef_size_t* size);
-
-    // /// Called when touch handle state is updated. The client is responsible for
-    // /// rendering the touch handles.
-    // // void(CEF_CALLBACK* on_touch_handle_state_changed)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // const cef_touch_handle_state_t* state);
 
     // /// Called when the user starts dragging content in the web view. Contextual
     // /// information about the dragged content is supplied by |drag_data|. (|x|,
@@ -293,7 +281,11 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         show: c_int
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_popup_show(browser, show != 0);
     }
 
     /// Called when the browser wants to move or resize the popup widget. |rect|
@@ -303,7 +295,11 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *const cef_rect_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_popup_size(browser, &(*rect).into());
     }
 
     /// Called when an element should be painted. Pixel values passed to this
@@ -351,7 +347,12 @@ impl RenderHandlerWrapper {
         dirty_rects: *const cef_rect_t,
         shared_handle: *mut c_void
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let dirty_rects = from_raw_parts(dirty_rects as *const Rect, dirty_rects_count);
+
+        this.0
+            .on_accelerated_paint(browser, type_.into(), dirty_rects, shared_handle);
     }
 
     /// Called to retrieve the size of the touch handle for the specified
@@ -362,7 +363,13 @@ impl RenderHandlerWrapper {
         orientation: cef_horizontal_alignment_t,
         size: *mut cef_size_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        *size = this
+            .0
+            .get_touch_handle_size(browser, orientation.into())
+            .into();
     }
 
     /// Called when touch handle state is updated. The client is responsible for
@@ -372,7 +379,11 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         state: *const cef_touch_handle_state_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_touch_handle_state_changed(browser, &(*state).into());
     }
 
     /// Called when the user starts dragging content in the web view. Contextual
@@ -472,11 +483,11 @@ impl Wrappable for RenderHandlerWrapper {
                 get_view_rect:                    Some(Self::c_get_view_rect),
                 get_screen_point:                 Some(Self::c_get_screen_point),
                 get_screen_info:                  Some(Self::c_get_screen_info),
-                on_popup_show:                    None,
-                on_popup_size:                    None,
+                on_popup_show:                    Some(Self::c_on_popup_show),
+                on_popup_size:                    Some(Self::c_on_popup_size),
                 on_paint:                         Some(Self::c_on_paint),
-                on_accelerated_paint:             None,
-                get_touch_handle_size:            None,
+                on_accelerated_paint:             Some(Self::c_on_accelerated_paint),
+                get_touch_handle_size:            Some(Self::c_get_touch_handle_size),
                 on_touch_handle_state_changed:    None,
                 start_dragging:                   None,
                 update_drag_cursor:               None,

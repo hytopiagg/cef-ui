@@ -3930,15 +3930,13 @@ pub enum cef_show_state_t {
     CEF_SHOW_STATE_FULLSCREEN = 4,
     CEF_SHOW_STATE_HIDDEN = 5
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_touch_handle_state_flags_t {
-    CEF_THS_FLAG_NONE = 0,
-    CEF_THS_FLAG_ENABLED = 1,
-    CEF_THS_FLAG_ORIENTATION = 2,
-    CEF_THS_FLAG_ORIGIN = 4,
-    CEF_THS_FLAG_ALPHA = 8
-}
+pub const cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE: cef_touch_handle_state_flags_t = 0;
+pub const cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED: cef_touch_handle_state_flags_t = 1;
+pub const cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION: cef_touch_handle_state_flags_t =
+    2;
+pub const cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN: cef_touch_handle_state_flags_t = 4;
+pub const cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA: cef_touch_handle_state_flags_t = 8;
+pub type cef_touch_handle_state_flags_t = ::std::os::raw::c_uint;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct _cef_touch_handle_state_t {
