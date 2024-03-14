@@ -1,10 +1,9 @@
-use crate::EventFlags;
 use bindings::{
-    cef_errorcode_t, cef_event_flags_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t,
-    cef_log_severity_t, cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t,
-    cef_screen_info_t, cef_size_t, cef_state_t, cef_touch_handle_state_flags_t,
-    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
+    cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
+    cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t,
+    cef_state_t, cef_touch_handle_state_flags_t, cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN, cef_touch_handle_state_t,
     cef_zoom_command_t
@@ -2126,6 +2125,7 @@ bitflags! {
     #[allow(non_upper_case_globals)]
     #[derive(Default, Clone, Copy)]
     pub struct TouchHandleStateFlags: cef_touch_handle_state_flags_t {
+        const None = cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE;
         const Enabled = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED;
         const Orientation = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION;
         const Origin = cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN;
