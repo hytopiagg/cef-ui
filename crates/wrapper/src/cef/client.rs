@@ -1,4 +1,4 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Wrappable};
+use crate::{ref_counted_ptr, RefCountedPtr, RenderHandler, Wrappable, Wrapped};
 use bindings::{
     cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
     cef_context_menu_handler_t, cef_dialog_handler_t, cef_display_handler_t,
@@ -7,7 +7,7 @@ use bindings::{
     cef_life_span_handler_t, cef_load_handler_t, cef_permission_handler_t, cef_print_handler_t,
     cef_process_id_t, cef_process_message_t, cef_render_handler_t, cef_request_handler_t
 };
-use std::{ffi::c_int, mem::zeroed};
+use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 
 /// Implement this structure to provide handler implementations.
 pub trait ClientCallbacks: Send + Sync + 'static {
@@ -85,9 +85,10 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_print_handler_t*(CEF_CALLBACK* get_print_handler)(
     // struct _cef_client_t* self);
 
-    // /// Return the handler for off-screen rendering events.
-    // struct _cef_render_handler_t*(CEF_CALLBACK* get_render_handler)(
-    // struct _cef_client_t* self);
+    /// Return the handler for off-screen rendering events.
+    fn get_render_handler(&self) -> Option<RenderHandler> {
+        None
+    }
 
     // /// Return the handler for browser request events.
     // struct _cef_request_handler_t*(CEF_CALLBACK* get_request_handler)(
@@ -226,7 +227,12 @@ impl ClientWrapper {
 
     /// Return the handler for off-screen rendering events.
     unsafe extern "C" fn get_render_handler(this: *mut cef_client_t) -> *mut cef_render_handler_t {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+
+        this.0
+            .get_render_handler()
+            .map(|handler| handler.into_raw())
+            .unwrap_or(null_mut())
     }
 
     /// Return the handler for browser request events.
