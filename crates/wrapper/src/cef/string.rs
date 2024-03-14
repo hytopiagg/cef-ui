@@ -136,7 +136,7 @@ impl Debug for CefString {
 
 impl From<CefString> for String {
     fn from(value: CefString) -> Self {
-        String::from(&value)
+        Self::from(&value)
     }
 }
 

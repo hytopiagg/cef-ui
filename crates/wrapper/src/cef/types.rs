@@ -1028,7 +1028,7 @@ pub enum ErrorCode {
 
 impl From<cef_errorcode_t> for ErrorCode {
     fn from(value: cef_errorcode_t) -> Self {
-        ErrorCode::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1278,7 +1278,7 @@ impl From<&cef_errorcode_t> for ErrorCode {
 
 impl From<ErrorCode> for cef_errorcode_t {
     fn from(value: ErrorCode) -> Self {
-        cef_errorcode_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1547,7 +1547,7 @@ impl Default for State {
 
 impl From<cef_state_t> for State {
     fn from(value: cef_state_t) -> Self {
-        State::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1563,7 +1563,7 @@ impl From<&cef_state_t> for State {
 
 impl From<State> for cef_state_t {
     fn from(value: State) -> Self {
-        cef_state_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1611,7 +1611,7 @@ impl Default for LogSeverity {
 
 impl From<cef_log_severity_t> for LogSeverity {
     fn from(value: cef_log_severity_t) -> Self {
-        LogSeverity::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1631,7 +1631,7 @@ impl From<&cef_log_severity_t> for LogSeverity {
 
 impl From<LogSeverity> for cef_log_severity_t {
     fn from(value: LogSeverity) -> Self {
-        cef_log_severity_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1679,7 +1679,7 @@ impl Default for LogItems {
 
 impl From<cef_log_items_t> for LogItems {
     fn from(value: cef_log_items_t) -> Self {
-        LogItems::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1698,7 +1698,7 @@ impl From<&cef_log_items_t> for LogItems {
 
 impl From<LogItems> for cef_log_items_t {
     fn from(value: LogItems) -> Self {
-        cef_log_items_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1730,7 +1730,7 @@ pub enum ZoomCommand {
 
 impl From<cef_zoom_command_t> for ZoomCommand {
     fn from(value: cef_zoom_command_t) -> Self {
-        ZoomCommand::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1746,7 +1746,7 @@ impl From<&cef_zoom_command_t> for ZoomCommand {
 
 impl From<ZoomCommand> for cef_zoom_command_t {
     fn from(value: ZoomCommand) -> Self {
-        cef_zoom_command_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1772,7 +1772,7 @@ pub enum PaintElementType {
 
 impl From<cef_paint_element_type_t> for PaintElementType {
     fn from(value: cef_paint_element_type_t) -> Self {
-        PaintElementType::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1787,7 +1787,7 @@ impl From<&cef_paint_element_type_t> for PaintElementType {
 
 impl From<PaintElementType> for cef_paint_element_type_t {
     fn from(value: PaintElementType) -> Self {
-        cef_paint_element_type_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1809,7 +1809,7 @@ pub struct Point {
 
 impl From<cef_point_t> for Point {
     fn from(value: cef_point_t) -> Self {
-        Point::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1824,7 +1824,7 @@ impl From<&cef_point_t> for Point {
 
 impl From<Point> for cef_point_t {
     fn from(value: Point) -> Self {
-        cef_point_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1848,7 +1848,7 @@ pub struct Rect {
 
 impl From<cef_rect_t> for Rect {
     fn from(value: cef_rect_t) -> Self {
-        Rect::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1865,7 +1865,7 @@ impl From<&cef_rect_t> for Rect {
 
 impl From<Rect> for cef_rect_t {
     fn from(value: Rect) -> Self {
-        cef_rect_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1889,7 +1889,7 @@ pub struct Size {
 
 impl From<cef_size_t> for Size {
     fn from(value: cef_size_t) -> Self {
-        Size::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1904,7 +1904,7 @@ impl From<&cef_size_t> for Size {
 
 impl From<Size> for cef_size_t {
     fn from(value: Size) -> Self {
-        cef_size_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1928,7 +1928,7 @@ pub struct Insets {
 
 impl From<cef_insets_t> for Insets {
     fn from(value: cef_insets_t) -> Self {
-        Insets::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1945,7 +1945,7 @@ impl From<&cef_insets_t> for Insets {
 
 impl From<Insets> for cef_insets_t {
     fn from(value: Insets) -> Self {
-        cef_insets_t::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1969,7 +1969,7 @@ pub struct Range {
 
 impl From<cef_range_t> for Range {
     fn from(value: cef_range_t) -> Self {
-        Range::from(&value)
+        Self::from(&value)
     }
 }
 
@@ -1984,7 +1984,7 @@ impl From<&cef_range_t> for Range {
 
 impl From<Range> for cef_range_t {
     fn from(value: Range) -> Self {
-        cef_range_t::from(&value)
+        Self::from(&value)
     }
 }
 
