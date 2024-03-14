@@ -1,7 +1,9 @@
 use bindings::{
     cef_errorcode_t, cef_insets_t, cef_log_items_t, cef_log_severity_t, cef_paint_element_type_t,
-    cef_point_t, cef_range_t, cef_rect_t, cef_size_t, cef_state_t, cef_zoom_command_t
+    cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t, cef_state_t,
+    cef_zoom_command_t
 };
+use std::ffi::c_int;
 
 // Ranges:
 //     0- 99 System related errors
@@ -1802,6 +1804,7 @@ impl From<&PaintElementType> for cef_paint_element_type_t {
 
 /// Structure representing a point.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Point {
     pub x: i32,
     pub y: i32
@@ -1839,6 +1842,7 @@ impl From<&Point> for cef_point_t {
 
 /// Structure representing a rectangle.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Rect {
     pub x:      i32,
     pub y:      i32,
@@ -1882,6 +1886,7 @@ impl From<&Rect> for cef_rect_t {
 
 /// Structure representing a size.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Size {
     pub width:  i32,
     pub height: i32
@@ -1919,6 +1924,7 @@ impl From<&Size> for cef_size_t {
 
 /// Structure representing insets.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Insets {
     pub top:    i32,
     pub left:   i32,
@@ -1962,6 +1968,7 @@ impl From<&Insets> for cef_insets_t {
 
 /// Structure representing a range.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
 pub struct Range {
     pub from: u32,
     pub to:   u32
@@ -1993,6 +2000,67 @@ impl From<&Range> for cef_range_t {
         Self {
             from: value.from,
             to:   value.to
+        }
+    }
+}
+
+/// Screen information used when window rendering is disabled. This structure is
+/// passed as a parameter to CefRenderHandler::GetScreenInfo and should be
+/// filled in by the client.
+pub struct ScreenInfo {
+    /// Device scale factor. Specifies the ratio between physical and logical
+    /// pixels.
+    pub device_scale_factor: f32,
+
+    /// The screen depth in bits per pixel.
+    pub depth: i32,
+
+    /// The bits per color component. This assumes that the colors are balanced
+    /// equally.
+    pub depth_per_component: i32,
+
+    /// This can be true for black and white printers.
+    pub is_monochrome: bool,
+
+    /// This is set from the rcMonitor member of MONITORINFOEX, to whit:
+    ///   "A RECT structure that specifies the display monitor rectangle,
+    ///   expressed in virtual-screen coordinates. Note that if the monitor
+    ///   is not the primary display monitor, some of the rectangle's
+    ///   coordinates may be negative values."
+    //
+    /// The |rect| and |available_rect| properties are used to determine the
+    /// available surface for rendering popup views.
+    pub rect: Rect,
+
+    /// This is set from the rcWork member of MONITORINFOEX, to whit:
+    ///   "A RECT structure that specifies the work area rectangle of the
+    ///   display monitor that can be used by applications, expressed in
+    ///   virtual-screen coordinates. Windows uses this rectangle to
+    ///   maximize an application on the monitor. The rest of the area in
+    ///   rcMonitor contains system windows such as the task bar and side
+    ///   bars. Note that if the monitor is not the primary display monitor,
+    ///   some of the rectangle's coordinates may be negative values".
+    //
+    /// The |rect| and |available_rect| properties are used to determine the
+    /// available surface for rendering popup views.
+    pub available_rect: Rect
+}
+
+impl From<ScreenInfo> for cef_screen_info_t {
+    fn from(value: ScreenInfo) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&ScreenInfo> for cef_screen_info_t {
+    fn from(value: &ScreenInfo) -> Self {
+        Self {
+            device_scale_factor: value.device_scale_factor,
+            depth:               value.depth as c_int,
+            depth_per_component: value.depth_per_component as c_int,
+            is_monochrome:       value.is_monochrome as c_int,
+            rect:                value.rect.into(),
+            available_rect:      value.available_rect.into()
         }
     }
 }
