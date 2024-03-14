@@ -1,18 +1,25 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Wrappable};
+use crate::{
+    ref_counted_ptr, Browser, PaintElementType, Point, Rect, RefCountedPtr, ScreenInfo, Wrappable,
+    Wrapped
+};
 use bindings::{
-    cef_accessibility_handler_t, cef_app_t, cef_browser_t, cef_drag_data_t,
-    cef_drag_operations_mask_t, cef_horizontal_alignment_t, cef_paint_element_type_t, cef_range_t,
-    cef_rect_t, cef_render_handler_t, cef_screen_info_t, cef_size_t, cef_string_t,
-    cef_text_input_mode_t, cef_touch_handle_state_t
+    cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
+    cef_horizontal_alignment_t, cef_paint_element_type_t, cef_range_t, cef_rect_t,
+    cef_render_handler_t, cef_screen_info_t, cef_size_t, cef_string_t, cef_text_input_mode_t,
+    cef_touch_handle_state_t
 };
 use std::{
     ffi::{c_int, c_void},
-    mem::zeroed
+    mem::zeroed,
+    slice::from_raw_parts
 };
 
 /// Implement this structure to handle events when window rendering is disabled.
 /// The functions of this structure will be called on the UI thread.
+#[allow(unused_variables)]
 pub trait RenderHandlerCallbacks: Send + Sync + 'static {
+    // TODO: Fix these!
+
     // /// Return the handler for accessibility notifications. If no handler is
     // /// provided the default implementation will be used.
     // // struct _cef_accessibility_handler_t*(CEF_CALLBACK* get_accessibility_handler)(
@@ -21,37 +28,30 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     // /// Called to retrieve the root window rectangle in screen DIP coordinates.
     // /// Return true (1) if the rectangle was provided. If this function returns
     // /// false (0) the rectangle from GetViewRect will be used.
-    // // int(CEF_CALLBACK* get_root_screen_rect)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_rect_t* rect);
+    fn get_root_screen_rect(&self, browser: Browser) -> Option<Rect> {
+        None
+    }
 
-    // /// Called to retrieve the view rectangle in screen DIP coordinates. This
-    // /// function must always provide a non-NULL rectangle.
-    // // void(CEF_CALLBACK* get_view_rect)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_rect_t* rect);
+    /// Called to retrieve the view rectangle in screen DIP coordinates. This
+    /// function must always provide a non-NULL rectangle.
+    fn get_view_rect(&self, browser: Browser) -> Rect;
 
-    // /// Called to retrieve the translation from view DIP coordinates to screen
-    // /// coordinates. Windows/Linux should provide screen device (pixel)
-    // /// coordinates and MacOS should provide screen DIP coordinates. Return true
-    // /// (1) if the requested coordinates were provided.
-    // // int(CEF_CALLBACK* get_screen_point)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // int viewX,
-    // // int viewY,
-    // // int* screenX,
-    // // int* screenY);
+    /// Called to retrieve the translation from view DIP coordinates to screen
+    /// coordinates. Windows/Linux should provide screen device (pixel)
+    /// coordinates and MacOS should provide screen DIP coordinates. Return true
+    /// (1) if the requested coordinates were provided.
+    fn get_screen_point(&self, browser: Browser, view: &Point) -> Option<Point>;
 
-    // /// Called to allow the client to fill in the CefScreenInfo object with
-    // /// appropriate values. Return true (1) if the |screen_info| structure has
-    // /// been modified.
-    // ///
-    // /// If the screen info rectangle is left NULL the rectangle from GetViewRect
-    // /// will be used. If the rectangle is still NULL or invalid popups may not be
-    // /// drawn correctly.
-    // // int(CEF_CALLBACK* get_screen_info)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_screen_info_t* screen_info);
+    /// Called to allow the client to fill in the CefScreenInfo object with
+    /// appropriate values. Return true (1) if the |screen_info| structure has
+    /// been modified.
+    ///
+    /// If the screen info rectangle is left NULL the rectangle from GetViewRect
+    /// will be used. If the rectangle is still NULL or invalid popups may not be
+    /// drawn correctly.
+    fn get_screen_info(&self, browser: Browser) -> Option<ScreenInfo>;
+
+    // TODO: Fix these!
 
     // /// Called when the browser wants to show or hide the popup widget. The popup
     // /// should be shown if |show| is true (1) and hidden if |show| is false (0).
@@ -65,23 +65,26 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     // // struct _cef_browser_t* browser,
     // // const cef_rect_t* rect);
 
-    // /// Called when an element should be painted. Pixel values passed to this
-    // /// function are scaled relative to view coordinates based on the value of
-    // /// CefScreenInfo.device_scale_factor returned from GetScreenInfo. |type|
-    // /// indicates whether the element is the view or the popup widget. |buffer|
-    // /// contains the pixel data for the whole image. |dirtyRects| contains the set
-    // /// of rectangles in pixel coordinates that need to be repainted. |buffer|
-    // /// will be |width|*|height|*4 bytes in size and represents a BGRA image with
-    // /// an upper-left origin. This function is only called when
-    // /// cef_window_tInfo::shared_texture_enabled is set to false (0).
-    // // void(CEF_CALLBACK* on_paint)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_paint_element_type_t type,
-    // // size_t dirtyRectsCount,
-    // // cef_rect_t const* dirtyRects,
-    // // const void* buffer,
-    // // int width,
-    // // int height);
+    /// Called when an element should be painted. Pixel values passed to this
+    /// function are scaled relative to view coordinates based on the value of
+    /// CefScreenInfo.device_scale_factor returned from GetScreenInfo. |type|
+    /// indicates whether the element is the view or the popup widget. |buffer|
+    /// contains the pixel data for the whole image. |dirtyRects| contains the set
+    /// of rectangles in pixel coordinates that need to be repainted. |buffer|
+    /// will be |width|*|height|*4 bytes in size and represents a BGRA image with
+    /// an upper-left origin. This function is only called when
+    /// cef_window_tInfo::shared_texture_enabled is set to false (0).
+    fn on_paint(
+        &self,
+        browser: Browser,
+        paint_element_type: PaintElementType,
+        dirty_rects: &[Rect],
+        buffer: &[u8],
+        width: usize,
+        height: usize
+    );
+
+    // TODO: Fix these!
 
     // /// Called when an element has been rendered to the shared texture handle.
     // /// |type| indicates whether the element is the view or the popup widget.
@@ -141,7 +144,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     // /// Called when the scroll offset has changed.
     // // void(CEF_CALLBACK* on_scroll_offset_changed)(
     // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
+    // // struct _cef_browser_t* browser, -> bool
     // // double x,
     // // double y);
 
@@ -206,7 +209,15 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *mut cef_rect_t
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let local_rect = this.0.get_root_screen_rect(browser);
+
+        if let Some(local_rect) = &local_rect {
+            *rect = local_rect.into();
+        }
+
+        local_rect.is_some() as c_int
     }
 
     /// Called to retrieve the view rectangle in screen DIP coordinates. This
@@ -216,7 +227,10 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *mut cef_rect_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        *rect = this.0.get_view_rect(browser).into();
     }
 
     /// Called to retrieve the translation from view DIP coordinates to screen
@@ -231,7 +245,22 @@ impl RenderHandlerWrapper {
         screen_x: *mut c_int,
         screen_y: *mut c_int
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let local_screen = this.0.get_screen_point(
+            browser,
+            &Point {
+                x: view_x,
+                y: view_y
+            }
+        );
+
+        if let Some(local_screen) = &local_screen {
+            *screen_x = local_screen.x;
+            *screen_y = local_screen.y;
+        }
+
+        local_screen.is_some() as c_int
     }
 
     /// Called to allow the client to fill in the CefScreenInfo object with
@@ -246,7 +275,15 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         screen_info: *mut cef_screen_info_t
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let local_screen_info = this.0.get_screen_info(browser);
+
+        if let Some(local_screen_info) = &local_screen_info {
+            *screen_info = local_screen_info.into();
+        }
+
+        local_screen_info.is_some() as c_int
     }
 
     /// Called when the browser wants to show or hide the popup widget. The popup
@@ -288,7 +325,15 @@ impl RenderHandlerWrapper {
         width: c_int,
         height: c_int
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let dirty_rects = from_raw_parts(dirty_rects as *const Rect, dirty_rects_count);
+        let width = width as usize;
+        let height = height as usize;
+        let buffer = from_raw_parts(buffer as *const u8, width * height * 4);
+
+        this.0
+            .on_paint(browser, type_.into(), dirty_rects, buffer, width, height);
     }
 
     /// Called when an element has been rendered to the shared texture handle.
@@ -423,13 +468,13 @@ impl Wrappable for RenderHandlerWrapper {
 
                 // TODO: Fix these!
                 get_accessibility_handler:        None,
-                get_root_screen_rect:             None,
-                get_view_rect:                    None,
-                get_screen_point:                 None,
-                get_screen_info:                  None,
+                get_root_screen_rect:             Some(Self::c_get_root_screen_rect),
+                get_view_rect:                    Some(Self::c_get_view_rect),
+                get_screen_point:                 Some(Self::c_get_screen_point),
+                get_screen_info:                  Some(Self::c_get_screen_info),
                 on_popup_show:                    None,
                 on_popup_size:                    None,
-                on_paint:                         None,
+                on_paint:                         Some(Self::c_on_paint),
                 on_accelerated_paint:             None,
                 get_touch_handle_size:            None,
                 on_touch_handle_state_changed:    None,
