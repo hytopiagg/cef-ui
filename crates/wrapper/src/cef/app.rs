@@ -69,7 +69,7 @@ impl App {
 struct AppWrapper(Box<dyn AppCallbacks>);
 
 impl AppWrapper {
-    pub fn new<C: AppCallbacks>(delegate: C) -> AppWrapper {
+    pub fn new<C: AppCallbacks>(delegate: C) -> Self {
         Self(Box::new(delegate))
     }
 
