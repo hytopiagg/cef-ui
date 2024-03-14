@@ -2874,18 +2874,15 @@ pub enum cef_window_open_disposition_t {
     CEF_WOD_SWITCH_TO_TAB = 10,
     CEF_WOD_NEW_PICTURE_IN_PICTURE = 11
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_drag_operations_mask_t {
-    DRAG_OPERATION_NONE = 0,
-    DRAG_OPERATION_COPY = 1,
-    DRAG_OPERATION_LINK = 2,
-    DRAG_OPERATION_GENERIC = 4,
-    DRAG_OPERATION_PRIVATE = 8,
-    DRAG_OPERATION_MOVE = 16,
-    DRAG_OPERATION_DELETE = 32,
-    DRAG_OPERATION_EVERY = 4294967295
-}
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_NONE: cef_drag_operations_mask_t = 0;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_COPY: cef_drag_operations_mask_t = 1;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_LINK: cef_drag_operations_mask_t = 2;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_GENERIC: cef_drag_operations_mask_t = 4;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_PRIVATE: cef_drag_operations_mask_t = 8;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_MOVE: cef_drag_operations_mask_t = 16;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_DELETE: cef_drag_operations_mask_t = 32;
+pub const cef_drag_operations_mask_t_DRAG_OPERATION_EVERY: cef_drag_operations_mask_t = 4294967295;
+pub type cef_drag_operations_mask_t = ::std::os::raw::c_uint;
 impl cef_text_input_mode_t {
     pub const CEF_TEXT_INPUT_MODE_MAX: cef_text_input_mode_t =
         cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_SEARCH;
