@@ -1,6 +1,7 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, PaintElementType, Point, RequestContext, State, WindowHandle, WindowInfo, ZoomCommand
+    Frame, KeyEvent, PaintElementType, Point, RequestContext, State, WindowHandle, WindowInfo,
+    ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -968,14 +969,17 @@ impl BrowserHost {
         }
     }
 
+    /// Send a key event to the browser.
+    pub fn send_key_event(&self, event: KeyEvent) {
+        if let Some(send_key_event) = self.0.send_key_event {
+            unsafe {
+                send_key_event(self.as_ptr(), event.as_raw());
+            }
+        }
+    }
+
     // TODO: Fix these!
 
-    // ///
-    // /// Send a key event to the browser.
-    // ///
-    // void(CEF_CALLBACK* send_key_event)(struct _cef_browser_host_t* self,
-    // const cef_key_event_t* event);
-    //
     // ///
     // /// Send a mouse click event to the browser. The |x| and |y| coordinates are
     // /// relative to the upper-left corner of the view.
