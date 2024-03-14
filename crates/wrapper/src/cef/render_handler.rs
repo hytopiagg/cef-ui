@@ -1,6 +1,7 @@
 use crate::{
-    ref_counted_ptr, Browser, HorizontalAlignment, PaintElementType, Point, Rect, RefCountedPtr,
-    ScreenInfo, Size, TouchHandleState, Wrappable, Wrapped
+    ref_counted_ptr, Browser, CefString, DragData, DragOperations, HorizontalAlignment,
+    PaintElementType, Point, Range, Rect, RefCountedPtr, ScreenInfo, Size, TextInputMode,
+    TouchHandleState, Wrappable, Wrapped
 };
 use bindings::{
     cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
@@ -103,66 +104,61 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
 
     // TODO: Fix these!
 
-    // /// Called when the user starts dragging content in the web view. Contextual
-    // /// information about the dragged content is supplied by |drag_data|. (|x|,
-    // /// |y|) is the drag start location in screen coordinates. OS APIs that run a
-    // /// system message loop may be used within the StartDragging call.
-    // ///
-    // /// Return false (0) to abort the drag operation. Don't call any of
-    // /// cef_browser_host_t::DragSource*Ended* functions after returning false (0).
-    // ///
-    // /// Return true (1) to handle the drag operation. Call
-    // /// cef_browser_host_t::DragSourceEndedAt and DragSourceSystemDragEnded either
-    // /// synchronously or asynchronously to inform the web view that the drag
-    // /// operation has ended.
-    // // int(CEF_CALLBACK* start_dragging)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // struct _cef_drag_data_t* drag_data,
-    // // cef_drag_operations_mask_t allowed_ops,
-    // // int x,
-    // // int y);
+    /// Called when the user starts dragging content in the web view. Contextual
+    /// information about the dragged content is supplied by |drag_data|. (|x|,
+    /// |y|) is the drag start location in screen coordinates. OS APIs that run a
+    /// system message loop may be used within the StartDragging call.
+    ///
+    /// Return false (0) to abort the drag operation. Don't call any of
+    /// cef_browser_host_t::DragSource*Ended* functions after returning false (0).
+    ///
+    /// Return true (1) to handle the drag operation. Call
+    /// cef_browser_host_t::DragSourceEndedAt and DragSourceSystemDragEnded either
+    /// synchronously or asynchronously to inform the web view that the drag
+    /// operation has ended.
+    fn start_dragging(
+        &self,
+        browser: Browser,
+        drag_data: DragData,
+        allowed_ops: DragOperations,
+        drag_start: &Point
+    ) -> bool;
 
-    // /// Called when the web view wants to update the mouse cursor during a drag &
-    // /// drop operation. |operation| describes the allowed operation (none, move,
-    // /// copy, link).
-    // // void(CEF_CALLBACK* update_drag_cursor)(struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_drag_operations_mask_t operation);
+    /// Called when the web view wants to update the mouse cursor during a drag &
+    /// drop operation. |operation| describes the allowed operation (none, move,
+    /// copy, link).
+    fn update_drag_cursor(&self, browser: Browser, operation: DragOperations);
 
-    // /// Called when the scroll offset has changed.
-    // // void(CEF_CALLBACK* on_scroll_offset_changed)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser, -> bool
-    // // double x,
-    // // double y);
+    /// Called when the scroll offset has changed.
+    fn on_scroll_offset_changed(&self, browser: Browser, x: f64, y: f64) {}
 
-    // /// Called when the IME composition range has changed. |selected_range| is the
-    // /// range of characters that have been selected. |character_bounds| is the
-    // /// bounds of each character in view coordinates.
-    // // void(CEF_CALLBACK* on_ime_composition_range_changed)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // const cef_range_t* selected_range,
-    // // size_t character_boundsCount,
-    // // cef_rect_t const* character_bounds);
+    /// Called when the IME composition range has changed. |selected_range| is the
+    /// range of characters that have been selected. |character_bounds| is the
+    /// bounds of each character in view coordinates.
+    fn on_ime_composition_range_changed(
+        &self,
+        browser: Browser,
+        selected_range: &Range,
+        character_bounds: &[Rect]
+    ) {
+    }
 
-    // /// Called when text selection has changed for the specified |browser|.
-    // /// |selected_text| is the currently selected text and |selected_range| is the
-    // /// character range.
-    // // void(CEF_CALLBACK* on_text_selection_changed)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // const cef_string_t* selected_text,
-    // // const cef_range_t* selected_range);
+    /// Called when text selection has changed for the specified |browser|.
+    /// |selected_text| is the currently selected text and |selected_range| is the
+    /// character range.
+    fn on_text_selection_changed(
+        &self,
+        browser: Browser,
+        selected_text: &str,
+        selected_range: &Range
+    ) {
+    }
 
-    // /// Called when an on-screen keyboard should be shown or hidden for the
-    // /// specified |browser|. |input_mode| specifies what kind of keyboard should
-    // /// be opened. If |input_mode| is CEF_TEXT_INPUT_MODE_NONE, any existing
-    // /// keyboard for this browser should be hidden.
-    // // void(CEF_CALLBACK* on_virtual_keyboard_requested)(
-    // // struct _cef_render_handler_t* self,
-    // // struct _cef_browser_t* browser,
-    // // cef_text_input_mode_t input_mode);
+    /// Called when an on-screen keyboard should be shown or hidden for the
+    /// specified |browser|. |input_mode| specifies what kind of keyboard should
+    /// be opened. If |input_mode| is CEF_TEXT_INPUT_MODE_NONE, any existing
+    /// keyboard for this browser should be hidden.
+    fn on_virtual_keyboard_requested(&self, browser: Browser, input_mode: TextInputMode) {}
 }
 
 ref_counted_ptr!(RenderHandler, cef_render_handler_t);
@@ -406,7 +402,13 @@ impl RenderHandlerWrapper {
         x: c_int,
         y: c_int
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let drag_data = DragData::from_ptr_unchecked(drag_data);
+
+        this.0
+            .start_dragging(browser, drag_data, allowed_ops.into(), &Point { x, y })
+            as c_int
     }
 
     /// Called when the web view wants to update the mouse cursor during a drag &
@@ -417,7 +419,11 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         operation: cef_drag_operations_mask_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .update_drag_cursor(browser, operation.into());
     }
 
     /// Called when the scroll offset has changed.
@@ -427,7 +433,11 @@ impl RenderHandlerWrapper {
         x: f64,
         y: f64
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_scroll_offset_changed(browser, x, y);
     }
 
     /// Called when the IME composition range has changed. |selected_range| is the
@@ -440,7 +450,13 @@ impl RenderHandlerWrapper {
         character_bounds_count: usize,
         character_bounds: *const cef_rect_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let character_bounds =
+            from_raw_parts(character_bounds as *const Rect, character_bounds_count);
+
+        this.0
+            .on_ime_composition_range_changed(browser, &(*selected_range).into(), character_bounds);
     }
 
     /// Called when text selection has changed for the specified |browser|.
@@ -452,7 +468,12 @@ impl RenderHandlerWrapper {
         selected_text: *const cef_string_t,
         selected_range: *const cef_range_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let selected_text: String = CefString::from_ptr_unchecked(selected_text).into();
+
+        this.0
+            .on_text_selection_changed(browser, &selected_text, &(*selected_range).into());
     }
 
     /// Called when an on-screen keyboard should be shown or hidden for the
@@ -464,7 +485,11 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         input_mode: cef_text_input_mode_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_virtual_keyboard_requested(browser, input_mode.into());
     }
 }
 
@@ -488,13 +513,13 @@ impl Wrappable for RenderHandlerWrapper {
                 on_paint:                         Some(Self::c_on_paint),
                 on_accelerated_paint:             Some(Self::c_on_accelerated_paint),
                 get_touch_handle_size:            Some(Self::c_get_touch_handle_size),
-                on_touch_handle_state_changed:    None,
-                start_dragging:                   None,
-                update_drag_cursor:               None,
-                on_scroll_offset_changed:         None,
-                on_ime_composition_range_changed: None,
-                on_text_selection_changed:        None,
-                on_virtual_keyboard_requested:    None
+                on_touch_handle_state_changed:    Some(Self::c_on_touch_handle_state_changed),
+                start_dragging:                   Some(Self::c_start_dragging),
+                update_drag_cursor:               Some(Self::c_update_drag_cursor),
+                on_scroll_offset_changed:         Some(Self::c_on_scroll_offset_changed),
+                on_ime_composition_range_changed: Some(Self::c_on_ime_composition_range_changed),
+                on_text_selection_changed:        Some(Self::c_on_text_selection_changed),
+                on_virtual_keyboard_requested:    Some(Self::c_on_virtual_keyboard_requested)
             },
             self
         )

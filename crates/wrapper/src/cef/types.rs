@@ -1,7 +1,8 @@
 use bindings::{
     cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
     cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t,
-    cef_state_t, cef_touch_handle_state_flags_t, cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
+    cef_state_t, cef_text_input_mode_t, cef_touch_handle_state_flags_t,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
@@ -1853,6 +1854,66 @@ impl From<&PaintElementType> for cef_paint_element_type_t {
         match value {
             PaintElementType::View => cef_paint_element_type_t::PET_VIEW,
             PaintElementType::Popup => cef_paint_element_type_t::PET_POPUP
+        }
+    }
+}
+
+/// Input mode of a virtual keyboard. These constants match their equivalents
+/// in Chromium's text_input_mode.h and should not be renumbered.
+/// See https://html.spec.whatwg.org/#input-modalities:-the-inputmode-attribute
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TextInputMode {
+    Default,
+    None,
+    Text,
+    Tel,
+    Url,
+    Email,
+    Numeric,
+    Decimal,
+    Search
+}
+
+impl From<cef_text_input_mode_t> for TextInputMode {
+    fn from(value: cef_text_input_mode_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_text_input_mode_t> for TextInputMode {
+    fn from(value: &cef_text_input_mode_t) -> Self {
+        match value {
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_DEFAULT => TextInputMode::Default,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_NONE => TextInputMode::None,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_TEXT => TextInputMode::Text,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_TEL => TextInputMode::Tel,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_URL => TextInputMode::Url,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_EMAIL => TextInputMode::Email,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_NUMERIC => TextInputMode::Numeric,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_DECIMAL => TextInputMode::Decimal,
+            cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_SEARCH => TextInputMode::Search
+        }
+    }
+}
+
+impl From<TextInputMode> for cef_text_input_mode_t {
+    fn from(value: TextInputMode) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TextInputMode> for cef_text_input_mode_t {
+    fn from(value: &TextInputMode) -> Self {
+        match value {
+            TextInputMode::Default => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_DEFAULT,
+            TextInputMode::None => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_NONE,
+            TextInputMode::Text => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_TEXT,
+            TextInputMode::Tel => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_TEL,
+            TextInputMode::Url => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_URL,
+            TextInputMode::Email => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_EMAIL,
+            TextInputMode::Numeric => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_NUMERIC,
+            TextInputMode::Decimal => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_DECIMAL,
+            TextInputMode::Search => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_SEARCH
         }
     }
 }
