@@ -102,8 +102,6 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// rendering the touch handles.
     fn on_touch_handle_state_changed(&self, browser: Browser, state: &TouchHandleState);
 
-    // TODO: Fix these!
-
     /// Called when the user starts dragging content in the web view. Contextual
     /// information about the dragged content is supplied by |drag_data|. (|x|,
     /// |y|) is the drag start location in screen coordinates. OS APIs that run a

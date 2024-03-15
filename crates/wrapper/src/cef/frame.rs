@@ -230,7 +230,7 @@ impl Frame {
     // ///
     // struct _cef_v8context_t*(CEF_CALLBACK* get_v8context)(
     // struct _cef_frame_t* self);
-    //
+
     // ///
     // /// Visit the DOM document. This function can only be called from the render
     // /// process.
