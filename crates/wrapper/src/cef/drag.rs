@@ -58,6 +58,7 @@ impl From<&DragOperations> for cef_drag_operations_mask_t {
 ref_counted_ptr!(DragData, cef_drag_data_t);
 
 impl DragData {
+    /// Create a new cef_drag_data_t object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_drag_data_create()) }
     }

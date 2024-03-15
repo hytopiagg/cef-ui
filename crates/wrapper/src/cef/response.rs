@@ -7,6 +7,7 @@ use std::ffi::c_int;
 ref_counted_ptr!(Response, cef_response_t);
 
 impl Response {
+    /// Create a new cef_response_t object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_response_create()) }
     }

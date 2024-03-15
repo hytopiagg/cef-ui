@@ -421,7 +421,7 @@ pub trait StringVisitorCallbacks: Send + Sync + 'static {
     fn visit(&self, string: &str);
 }
 
-/// Implement this structure to receive string values asynchronously.
+// Implement this structure to receive string values asynchronously.
 ref_counted_ptr!(StringVisitor, cef_string_visitor_t);
 
 impl StringVisitor {

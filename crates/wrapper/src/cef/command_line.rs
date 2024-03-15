@@ -18,6 +18,7 @@ use std::{
 ref_counted_ptr!(CommandLine, cef_command_line_t);
 
 impl CommandLine {
+    /// Create a new cef_command_line_t instance.
     pub fn new() -> CommandLine {
         unsafe { CommandLine::from_ptr_unchecked(cef_command_line_create()) }
     }

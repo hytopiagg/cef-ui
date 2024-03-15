@@ -161,8 +161,8 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     fn on_virtual_keyboard_requested(&self, browser: Browser, input_mode: TextInputMode) {}
 }
 
-/// Implement this structure to handle events when window rendering is disabled.
-/// The functions of this structure will be called on the UI thread.
+// Implement this structure to handle events when window rendering is disabled.
+// The functions of this structure will be called on the UI thread.
 ref_counted_ptr!(RenderHandler, cef_render_handler_t);
 
 impl RenderHandler {

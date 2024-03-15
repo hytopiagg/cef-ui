@@ -138,9 +138,9 @@ pub trait ResourceRequestHandlerCallbacks: Send + Sync + 'static {
     // // int* allow_os_execution);
 }
 
-/// Implement this structure to handle events related to browser requests. The
-/// functions of this structure will be called on the IO thread unless otherwise
-/// indicated.
+// Implement this structure to handle events related to browser requests. The
+// functions of this structure will be called on the IO thread unless otherwise
+// indicated.
 ref_counted_ptr!(ResourceRequestHandler, cef_resource_request_handler_t);
 
 impl ResourceRequestHandler {
