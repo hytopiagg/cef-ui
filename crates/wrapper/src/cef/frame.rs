@@ -1,5 +1,6 @@
 use crate::{
-    ref_counted_ptr, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor
+    ref_counted_ptr, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor,
+    UrlRequest, UrlRequestClient
 };
 use bindings::cef_frame_t;
 use std::ffi::c_int;
@@ -126,9 +127,6 @@ impl Frame {
         }
     }
 
-    // void(CEF_CALLBACK* load_request)(struct _cef_frame_t* self,
-    // struct _cef_request_t* request);
-
     /// Load the specified |url|.
     pub fn load_url(&self, url: &str) {
         if let Some(load_url) = self.0.load_url {
@@ -239,26 +237,35 @@ impl Frame {
     // ///
     // void(CEF_CALLBACK* visit_dom)(struct _cef_frame_t* self,
     // struct _cef_domvisitor_t* visitor);
-    //
-    // ///
-    // /// Create a new URL request that will be treated as originating from this
-    // /// frame and the associated browser. Use cef_urlrequest_t::Create instead if
-    // /// you do not want the request to have this association, in which case it may
-    // /// be handled differently (see documentation on that function). A request
-    // /// created with this function may only originate from the browser process,
-    // /// and will behave as follows:
-    // ///   - It may be intercepted by the client via CefResourceRequestHandler or
-    // ///     CefSchemeHandlerFactory.
-    // ///   - POST data may only contain a single element of type PDE_TYPE_FILE or
-    // ///     PDE_TYPE_BYTES.
-    // ///
-    // /// The |request| object will be marked as read-only after calling this
-    // /// function.
-    // ///
-    // struct _cef_urlrequest_t*(CEF_CALLBACK* create_urlrequest)(
-    // struct _cef_frame_t* self,
-    // struct _cef_request_t* request,
-    // struct _cef_urlrequest_client_t* client);
+
+    /// Create a new URL request that will be treated as originating from this
+    /// frame and the associated browser. Use cef_urlrequest_t::Create instead if
+    /// you do not want the request to have this association, in which case it may
+    /// be handled differently (see documentation on that function). A request
+    /// created with this function may only originate from the browser process,
+    /// and will behave as follows:
+    ///   - It may be intercepted by the client via CefResourceRequestHandler or
+    ///     CefSchemeHandlerFactory.
+    ///   - POST data may only contain a single element of type PDE_TYPE_FILE or
+    ///     PDE_TYPE_BYTES.
+    ///
+    /// The |request| object will be marked as read-only after calling this
+    /// function.
+    pub fn create_urlrequest(
+        &self,
+        request: Request,
+        client: UrlRequestClient
+    ) -> Option<UrlRequest> {
+        self.0
+            .create_urlrequest
+            .map(|create_urlrequest| unsafe {
+                UrlRequest::from_ptr_unchecked(create_urlrequest(
+                    self.as_ptr(),
+                    request.into_raw(),
+                    client.into_raw()
+                ))
+            })
+    }
 
     /// Send a message to the specified |target_process|. Ownership of the message
     /// contents will be transferred and the |message| reference will be
