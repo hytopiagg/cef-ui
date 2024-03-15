@@ -68,5 +68,3 @@ pub use x509_certificate::*;
 //  original value by value instead of by reference.
 
 // TODO: Add doc comments to all new(..) functions!
-
-// TODO: Put doc comments on both trait for callbacks and the type!
