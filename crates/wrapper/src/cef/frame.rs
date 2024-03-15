@@ -1,4 +1,6 @@
-use crate::{ref_counted_ptr, Browser, CefString, StringVisitor};
+use crate::{
+    ref_counted_ptr, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor
+};
 use bindings::cef_frame_t;
 use std::ffi::c_int;
 
@@ -111,16 +113,19 @@ impl Frame {
         }
     }
 
-    // TODO: Fix this!
+    /// Load the request represented by the |request| object.
+    ///
+    /// WARNING: This function will fail with "bad IPC message" reason
+    /// INVALID_INITIATOR_ORIGIN (213) unless you first navigate to the request
+    /// origin using some other mechanism (LoadURL, link click, etc).
+    pub fn load_request(&self, request: Request) {
+        if let Some(load_request) = self.0.load_request {
+            unsafe {
+                load_request(self.as_ptr(), request.into_raw());
+            }
+        }
+    }
 
-    //
-    // ///
-    // /// Load the request represented by the |request| object.
-    // ///
-    // /// WARNING: This function will fail with "bad IPC message" reason
-    // /// INVALID_INITIATOR_ORIGIN (213) unless you first navigate to the request
-    // /// origin using some other mechanism (LoadURL, link click, etc).
-    // ///
     // void(CEF_CALLBACK* load_request)(struct _cef_frame_t* self,
     // struct _cef_request_t* request);
 
@@ -254,17 +259,18 @@ impl Frame {
     // struct _cef_frame_t* self,
     // struct _cef_request_t* request,
     // struct _cef_urlrequest_client_t* client);
-    //
-    // ///
-    // /// Send a message to the specified |target_process|. Ownership of the message
-    // /// contents will be transferred and the |message| reference will be
-    // /// invalidated. Message delivery is not guaranteed in all cases (for example,
-    // /// if the browser is closing, navigating, or if the target process crashes).
-    // /// Send an ACK message back from the target process if confirmation is
-    // /// required.
-    // ///
-    // void(CEF_CALLBACK* send_process_message)(
-    // struct _cef_frame_t* self,
-    // cef_process_id_t target_process,
-    // struct _cef_process_message_t* message);
+
+    /// Send a message to the specified |target_process|. Ownership of the message
+    /// contents will be transferred and the |message| reference will be
+    /// invalidated. Message delivery is not guaranteed in all cases (for example,
+    /// if the browser is closing, navigating, or if the target process crashes).
+    /// Send an ACK message back from the target process if confirmation is
+    /// required.
+    pub fn send_process_message(&self, target_process: ProcessId, message: ProcessMessage) {
+        if let Some(send_process_message) = self.0.send_process_message {
+            unsafe {
+                send_process_message(self.as_ptr(), target_process.into(), message.into_raw());
+            }
+        }
+    }
 }
