@@ -1,6 +1,6 @@
-use crate::{ref_counted_ptr, CefString, ErrorCode};
+use crate::{ref_counted_ptr, CefString, CefStringMultiMap, ErrorCode};
 use bindings::{cef_response_create, cef_response_t};
-use std::ffi::c_int;
+use std::{collections::HashMap, ffi::c_int};
 
 // Structure used to represent a web response. The functions of this structure
 // may be called on any thread.
@@ -150,19 +150,28 @@ impl Response {
         }
     }
 
-    // TODO: Fix this!
+    /// Get all response header fields.
+    pub fn get_header_map(&self) -> HashMap<String, Vec<String>> {
+        self.0
+            .get_header_map
+            .map(|get_header_map| {
+                let mut headers = CefStringMultiMap::new();
 
-    //     ///
-    //     /// Get all response header fields.
-    //     ///
-    //     void(CEF_CALLBACK* get_header_map)(struct _cef_response_t* self,
-    //     cef_string_multimap_t headerMap);
-    //
-    //     ///
-    //     /// Set all response header fields.
-    //     ///
-    //     void(CEF_CALLBACK* set_header_map)(struct _cef_response_t* self,
-    //     cef_string_multimap_t headerMap);
+                unsafe { get_header_map(self.as_ptr(), headers.as_mut_ptr()) };
+
+                headers.into()
+            })
+            .unwrap_or_default()
+    }
+
+    /// Set all response header fields.
+    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) {
+        if let Some(set_header_map) = self.0.set_header_map {
+            let mut headers = CefStringMultiMap::from(headers);
+
+            unsafe { set_header_map(self.as_ptr(), headers.as_mut_ptr()) }
+        }
+    }
 
     /// Get the resolved URL after redirects or changed as a result of HSTS.
     pub fn get_url(&self) -> Option<String> {
