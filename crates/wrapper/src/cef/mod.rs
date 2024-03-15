@@ -20,9 +20,11 @@ mod resource_request_handler;
 mod response;
 mod settings;
 mod string;
+mod time;
 mod types;
 mod values;
 mod window;
+mod x509_certificate;
 
 pub use accessibility_handler::*;
 pub use app::*;
@@ -46,9 +48,11 @@ pub use resource_request_handler::*;
 pub use response::*;
 pub use settings::*;
 pub use string::*;
+pub use time::*;
 pub use types::*;
 pub use values::*;
 pub use window::*;
+pub use x509_certificate::*;
 
 // TODO: Evaluate that your code is actually save! You were doing some unsafe
 //  things getting pointers to CefString's and then letting the original value
