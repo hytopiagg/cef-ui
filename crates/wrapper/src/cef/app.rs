@@ -57,6 +57,8 @@ pub trait AppCallbacks: Send + Sync + 'static {
     // }
 }
 
+/// Implement this structure to provide handler implementations. Methods will be
+/// called by the process and/or thread indicated.
 ref_counted_ptr!(App, cef_app_t);
 
 impl App {

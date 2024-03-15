@@ -15,6 +15,9 @@ pub trait AccessibilityHandlerCallbacks: Send + Sync + 'static {
     fn on_accessibility_location_change(&self, value: Value);
 }
 
+/// Implement this structure to receive accessibility notification when
+/// accessibility events have been registered. The functions of this structure
+/// will be called on the UI thread.
 ref_counted_ptr!(AccessibilityHandler, cef_accessibility_handler_t);
 
 impl AccessibilityHandler {
