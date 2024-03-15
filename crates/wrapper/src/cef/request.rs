@@ -1,7 +1,7 @@
-use crate::{ref_counted_ptr, CefString, CefStringMultiMap, ReferrerPolicy};
+use crate::{ref_counted_ptr, CefString, CefStringMultiMap, ReferrerPolicy, UrlRequestFlags};
 use bindings::{
     cef_post_data_create, cef_post_data_element_create, cef_post_data_element_t, cef_post_data_t,
-    cef_postdataelement_type_t, cef_request_create, cef_request_t
+    cef_postdataelement_type_t, cef_request_create, cef_request_t, cef_urlrequest_flags_t
 };
 use std::{
     collections::HashMap,
@@ -338,9 +338,9 @@ impl Request {
 
     /// Set the header values. If a Referer value exists in the header map it will
     /// be removed and ignored.
-    pub fn set_header_map(&self, headers: HashMap<String, Vec<String>>) {
+    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) {
         if let Some(set_header_map) = self.0.set_header_map {
-            let mut headers = CefStringMultiMap::from(&headers);
+            let mut headers = CefStringMultiMap::from(headers);
 
             unsafe { set_header_map(self.as_ptr(), headers.as_mut_ptr()) }
         }
@@ -380,29 +380,52 @@ impl Request {
         }
     }
 
-    // TODO: Fix this!
+    /// Set all values at one time.
+    pub fn set(
+        &self,
+        url: &str,
+        method: &str,
+        post_data: PostData,
+        headers: &HashMap<String, Vec<String>>
+    ) {
+        if let Some(set) = self.0.set {
+            let url = CefString::new(url);
+            let method = CefString::new(method);
+            let mut headers = CefStringMultiMap::from(headers);
 
-    //     ///
-    //     /// Set all values at one time.
-    //     ///
-    //     void(CEF_CALLBACK* set)(struct _cef_request_t* self,
-    //     const cef_string_t* url,
-    //     const cef_string_t* method,
-    //     struct _cef_post_data_t* postData,
-    //     cef_string_multimap_t headerMap);
-    //
-    //     ///
-    //     /// Get the flags used in combination with cef_urlrequest_t. See
-    //     /// cef_urlrequest_flags_t for supported values.
-    //     ///
-    //     int(CEF_CALLBACK* get_flags)(struct _cef_request_t* self);
-    //
-    //     ///
-    //     /// Set the flags used in combination with cef_urlrequest_t.  See
-    //     /// cef_urlrequest_flags_t for supported values.
-    //     ///
-    //     void(CEF_CALLBACK* set_flags)(struct _cef_request_t* self, int flags);
-    //
+            unsafe {
+                set(
+                    self.as_ptr(),
+                    url.as_ptr(),
+                    method.as_ptr(),
+                    post_data.into_raw(),
+                    headers.as_mut_ptr()
+                )
+            }
+        }
+    }
+
+    /// Get the flags used in combination with cef_urlrequest_t. See
+    /// cef_urlrequest_flags_t for supported values.
+    pub fn get_flags(&self) -> Option<UrlRequestFlags> {
+        self.0
+            .get_flags
+            .map(|get_flags| unsafe {
+                let flags = get_flags(self.as_ptr());
+
+                (flags as cef_urlrequest_flags_t).into()
+            })
+    }
+
+    /// Set the flags used in combination with cef_urlrequest_t.  See
+    /// cef_urlrequest_flags_t for supported values.
+    pub fn set_flags(&self, flags: UrlRequestFlags) {
+        if let Some(set_flags) = self.0.set_flags {
+            let flags = cef_urlrequest_flags_t::from(&flags);
+
+            unsafe { set_flags(self.as_ptr(), flags as c_int) }
+        }
+    }
 
     /// Get the URL to the first party for cookies used in combination with
     /// cef_urlrequest_t.

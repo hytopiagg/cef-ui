@@ -2971,19 +2971,16 @@ pub enum cef_transition_type_t {
     TT_IS_REDIRECT_MASK = 3221225472,
     TT_QUALIFIER_MASK = 4294967040
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_urlrequest_flags_t {
-    UR_FLAG_NONE = 0,
-    UR_FLAG_SKIP_CACHE = 1,
-    UR_FLAG_ONLY_FROM_CACHE = 2,
-    UR_FLAG_DISABLE_CACHE = 4,
-    UR_FLAG_ALLOW_STORED_CREDENTIALS = 8,
-    UR_FLAG_REPORT_UPLOAD_PROGRESS = 16,
-    UR_FLAG_NO_DOWNLOAD_DATA = 32,
-    UR_FLAG_NO_RETRY_ON_5XX = 64,
-    UR_FLAG_STOP_ON_REDIRECT = 128
-}
+pub const cef_urlrequest_flags_t_UR_FLAG_NONE: cef_urlrequest_flags_t = 0;
+pub const cef_urlrequest_flags_t_UR_FLAG_SKIP_CACHE: cef_urlrequest_flags_t = 1;
+pub const cef_urlrequest_flags_t_UR_FLAG_ONLY_FROM_CACHE: cef_urlrequest_flags_t = 2;
+pub const cef_urlrequest_flags_t_UR_FLAG_DISABLE_CACHE: cef_urlrequest_flags_t = 4;
+pub const cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS: cef_urlrequest_flags_t = 8;
+pub const cef_urlrequest_flags_t_UR_FLAG_REPORT_UPLOAD_PROGRESS: cef_urlrequest_flags_t = 16;
+pub const cef_urlrequest_flags_t_UR_FLAG_NO_DOWNLOAD_DATA: cef_urlrequest_flags_t = 32;
+pub const cef_urlrequest_flags_t_UR_FLAG_NO_RETRY_ON_5XX: cef_urlrequest_flags_t = 64;
+pub const cef_urlrequest_flags_t_UR_FLAG_STOP_ON_REDIRECT: cef_urlrequest_flags_t = 128;
+pub type cef_urlrequest_flags_t = ::std::os::raw::c_uint;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum cef_urlrequest_status_t {

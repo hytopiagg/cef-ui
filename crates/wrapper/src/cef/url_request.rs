@@ -4,14 +4,91 @@ use crate::{
 };
 use bindings::{
     cef_auth_callback_t, cef_string_t, cef_urlrequest_client_t, cef_urlrequest_create,
+    cef_urlrequest_flags_t, cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS,
+    cef_urlrequest_flags_t_UR_FLAG_DISABLE_CACHE, cef_urlrequest_flags_t_UR_FLAG_NONE,
+    cef_urlrequest_flags_t_UR_FLAG_NO_DOWNLOAD_DATA,
+    cef_urlrequest_flags_t_UR_FLAG_NO_RETRY_ON_5XX, cef_urlrequest_flags_t_UR_FLAG_ONLY_FROM_CACHE,
+    cef_urlrequest_flags_t_UR_FLAG_REPORT_UPLOAD_PROGRESS,
+    cef_urlrequest_flags_t_UR_FLAG_SKIP_CACHE, cef_urlrequest_flags_t_UR_FLAG_STOP_ON_REDIRECT,
     cef_urlrequest_status_t, cef_urlrequest_t
 };
+use bitflags::bitflags;
 use std::{
     ffi::{c_int, c_void},
     mem::zeroed,
     ptr::null_mut,
     slice::from_raw_parts
 };
+
+bitflags! {
+    /// Flags used to customize the behavior of CefURLRequest.
+    pub struct UrlRequestFlags: cef_urlrequest_flags_t {
+        /// Default behavior.
+        const None = cef_urlrequest_flags_t_UR_FLAG_NONE;
+
+        /// If set the cache will be skipped when handling the request. Setting this
+        /// value is equivalent to specifying the "Cache-Control: no-cache" request
+        /// header. Setting this value in combination with UR_FLAG_ONLY_FROM_CACHE
+        /// will cause the request to fail.
+        const SkipCache = cef_urlrequest_flags_t_UR_FLAG_SKIP_CACHE;
+
+        /// If set the request will fail if it cannot be served from the cache (or
+        /// some equivalent local store). Setting this value is equivalent to
+        /// specifying the "Cache-Control: only-if-cached" request header. Setting
+        /// this value in combination with UR_FLAG_SKIP_CACHE or UR_FLAG_DISABLE_CACHE
+        /// will cause the request to fail.
+        const OnlyFromCache = cef_urlrequest_flags_t_UR_FLAG_ONLY_FROM_CACHE;
+
+        /// If set the cache will not be used at all. Setting this value is equivalent
+        /// to specifying the "Cache-Control: no-store" request header. Setting this
+        /// value in combination with UR_FLAG_ONLY_FROM_CACHE will cause the request
+        /// to fail.
+        const DisableCache = cef_urlrequest_flags_t_UR_FLAG_DISABLE_CACHE;
+
+        /// If set user name, password, and cookies may be sent with the request, and
+        /// cookies may be saved from the response.
+        const AllowStoredCredentials = cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS;
+
+        /// If set upload progress events will be generated when a request has a body.
+        const ReportUploadProgress = cef_urlrequest_flags_t_UR_FLAG_REPORT_UPLOAD_PROGRESS;
+
+        /// If set the CefURLRequestClient::OnDownloadData method will not be called.
+        const NoDownloadData = cef_urlrequest_flags_t_UR_FLAG_NO_DOWNLOAD_DATA;
+
+        /// If set 5XX redirect errors will be propagated to the observer instead of
+        /// automatically re-tried. This currently only applies for requests
+        /// originated in the browser process.
+        const NoRetryOn5xx = cef_urlrequest_flags_t_UR_FLAG_NO_RETRY_ON_5XX;
+
+        /// If set 3XX responses will cause the fetch to halt immediately rather than
+        /// continue through the redirect.
+        const StopOnRedirect = cef_urlrequest_flags_t_UR_FLAG_STOP_ON_REDIRECT;
+    }
+}
+
+impl From<cef_urlrequest_flags_t> for UrlRequestFlags {
+    fn from(value: cef_urlrequest_flags_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_urlrequest_flags_t> for UrlRequestFlags {
+    fn from(value: &cef_urlrequest_flags_t) -> Self {
+        Self::from_bits_truncate(*value)
+    }
+}
+
+impl From<UrlRequestFlags> for cef_urlrequest_flags_t {
+    fn from(value: UrlRequestFlags) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&UrlRequestFlags> for cef_urlrequest_flags_t {
+    fn from(value: &UrlRequestFlags) -> Self {
+        value.bits()
+    }
+}
 
 /// Flags that represent CefURLRequest status.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
