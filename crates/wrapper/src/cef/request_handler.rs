@@ -1,6 +1,7 @@
 use crate::{
-    ref_counted_ptr, Browser, CefString, Frame, RefCountedPtr, Request, ResourceRequestHandler,
-    WindowOpenDisposition, Wrappable, Wrapped
+    ref_counted_ptr, AuthCallback, Browser, Callback, CefString, ErrorCode, Frame, RefCountedPtr,
+    Request, ResourceRequestHandler, SelectClientCertificateCallback, SslInfo, TerminationStatus,
+    WindowOpenDisposition, Wrappable, Wrapped, X509Certificate
 };
 use bindings::{
     cef_auth_callback_t, cef_browser_t, cef_callback_t, cef_errorcode_t, cef_frame_t,
@@ -8,29 +9,11 @@ use bindings::{
     cef_select_client_certificate_callback_t, cef_sslinfo_t, cef_string_t,
     cef_termination_status_t, cef_window_open_disposition_t, cef_x509certificate_t
 };
-use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
-
-// ///
-// /// Callback structure used to select a client certificate for authentication.
-// ///
-// typedef struct _cef_select_client_certificate_callback_t {
-//     ///
-//     /// Base structure.
-//     ///
-//     cef_base_ref_counted_t base;
-//
-//     ///
-//     /// Chooses the specified certificate for client certificate authentication.
-//     /// NULL value means that no client certificate should be used.
-//     ///
-//     void(CEF_CALLBACK* select)(
-//     struct _cef_select_client_certificate_callback_t* self,
-//     struct _cef_x509certificate_t* cert);
-// } cef_select_client_certificate_callback_t;
-//
+use std::{ffi::c_int, mem::zeroed, ptr::null_mut, slice::from_raw_parts};
 
 /// Implement this structure to handle events related to browser requests. The
 /// functions of this structure will be called on the thread indicated.
+#[allow(unused_variables)]
 pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// Called on the UI thread before browser navigation. Return true (1) to
     /// cancel the navigation or false (0) to allow the navigation to proceed. The
@@ -106,79 +89,82 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
         None
     }
 
-    //     /// Called on the IO thread when the browser needs credentials from the user.
-    //     /// |origin_url| is the origin making this authentication request. |isProxy|
-    //     /// indicates whether the host is a proxy server. |host| contains the hostname
-    //     /// and |port| contains the port number. |realm| is the realm of the challenge
-    //     /// and may be NULL. |scheme| is the authentication scheme used, such as
-    //     /// "basic" or "digest", and will be NULL if the source of the request is an
-    //     /// FTP server. Return true (1) to continue the request and call
-    //     /// cef_auth_callback_t::cont() either in this function or at a later time
-    //     /// when the authentication information is available. Return false (0) to
-    //     /// cancel the request immediately.
-    //     int(CEF_CALLBACK* get_auth_credentials)(
-    //     struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     const cef_string_t* origin_url,
-    //     int isProxy,
-    //     const cef_string_t* host,
-    //     int port,
-    //     const cef_string_t* realm,
-    //     const cef_string_t* scheme,
-    //     struct _cef_auth_callback_t* callback);
+    /// Called on the IO thread when the browser needs credentials from the user.
+    /// |origin_url| is the origin making this authentication request. |isProxy|
+    /// indicates whether the host is a proxy server. |host| contains the hostname
+    /// and |port| contains the port number. |realm| is the realm of the challenge
+    /// and may be NULL. |scheme| is the authentication scheme used, such as
+    /// "basic" or "digest", and will be NULL if the source of the request is an
+    /// FTP server. Return true (1) to continue the request and call
+    /// cef_auth_callback_t::cont() either in this function or at a later time
+    /// when the authentication information is available. Return false (0) to
+    /// cancel the request immediately.
+    fn get_auth_credentials(
+        &self,
+        browser: Browser,
+        origin_url: &str,
+        is_proxy: bool,
+        host: &str,
+        port: u16,
+        realm: Option<&str>,
+        scheme: Option<&str>,
+        callback: AuthCallback
+    ) -> bool {
+        false
+    }
 
-    //     /// Called on the UI thread to handle requests for URLs with an invalid SSL
-    //     /// certificate. Return true (1) and call cef_callback_t functions either in
-    //     /// this function or at a later time to continue or cancel the request. Return
-    //     /// false (0) to cancel the request immediately. If
-    //     /// cef_settings_t.ignore_certificate_errors is set all invalid certificates
-    //     /// will be accepted without calling this function.
-    //     int(CEF_CALLBACK* on_certificate_error)(struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     cef_errorcode_t cert_error,
-    //     const cef_string_t* request_url,
-    //     struct _cef_sslinfo_t* ssl_info,
-    //     struct _cef_callback_t* callback);
+    /// Called on the UI thread to handle requests for URLs with an invalid SSL
+    /// certificate. Return true (1) and call cef_callback_t functions either in
+    /// this function or at a later time to continue or cancel the request. Return
+    /// false (0) to cancel the request immediately. If
+    /// cef_settings_t.ignore_certificate_errors is set all invalid certificates
+    /// will be accepted without calling this function.
+    fn on_certificate_error(
+        &self,
+        browser: Browser,
+        cert_error: ErrorCode,
+        request_url: &str,
+        ssl_info: SslInfo,
+        callback: Callback
+    ) -> bool {
+        false
+    }
 
-    //     /// Called on the UI thread when a client certificate is being requested for
-    //     /// authentication. Return false (0) to use the default behavior and
-    //     /// automatically select the first certificate available. Return true (1) and
-    //     /// call cef_select_client_certificate_callback_t::Select either in this
-    //     /// function or at a later time to select a certificate. Do not call Select or
-    //     /// call it with NULL to continue without using any certificate. |isProxy|
-    //     /// indicates whether the host is an HTTPS proxy or the origin server. |host|
-    //     /// and |port| contains the hostname and port of the SSL server.
-    //     /// |certificates| is the list of certificates to choose from; this list has
-    //     /// already been pruned by Chromium so that it only contains certificates from
-    //     /// issuers that the server trusts.
-    //     int(CEF_CALLBACK* on_select_client_certificate)(
-    //     struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     int isProxy,
-    //     const cef_string_t* host,
-    //     int port,
-    //     size_t certificatesCount,
-    //     struct _cef_x509certificate_t* const* certificates,
-    //     struct _cef_select_client_certificate_callback_t* callback);
+    /// Called on the UI thread when a client certificate is being requested for
+    /// authentication. Return false (0) to use the default behavior and
+    /// automatically select the first certificate available. Return true (1) and
+    /// call cef_select_client_certificate_callback_t::Select either in this
+    /// function or at a later time to select a certificate. Do not call Select or
+    /// call it with NULL to continue without using any certificate. |isProxy|
+    /// indicates whether the host is an HTTPS proxy or the origin server. |host|
+    /// and |port| contains the hostname and port of the SSL server.
+    /// |certificates| is the list of certificates to choose from; this list has
+    /// already been pruned by Chromium so that it only contains certificates from
+    /// issuers that the server trusts.
+    fn on_select_client_certificate(
+        &self,
+        browser: Browser,
+        is_proxy: bool,
+        host: &str,
+        port: u16,
+        certificates: &[X509Certificate],
+        callback: SelectClientCertificateCallback
+    ) -> bool {
+        false
+    }
 
-    //     /// Called on the browser process UI thread when the render view associated
-    //     /// with |browser| is ready to receive/handle IPC messages in the render
-    //     /// process.
-    //     void(CEF_CALLBACK* on_render_view_ready)(struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser);
+    /// Called on the browser process UI thread when the render view associated
+    /// with |browser| is ready to receive/handle IPC messages in the render
+    /// process.
+    fn on_render_view_ready(&self, browser: Browser) {}
 
-    //     /// Called on the browser process UI thread when the render process terminates
-    //     /// unexpectedly. |status| indicates how the process terminated.
-    //     void(CEF_CALLBACK* on_render_process_terminated)(
-    //     struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     cef_termination_status_t status);
+    /// Called on the browser process UI thread when the render process terminates
+    /// unexpectedly. |status| indicates how the process terminated.
+    fn on_render_process_terminated(&self, browser: Browser, status: TerminationStatus) {}
 
-    //     /// Called on the browser process UI thread when the window.document object of
-    //     /// the main frame has been created.
-    //     void(CEF_CALLBACK* on_document_available_in_main_frame)(
-    //     struct _cef_request_handler_t* self,
-    //     struct _cef_browser_t* browser);
+    /// Called on the browser process UI thread when the window.document object of
+    /// the main frame has been created.
+    fn on_document_available_in_main_frame(&self, browser: Browser) {}
 }
 
 ref_counted_ptr!(RequestHandler, cef_request_handler_t);
@@ -331,7 +317,26 @@ impl RequestHandlerWrapper {
         scheme: *const cef_string_t,
         callback: *mut cef_auth_callback_t
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let origin_url: String = CefString::from_ptr_unchecked(origin_url).into();
+        let host: String = CefString::from_ptr_unchecked(host).into();
+        let realm: Option<String> = CefString::from_ptr(realm).map(|s| s.into());
+        let realm = realm.as_ref().map(|s| s.as_str());
+        let scheme: Option<String> = CefString::from_ptr(scheme).map(|s| s.into());
+        let scheme = scheme.as_ref().map(|s| s.as_str());
+        let callback = AuthCallback::from_ptr_unchecked(callback);
+
+        this.0.get_auth_credentials(
+            browser,
+            &origin_url,
+            is_proxy != 0,
+            &host,
+            port as u16,
+            realm,
+            scheme,
+            callback
+        ) as c_int
     }
 
     /// Called on the UI thread to handle requests for URLs with an invalid SSL
@@ -348,7 +353,15 @@ impl RequestHandlerWrapper {
         ssl_info: *mut cef_sslinfo_t,
         callback: *mut cef_callback_t
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let request_url: String = CefString::from_ptr_unchecked(request_url).into();
+        let ssl_info = SslInfo::from_ptr_unchecked(ssl_info);
+        let callback = Callback::from_ptr_unchecked(callback);
+
+        this.0
+            .on_certificate_error(browser, cert_error.into(), &request_url, ssl_info, callback)
+            as c_int
     }
 
     /// Called on the UI thread when a client certificate is being requested for
@@ -372,7 +385,23 @@ impl RequestHandlerWrapper {
         certificates: *const *mut cef_x509certificate_t,
         callback: *mut cef_select_client_certificate_callback_t
     ) -> c_int {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let host: String = CefString::from_ptr_unchecked(host).into();
+        let certificates = from_raw_parts(certificates, certificates_count)
+            .iter()
+            .map(|&ptr| X509Certificate::from_ptr_unchecked(ptr))
+            .collect::<Vec<X509Certificate>>();
+        let callback = SelectClientCertificateCallback::from_ptr_unchecked(callback);
+
+        this.0.on_select_client_certificate(
+            browser,
+            is_proxy != 0,
+            &host,
+            port as u16,
+            &certificates,
+            callback
+        ) as c_int
     }
 
     /// Called on the browser process UI thread when the render view associated
@@ -382,7 +411,10 @@ impl RequestHandlerWrapper {
         this: *mut cef_request_handler_t,
         browser: *mut cef_browser_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0.on_render_view_ready(browser)
     }
 
     /// Called on the browser process UI thread when the render process terminates
@@ -392,7 +424,11 @@ impl RequestHandlerWrapper {
         browser: *mut cef_browser_t,
         status: cef_termination_status_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_render_process_terminated(browser, status.into())
     }
 
     /// Called on the browser process UI thread when the window.document object of
@@ -401,7 +437,11 @@ impl RequestHandlerWrapper {
         this: *mut cef_request_handler_t,
         browser: *mut cef_browser_t
     ) {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+
+        this.0
+            .on_document_available_in_main_frame(browser)
     }
 }
 
@@ -412,18 +452,18 @@ impl Wrappable for RequestHandlerWrapper {
     fn wrap(self) -> RefCountedPtr<cef_request_handler_t> {
         RefCountedPtr::wrap(
             cef_request_handler_t {
-                base: unsafe { zeroed() },
-
-                // TODO: Fix these!
+                base:                                unsafe { zeroed() },
                 on_before_browse:                    Some(Self::c_on_before_browse),
                 on_open_urlfrom_tab:                 Some(Self::c_on_open_urlfrom_tab),
                 get_resource_request_handler:        Some(Self::c_get_resource_request_handler),
-                get_auth_credentials:                None,
-                on_certificate_error:                None,
-                on_select_client_certificate:        None,
-                on_render_view_ready:                None,
-                on_render_process_terminated:        None,
-                on_document_available_in_main_frame: None
+                get_auth_credentials:                Some(Self::c_get_auth_credentials),
+                on_certificate_error:                Some(Self::c_on_certificate_error),
+                on_select_client_certificate:        Some(Self::c_on_select_client_certificate),
+                on_render_view_ready:                Some(Self::c_on_render_view_ready),
+                on_render_process_terminated:        Some(Self::c_on_render_process_terminated),
+                on_document_available_in_main_frame: Some(
+                    Self::c_on_document_available_in_main_frame
+                )
             },
             self
         )

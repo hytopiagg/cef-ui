@@ -1,7 +1,7 @@
 use bindings::{
     cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
     cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t,
-    cef_state_t, cef_text_input_mode_t, cef_touch_handle_state_flags_t,
+    cef_state_t, cef_termination_status_t, cef_text_input_mode_t, cef_touch_handle_state_flags_t,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
@@ -2015,6 +2015,60 @@ impl From<&WindowOpenDisposition> for cef_window_open_disposition_t {
             WindowOpenDisposition::NewPictureInPicture => {
                 cef_window_open_disposition_t::CEF_WOD_NEW_PICTURE_IN_PICTURE
             },
+        }
+    }
+}
+
+/// Process termination status values.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TerminationStatus {
+    /// Non-zero exit status.
+    AbnormalTermination,
+
+    /// SIGKILL or task manager kill.
+    ProcessWasKilled,
+
+    /// Segmentation fault.
+    ProcessCrashed,
+
+    /// Out of memory. Some platforms may use TS_PROCESS_CRASHED instead.
+    ProcessOom
+}
+
+impl From<cef_termination_status_t> for TerminationStatus {
+    fn from(value: cef_termination_status_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_termination_status_t> for TerminationStatus {
+    fn from(value: &cef_termination_status_t) -> Self {
+        match value {
+            cef_termination_status_t::TS_ABNORMAL_TERMINATION => {
+                TerminationStatus::AbnormalTermination
+            },
+            cef_termination_status_t::TS_PROCESS_WAS_KILLED => TerminationStatus::ProcessWasKilled,
+            cef_termination_status_t::TS_PROCESS_CRASHED => TerminationStatus::ProcessCrashed,
+            cef_termination_status_t::TS_PROCESS_OOM => TerminationStatus::ProcessOom
+        }
+    }
+}
+
+impl From<TerminationStatus> for cef_termination_status_t {
+    fn from(value: TerminationStatus) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&TerminationStatus> for cef_termination_status_t {
+    fn from(value: &TerminationStatus) -> Self {
+        match value {
+            TerminationStatus::AbnormalTermination => {
+                cef_termination_status_t::TS_ABNORMAL_TERMINATION
+            },
+            TerminationStatus::ProcessWasKilled => cef_termination_status_t::TS_PROCESS_WAS_KILLED,
+            TerminationStatus::ProcessCrashed => cef_termination_status_t::TS_PROCESS_CRASHED,
+            TerminationStatus::ProcessOom => cef_termination_status_t::TS_PROCESS_OOM
         }
     }
 }

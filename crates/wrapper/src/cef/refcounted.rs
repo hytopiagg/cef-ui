@@ -138,6 +138,8 @@ impl<T: RefCounted> Clone for RefCountedPtr<T> {
     }
 }
 
+// TODO: Fix this macro to allow for doc comments and fix callsites!
+
 // A macro to generate the RefCountedPtr implementation.
 #[macro_export]
 macro_rules! ref_counted_ptr {

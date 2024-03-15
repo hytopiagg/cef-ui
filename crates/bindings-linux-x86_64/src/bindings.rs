@@ -2832,28 +2832,25 @@ pub enum cef_errorcode_t {
     ERR_DNS_NO_MATCHING_SUPPORTED_ALPN = -811,
     ERR_DICTIONARY_LOAD_FAILED = -812
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_cert_status_t {
-    CERT_STATUS_NONE = 0,
-    CERT_STATUS_COMMON_NAME_INVALID = 1,
-    CERT_STATUS_DATE_INVALID = 2,
-    CERT_STATUS_AUTHORITY_INVALID = 4,
-    CERT_STATUS_NO_REVOCATION_MECHANISM = 16,
-    CERT_STATUS_UNABLE_TO_CHECK_REVOCATION = 32,
-    CERT_STATUS_REVOKED = 64,
-    CERT_STATUS_INVALID = 128,
-    CERT_STATUS_WEAK_SIGNATURE_ALGORITHM = 256,
-    CERT_STATUS_NON_UNIQUE_NAME = 1024,
-    CERT_STATUS_WEAK_KEY = 2048,
-    CERT_STATUS_PINNED_KEY_MISSING = 8192,
-    CERT_STATUS_NAME_CONSTRAINT_VIOLATION = 16384,
-    CERT_STATUS_VALIDITY_TOO_LONG = 32768,
-    CERT_STATUS_IS_EV = 65536,
-    CERT_STATUS_REV_CHECKING_ENABLED = 131072,
-    CERT_STATUS_SHA1_SIGNATURE_PRESENT = 524288,
-    CERT_STATUS_CT_COMPLIANCE_FAILED = 1048576
-}
+pub const cef_cert_status_t_CERT_STATUS_NONE: cef_cert_status_t = 0;
+pub const cef_cert_status_t_CERT_STATUS_COMMON_NAME_INVALID: cef_cert_status_t = 1;
+pub const cef_cert_status_t_CERT_STATUS_DATE_INVALID: cef_cert_status_t = 2;
+pub const cef_cert_status_t_CERT_STATUS_AUTHORITY_INVALID: cef_cert_status_t = 4;
+pub const cef_cert_status_t_CERT_STATUS_NO_REVOCATION_MECHANISM: cef_cert_status_t = 16;
+pub const cef_cert_status_t_CERT_STATUS_UNABLE_TO_CHECK_REVOCATION: cef_cert_status_t = 32;
+pub const cef_cert_status_t_CERT_STATUS_REVOKED: cef_cert_status_t = 64;
+pub const cef_cert_status_t_CERT_STATUS_INVALID: cef_cert_status_t = 128;
+pub const cef_cert_status_t_CERT_STATUS_WEAK_SIGNATURE_ALGORITHM: cef_cert_status_t = 256;
+pub const cef_cert_status_t_CERT_STATUS_NON_UNIQUE_NAME: cef_cert_status_t = 1024;
+pub const cef_cert_status_t_CERT_STATUS_WEAK_KEY: cef_cert_status_t = 2048;
+pub const cef_cert_status_t_CERT_STATUS_PINNED_KEY_MISSING: cef_cert_status_t = 8192;
+pub const cef_cert_status_t_CERT_STATUS_NAME_CONSTRAINT_VIOLATION: cef_cert_status_t = 16384;
+pub const cef_cert_status_t_CERT_STATUS_VALIDITY_TOO_LONG: cef_cert_status_t = 32768;
+pub const cef_cert_status_t_CERT_STATUS_IS_EV: cef_cert_status_t = 65536;
+pub const cef_cert_status_t_CERT_STATUS_REV_CHECKING_ENABLED: cef_cert_status_t = 131072;
+pub const cef_cert_status_t_CERT_STATUS_SHA1_SIGNATURE_PRESENT: cef_cert_status_t = 524288;
+pub const cef_cert_status_t_CERT_STATUS_CT_COMPLIANCE_FAILED: cef_cert_status_t = 1048576;
+pub type cef_cert_status_t = ::std::os::raw::c_uint;
 impl cef_window_open_disposition_t {
     pub const CEF_WOD_MAX_VALUE: cef_window_open_disposition_t =
         cef_window_open_disposition_t::CEF_WOD_NEW_PICTURE_IN_PICTURE;
