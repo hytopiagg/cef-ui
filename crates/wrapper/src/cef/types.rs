@@ -7,7 +7,7 @@ use bindings::{
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIGIN, cef_touch_handle_state_t,
-    cef_zoom_command_t
+    cef_window_open_disposition_t, cef_zoom_command_t
 };
 use bitflags::bitflags;
 use std::ffi::c_int;
@@ -1914,6 +1914,107 @@ impl From<&TextInputMode> for cef_text_input_mode_t {
             TextInputMode::Numeric => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_NUMERIC,
             TextInputMode::Decimal => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_DECIMAL,
             TextInputMode::Search => cef_text_input_mode_t::CEF_TEXT_INPUT_MODE_SEARCH
+        }
+    }
+}
+
+/// The manner in which a link click should be opened. These constants match
+/// their equivalents in Chromium's window_open_disposition.h and should not be
+/// renumbered.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WindowOpenDisposition {
+    Unknown,
+    CurrentTab,
+    SingletonTab,
+    NewForegroundTab,
+    NewBackgroundTab,
+    NewPopup,
+    NewWindow,
+    SaveToDisk,
+    OffTheRecord,
+    IgnoreAction,
+    SwitchToTab,
+    NewPictureInPicture
+}
+
+impl From<cef_window_open_disposition_t> for WindowOpenDisposition {
+    fn from(value: cef_window_open_disposition_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_window_open_disposition_t> for WindowOpenDisposition {
+    fn from(value: &cef_window_open_disposition_t) -> Self {
+        match value {
+            cef_window_open_disposition_t::CEF_WOD_UNKNOWN => WindowOpenDisposition::Unknown,
+            cef_window_open_disposition_t::CEF_WOD_CURRENT_TAB => WindowOpenDisposition::CurrentTab,
+            cef_window_open_disposition_t::CEF_WOD_SINGLETON_TAB => {
+                WindowOpenDisposition::SingletonTab
+            },
+            cef_window_open_disposition_t::CEF_WOD_NEW_FOREGROUND_TAB => {
+                WindowOpenDisposition::NewForegroundTab
+            },
+            cef_window_open_disposition_t::CEF_WOD_NEW_BACKGROUND_TAB => {
+                WindowOpenDisposition::NewBackgroundTab
+            },
+            cef_window_open_disposition_t::CEF_WOD_NEW_POPUP => WindowOpenDisposition::NewPopup,
+            cef_window_open_disposition_t::CEF_WOD_NEW_WINDOW => WindowOpenDisposition::NewWindow,
+            cef_window_open_disposition_t::CEF_WOD_SAVE_TO_DISK => {
+                WindowOpenDisposition::SaveToDisk
+            },
+            cef_window_open_disposition_t::CEF_WOD_OFF_THE_RECORD => {
+                WindowOpenDisposition::OffTheRecord
+            },
+            cef_window_open_disposition_t::CEF_WOD_IGNORE_ACTION => {
+                WindowOpenDisposition::IgnoreAction
+            },
+            cef_window_open_disposition_t::CEF_WOD_SWITCH_TO_TAB => {
+                WindowOpenDisposition::SwitchToTab
+            },
+            cef_window_open_disposition_t::CEF_WOD_NEW_PICTURE_IN_PICTURE => {
+                WindowOpenDisposition::NewPictureInPicture
+            },
+        }
+    }
+}
+
+impl From<WindowOpenDisposition> for cef_window_open_disposition_t {
+    fn from(value: WindowOpenDisposition) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&WindowOpenDisposition> for cef_window_open_disposition_t {
+    fn from(value: &WindowOpenDisposition) -> Self {
+        match value {
+            WindowOpenDisposition::Unknown => cef_window_open_disposition_t::CEF_WOD_UNKNOWN,
+            WindowOpenDisposition::CurrentTab => cef_window_open_disposition_t::CEF_WOD_CURRENT_TAB,
+            WindowOpenDisposition::SingletonTab => {
+                cef_window_open_disposition_t::CEF_WOD_SINGLETON_TAB
+            },
+            WindowOpenDisposition::NewForegroundTab => {
+                cef_window_open_disposition_t::CEF_WOD_NEW_FOREGROUND_TAB
+            },
+            WindowOpenDisposition::NewBackgroundTab => {
+                cef_window_open_disposition_t::CEF_WOD_NEW_BACKGROUND_TAB
+            },
+            WindowOpenDisposition::NewPopup => cef_window_open_disposition_t::CEF_WOD_NEW_POPUP,
+            WindowOpenDisposition::NewWindow => cef_window_open_disposition_t::CEF_WOD_NEW_WINDOW,
+            WindowOpenDisposition::SaveToDisk => {
+                cef_window_open_disposition_t::CEF_WOD_SAVE_TO_DISK
+            },
+            WindowOpenDisposition::OffTheRecord => {
+                cef_window_open_disposition_t::CEF_WOD_OFF_THE_RECORD
+            },
+            WindowOpenDisposition::IgnoreAction => {
+                cef_window_open_disposition_t::CEF_WOD_IGNORE_ACTION
+            },
+            WindowOpenDisposition::SwitchToTab => {
+                cef_window_open_disposition_t::CEF_WOD_SWITCH_TO_TAB
+            },
+            WindowOpenDisposition::NewPictureInPicture => {
+                cef_window_open_disposition_t::CEF_WOD_NEW_PICTURE_IN_PICTURE
+            },
         }
     }
 }
