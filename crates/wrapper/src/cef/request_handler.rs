@@ -167,8 +167,8 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     fn on_document_available_in_main_frame(&self, browser: Browser) {}
 }
 
-/// Implement this structure to handle events related to browser requests. The
-/// functions of this structure will be called on the thread indicated.
+// Implement this structure to handle events related to browser requests. The
+// functions of this structure will be called on the thread indicated.
 ref_counted_ptr!(RequestHandler, cef_request_handler_t);
 
 impl RequestHandler {

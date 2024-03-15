@@ -48,9 +48,9 @@ pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
     }
 }
 
-/// Implement this structure to provide handler implementations. The handler
-/// instance will not be released until all objects related to the context have
-/// been destroyed.
+// Implement this structure to provide handler implementations. The handler
+// instance will not be released until all objects related to the context have
+// been destroyed.
 ref_counted_ptr!(RequestContextHandler, cef_request_context_handler_t);
 
 impl RequestContextHandler {

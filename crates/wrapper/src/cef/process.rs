@@ -45,6 +45,7 @@ impl From<&ProcessId> for cef_process_id_t {
 ref_counted_ptr!(ProcessMessage, cef_process_message_t);
 
 impl ProcessMessage {
+    /// Create a new cef_process_message_t object with the specified name.
     pub fn new(name: &str) -> Self {
         unsafe {
             let name = CefString::new(name);

@@ -61,6 +61,7 @@ impl From<ValueType> for cef_value_type_t {
 ref_counted_ptr!(Value, cef_value_t);
 
 impl Value {
+    /// Creates a new object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_value_create()) }
     }
@@ -290,6 +291,8 @@ impl PartialEq<Self> for Value {
 ref_counted_ptr!(BinaryValue, cef_binary_value_t);
 
 impl BinaryValue {
+    /// Creates a new object that is not owned by any other object. The specified
+    /// |data| will be copied.
     pub fn new(data: &[u8]) -> Self {
         unsafe {
             Self::from_ptr_unchecked(cef_binary_value_create(
@@ -389,6 +392,7 @@ impl PartialEq for BinaryValue {
 ref_counted_ptr!(DictionaryValue, cef_dictionary_value_t);
 
 impl DictionaryValue {
+    /// Creates a new object that is not owned by any other object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_dictionary_value_create()) }
     }
@@ -754,6 +758,7 @@ impl PartialEq for DictionaryValue {
 ref_counted_ptr!(ListValue, cef_list_value_t);
 
 impl ListValue {
+    /// Creates a new object that is not owned by any other object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_list_value_create()) }
     }

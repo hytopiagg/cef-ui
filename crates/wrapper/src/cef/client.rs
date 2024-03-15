@@ -105,7 +105,7 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_process_message_t* message);
 }
 
-/// Implement this structure to provide handler implementations.
+// Implement this structure to provide handler implementations.
 ref_counted_ptr!(Client, cef_client_t);
 
 impl Client {

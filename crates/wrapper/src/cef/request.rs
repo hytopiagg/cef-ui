@@ -7,6 +7,7 @@ use std::ffi::c_int;
 ref_counted_ptr!(Request, cef_request_t);
 
 impl Request {
+    /// Create a new cef_request_t object.
     pub fn new() -> Self {
         unsafe { Self::from_ptr_unchecked(cef_request_create()) }
     }
