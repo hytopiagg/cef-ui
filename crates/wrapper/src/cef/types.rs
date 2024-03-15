@@ -1,8 +1,8 @@
 use bindings::{
     cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
-    cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_screen_info_t, cef_size_t,
-    cef_state_t, cef_termination_status_t, cef_text_input_mode_t, cef_touch_handle_state_flags_t,
-    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
+    cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_referrer_policy_t,
+    cef_screen_info_t, cef_size_t, cef_state_t, cef_termination_status_t, cef_text_input_mode_t,
+    cef_touch_handle_state_flags_t, cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
@@ -2069,6 +2069,117 @@ impl From<&TerminationStatus> for cef_termination_status_t {
             TerminationStatus::ProcessWasKilled => cef_termination_status_t::TS_PROCESS_WAS_KILLED,
             TerminationStatus::ProcessCrashed => cef_termination_status_t::TS_PROCESS_CRASHED,
             TerminationStatus::ProcessOom => cef_termination_status_t::TS_PROCESS_OOM
+        }
+    }
+}
+
+/// Policy for how the Referrer HTTP header value will be sent during
+/// navigation. If the `--no-referrers` command-line flag is specified then the
+/// policy value will be ignored and the Referrer value will never be sent. Must
+/// be kept synchronized with net::URLRequest::ReferrerPolicy from Chromium.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReferrerPolicy {
+    /// Clear the referrer header if the header value is HTTPS but the request
+    /// destination is HTTP. This is the default behavior.
+    ClearReferrerOnTransitionFromSecureToInsecure,
+
+    /// A slight variant on CLEAR_REFERRER_ON_TRANSITION_FROM_SECURE_TO_INSECURE:
+    /// If the request destination is HTTP, an HTTPS referrer will be cleared. If
+    /// the request's destination is cross-origin with the referrer (but does not
+    /// downgrade), the referrer's granularity will be stripped down to an origin
+    /// rather than a full URL. Same-origin requests will send the full referrer.
+    ReduceReferrerGranularityOnTransitionCrossOrigin,
+
+    /// Strip the referrer down to an origin when the origin of the referrer is
+    /// different from the destination's origin.
+    OriginOnlyOnTransitionCrossOrigin,
+
+    /// Never change the referrer.
+    NeverClearReferrer,
+
+    /// Strip the referrer down to the origin regardless of the redirect location.
+    Origin,
+
+    /// Clear the referrer when the request's referrer is cross-origin with the
+    /// request's destination.
+    ClearReferrerOnTransitionCrossOrigin,
+
+    /// Strip the referrer down to the origin, but clear it entirely if the
+    /// referrer value is HTTPS and the destination is HTTP.
+    OriginClearOnTransitionFromSecureToInsecure,
+
+    /// Always clear the referrer regardless of the request destination.
+    NoReferrer
+}
+
+impl Default for ReferrerPolicy {
+    fn default() -> Self {
+        ReferrerPolicy::ClearReferrerOnTransitionFromSecureToInsecure
+    }
+}
+
+impl From<cef_referrer_policy_t> for ReferrerPolicy {
+    fn from(value: cef_referrer_policy_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_referrer_policy_t> for ReferrerPolicy {
+    fn from(value: &cef_referrer_policy_t) -> Self {
+        match value {
+            cef_referrer_policy_t::REFERRER_POLICY_CLEAR_REFERRER_ON_TRANSITION_FROM_SECURE_TO_INSECURE => {
+                ReferrerPolicy::ClearReferrerOnTransitionFromSecureToInsecure
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_REDUCE_REFERRER_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN => {
+                ReferrerPolicy::ReduceReferrerGranularityOnTransitionCrossOrigin
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_ORIGIN_ONLY_ON_TRANSITION_CROSS_ORIGIN => {
+                ReferrerPolicy::OriginOnlyOnTransitionCrossOrigin
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_NEVER_CLEAR_REFERRER => {
+                ReferrerPolicy::NeverClearReferrer
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_ORIGIN => ReferrerPolicy::Origin,
+            cef_referrer_policy_t::REFERRER_POLICY_CLEAR_REFERRER_ON_TRANSITION_CROSS_ORIGIN => {
+                ReferrerPolicy::ClearReferrerOnTransitionCrossOrigin
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_ORIGIN_CLEAR_ON_TRANSITION_FROM_SECURE_TO_INSECURE => {
+                ReferrerPolicy::OriginClearOnTransitionFromSecureToInsecure
+            },
+            cef_referrer_policy_t::REFERRER_POLICY_NO_REFERRER => ReferrerPolicy::NoReferrer
+        }
+    }
+}
+
+impl From<ReferrerPolicy> for cef_referrer_policy_t {
+    fn from(value: ReferrerPolicy) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&ReferrerPolicy> for cef_referrer_policy_t {
+    fn from(value: &ReferrerPolicy) -> Self {
+        match value {
+            ReferrerPolicy::ClearReferrerOnTransitionFromSecureToInsecure => {
+                cef_referrer_policy_t::REFERRER_POLICY_CLEAR_REFERRER_ON_TRANSITION_FROM_SECURE_TO_INSECURE
+            },
+            ReferrerPolicy::ReduceReferrerGranularityOnTransitionCrossOrigin => {
+                cef_referrer_policy_t::REFERRER_POLICY_REDUCE_REFERRER_GRANULARITY_ON_TRANSITION_CROSS_ORIGIN
+            },
+            ReferrerPolicy::OriginOnlyOnTransitionCrossOrigin => {
+                cef_referrer_policy_t::REFERRER_POLICY_ORIGIN_ONLY_ON_TRANSITION_CROSS_ORIGIN
+            },
+            ReferrerPolicy::NeverClearReferrer => {
+                cef_referrer_policy_t::REFERRER_POLICY_NEVER_CLEAR_REFERRER
+            },
+            ReferrerPolicy::Origin => cef_referrer_policy_t::REFERRER_POLICY_ORIGIN,
+            ReferrerPolicy::ClearReferrerOnTransitionCrossOrigin => {
+                cef_referrer_policy_t::REFERRER_POLICY_CLEAR_REFERRER_ON_TRANSITION_CROSS_ORIGIN
+            },
+            ReferrerPolicy::OriginClearOnTransitionFromSecureToInsecure => {
+                cef_referrer_policy_t::REFERRER_POLICY_ORIGIN_CLEAR_ON_TRANSITION_FROM_SECURE_TO_INSECURE
+            },
+            ReferrerPolicy::NoReferrer => cef_referrer_policy_t::REFERRER_POLICY_NO_REFERRER
         }
     }
 }

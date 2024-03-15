@@ -1,4 +1,4 @@
-use crate::{ref_counted_ptr, CefString};
+use crate::{ref_counted_ptr, CefString, ReferrerPolicy};
 use bindings::{cef_request_create, cef_request_t};
 use std::ffi::c_int;
 
@@ -59,15 +59,16 @@ impl Request {
         }
     }
 
-    // TODO: Fix this!
+    /// Set the referrer URL and policy. If non-NULL the referrer URL must be
+    /// fully qualified with an HTTP or HTTPS scheme component. Any username,
+    /// password or ref component will be removed.
+    pub fn set_referrer(&self, referrer_url: &str, policy: ReferrerPolicy) {
+        if let Some(set_referrer) = self.0.set_referrer {
+            let referrer_url = CefString::new(referrer_url);
 
-    //     /// Set the referrer URL and policy. If non-NULL the referrer URL must be
-    //     /// fully qualified with an HTTP or HTTPS scheme component. Any username,
-    //     /// password or ref component will be removed.
-    //     ///
-    //     void(CEF_CALLBACK* set_referrer)(struct _cef_request_t* self,
-    //     const cef_string_t* referrer_url,
-    //     cef_referrer_policy_t policy);
+            unsafe { set_referrer(self.as_ptr(), referrer_url.as_ptr(), policy.into()) }
+        }
+    }
 
     /// Get the referrer URL.
     pub fn get_referrer_url(&self) -> Option<String> {
@@ -80,14 +81,15 @@ impl Request {
             })
     }
 
+    /// Get the referrer policy.
+    pub fn get_referrer_policy(&self) -> Option<ReferrerPolicy> {
+        self.0
+            .get_referrer_policy
+            .map(|get_referrer_policy| unsafe { get_referrer_policy(self.as_ptr()).into() })
+    }
+
     // TODO: Fix this!
 
-    //     ///
-    //     /// Get the referrer policy.
-    //     ///
-    //     cef_referrer_policy_t(CEF_CALLBACK* get_referrer_policy)(
-    //     struct _cef_request_t* self);
-    //
     //     ///
     //     /// Get the post data.
     //     ///
