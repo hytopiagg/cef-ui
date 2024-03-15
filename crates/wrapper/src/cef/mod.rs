@@ -25,6 +25,7 @@ mod ssl;
 mod string;
 mod time;
 mod types;
+mod url_request;
 mod values;
 mod window;
 mod x509_certificate;
@@ -56,6 +57,7 @@ pub use ssl::*;
 pub use string::*;
 pub use time::*;
 pub use types::*;
+pub use url_request::*;
 pub use values::*;
 pub use window::*;
 pub use x509_certificate::*;
@@ -64,3 +66,7 @@ pub use x509_certificate::*;
 //  things getting pointers to CefString's and then letting the original value
 //  be dropped before you used the pointer. This is because you were using the
 //  original value by value instead of by reference.
+
+// TODO: Add doc comments to all new(..) functions!
+
+// TODO: Put doc comments on both trait for callbacks and the type!
