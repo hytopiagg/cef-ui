@@ -17,7 +17,7 @@ use std::{
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum UrlRequestStatus {
     /// Unknown status.
-    Unknown = 0,
+    Unknown,
 
     /// Request succeeded.
     Success,
