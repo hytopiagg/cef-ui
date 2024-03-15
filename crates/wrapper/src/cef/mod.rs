@@ -66,3 +66,5 @@ pub use x509_certificate::*;
 //  things getting pointers to CefString's and then letting the original value
 //  be dropped before you used the pointer. This is because you were using the
 //  original value by value instead of by reference.
+
+// TODO: Check that all bitflags are documented as appopriate.
