@@ -5,8 +5,12 @@ use bindings::{
     cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
     cef_string_map_alloc, cef_string_map_append, cef_string_map_clear, cef_string_map_find,
     cef_string_map_free, cef_string_map_key, cef_string_map_size, cef_string_map_t,
-    cef_string_map_value, cef_string_t, cef_string_userfree_t, cef_string_userfree_utf16_free,
-    cef_string_utf16_set, cef_string_utf8_to_utf16, cef_string_visitor_t
+    cef_string_map_value, cef_string_multimap_alloc, cef_string_multimap_append,
+    cef_string_multimap_clear, cef_string_multimap_enumerate, cef_string_multimap_find_count,
+    cef_string_multimap_free, cef_string_multimap_key, cef_string_multimap_size,
+    cef_string_multimap_t, cef_string_multimap_value, cef_string_t, cef_string_userfree_t,
+    cef_string_userfree_utf16_free, cef_string_utf16_set, cef_string_utf8_to_utf16,
+    cef_string_visitor_t
 };
 use parking_lot::Mutex;
 use std::{
@@ -101,6 +105,10 @@ impl CefString {
     fn utf8_to_utf16(s: &str) -> cef_string_t {
         let mut ret: cef_string_t = unsafe { zeroed() };
 
+        if s.is_empty() {
+            return ret;
+        }
+
         // Because &str is guaranteed to contain valid utf8 characters, this should never fail. The
         // only way it could fail is if we run out of memory, and if that happens we're screwed anyway.
         // This is used everywhere, so it's very inconvenient to have to handle the error every time.
@@ -131,6 +139,12 @@ impl Drop for CefString {
 impl Debug for CefString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         <String as Debug>::fmt(&self.into(), f)
+    }
+}
+
+impl<T: AsRef<str>> From<T> for CefString {
+    fn from(value: T) -> Self {
+        Self::new(value.as_ref())
     }
 }
 
@@ -169,6 +183,7 @@ pub fn free_cef_string(s: &mut cef_string_t) {
 pub struct CefStringList(cef_string_list_t);
 
 impl CefStringList {
+    /// Allocate a new string map.
     pub fn new() -> Self {
         Self(unsafe { cef_string_list_alloc() })
     }
@@ -280,11 +295,30 @@ impl From<&CefStringList> for Vec<String> {
     }
 }
 
+impl From<Vec<String>> for CefStringList {
+    fn from(value: Vec<String>) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&Vec<String>> for CefStringList {
+    fn from(value: &Vec<String>) -> Self {
+        let mut result = CefStringList::new();
+
+        for s in value.iter() {
+            result.push(&s.into());
+        }
+
+        result
+    }
+}
+
 /// CEF string maps are a set of key/value string pairs.
 #[repr(transparent)]
 pub struct CefStringMap(cef_string_map_t);
 
 impl CefStringMap {
+    /// Allocate a new string map.
     pub fn new() -> Self {
         Self(unsafe { cef_string_map_alloc() })
     }
@@ -372,7 +406,7 @@ impl Drop for CefStringMap {
     }
 }
 
-/// An iterator for CefStringMap
+/// An iterator for CefStringMap.
 pub struct CefStringMapIter<'a> {
     map:   &'a CefStringMap,
     index: usize
@@ -412,6 +446,197 @@ impl From<&CefStringMap> for HashMap<String, String> {
             .iter()
             .map(|(k, v)| (k.into(), v.into()))
             .collect()
+    }
+}
+
+impl From<HashMap<String, String>> for CefStringMap {
+    fn from(value: HashMap<String, String>) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&HashMap<String, String>> for CefStringMap {
+    fn from(value: &HashMap<String, String>) -> Self {
+        let mut result = CefStringMap::new();
+
+        for (k, v) in value.iter() {
+            result.push(&k.into(), &v.into());
+        }
+
+        result
+    }
+}
+
+/// CEF string multimaps are a set of key/value string pairs.
+/// More than one value can be assigned to a single key.
+#[repr(transparent)]
+pub struct CefStringMultiMap(cef_string_multimap_t);
+
+impl CefStringMultiMap {
+    /// Allocate a new string multimap.
+    pub fn new() -> Self {
+        Self(unsafe { cef_string_multimap_alloc() })
+    }
+
+    /// Convert to a CefStringMultiMap reference.
+    pub fn from_ptr<'a>(ptr: cef_string_multimap_t) -> Option<&'a Self> {
+        unsafe { (ptr as *const Self).as_ref() }
+    }
+
+    /// Convert to a CefStringMultiMap reference without checking if the pointer is null.
+    pub fn from_ptr_unchecked<'a>(ptr: cef_string_multimap_t) -> &'a Self {
+        unsafe { &*(ptr as *const Self) }
+    }
+
+    /// Convert to a mutable CefStringMultiMap reference.
+    pub fn from_ptr_mut<'a>(ptr: cef_string_multimap_t) -> Option<&'a mut Self> {
+        unsafe { (ptr as *mut Self).as_mut() }
+    }
+
+    /// Convert to a mutable CefStringMultiMap reference without checking if the pointer is null.
+    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_multimap_t) -> &'a mut Self {
+        unsafe { &mut *(ptr as *mut Self) }
+    }
+
+    /// Returns the string multimap as a mutable pointer.
+    pub fn as_mut_ptr(&mut self) -> cef_string_multimap_t {
+        self.0
+    }
+
+    /// Return the number of elements in the string map.
+    pub fn len(&self) -> usize {
+        unsafe { cef_string_multimap_size(self.0) }
+    }
+
+    /// Return the number of values with the specified key.
+    pub fn value_count(&self, key: &CefString) -> usize {
+        unsafe { cef_string_multimap_find_count(self.0, key.as_ptr()) }
+    }
+
+    /// Return the value_index-th value with the specified key.
+    pub fn value_at_index(&self, key: &CefString, value_index: usize) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe {
+            cef_string_multimap_enumerate(self.0, key.as_ptr(), value_index, cef.as_mut_ptr())
+        } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Return the key at the specified zero-based string multimap index.
+    pub fn key(&self, index: usize) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe { cef_string_multimap_key(self.0, index, cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Return the value at the specified zero-based string multimap index.
+    pub fn value(&self, index: usize) -> Option<CefString> {
+        let mut cef = CefString::default();
+
+        match unsafe { cef_string_multimap_value(self.0, index, cef.as_mut_ptr()) } {
+            0 => None,
+            _ => Some(cef)
+        }
+    }
+
+    /// Append a new key/value pair at the end of the string multimap.
+    pub fn push(&mut self, key: &CefString, value: &CefString) -> bool {
+        unsafe { cef_string_multimap_append(self.0, key.as_ptr(), value.as_ptr()) != 0 }
+    }
+
+    /// Clear the string multimap.
+    pub fn clear(&mut self) {
+        unsafe { cef_string_multimap_clear(self.0) }
+    }
+
+    /// Returns an iterator for the string multimap.
+    pub fn iter(&self) -> CefStringMultiMapIter {
+        CefStringMultiMapIter::new(self)
+    }
+}
+
+impl Drop for CefStringMultiMap {
+    fn drop(&mut self) {
+        unsafe { cef_string_multimap_free(self.0) }
+    }
+}
+
+/// An iterator for CefStringMultiMap.
+pub struct CefStringMultiMapIter<'a> {
+    map:   &'a CefStringMultiMap,
+    index: usize
+}
+
+impl<'a> CefStringMultiMapIter<'a> {
+    pub fn new(map: &'a CefStringMultiMap) -> Self {
+        Self { map, index: 0 }
+    }
+}
+
+impl<'a> Iterator for CefStringMultiMapIter<'a> {
+    type Item = (CefString, Vec<CefString>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let Some(key) = self.map.key(self.index) else {
+            return None;
+        };
+
+        let value_count = self.map.value_count(&key);
+        let values = (0..value_count)
+            .filter_map(|i| self.map.value_at_index(&key, i))
+            .collect::<Vec<CefString>>();
+
+        self.index += 1;
+
+        Some((key, values))
+    }
+}
+
+impl From<CefStringMultiMap> for HashMap<String, Vec<String>> {
+    fn from(value: CefStringMultiMap) -> Self {
+        HashMap::<String, Vec<String>>::from(&value)
+    }
+}
+
+impl From<&CefStringMultiMap> for HashMap<String, Vec<String>> {
+    fn from(value: &CefStringMultiMap) -> Self {
+        value
+            .iter()
+            .map(|(k, v)| {
+                (
+                    k.into(),
+                    v.into_iter()
+                        .map(|s| s.into())
+                        .collect()
+                )
+            })
+            .collect()
+    }
+}
+
+impl From<HashMap<String, Vec<String>>> for CefStringMultiMap {
+    fn from(value: HashMap<String, Vec<String>>) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&HashMap<String, Vec<String>>> for CefStringMultiMap {
+    fn from(value: &HashMap<String, Vec<String>>) -> Self {
+        let mut result = CefStringMultiMap::new();
+
+        for (k, v) in value.iter() {
+            for s in v.iter() {
+                result.push(&k.into(), &s.into());
+            }
+        }
+
+        result
     }
 }
 
