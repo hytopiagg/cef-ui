@@ -1,4 +1,6 @@
-use crate::{ref_counted_ptr, CefString, CefStringMultiMap, ReferrerPolicy, UrlRequestFlags};
+use crate::{
+    ref_counted_ptr, CefString, CefStringMultiMap, ReferrerPolicy, ResourceType, UrlRequestFlags
+};
 use bindings::{
     cef_post_data_create, cef_post_data_element_create, cef_post_data_element_t, cef_post_data_t,
     cef_postdataelement_type_t, cef_request_create, cef_request_t, cef_urlrequest_flags_t
@@ -449,15 +451,16 @@ impl Request {
         }
     }
 
+    /// Get the resource type for this request. Only available in the browser
+    /// process.
+    pub fn get_resource_type(&self) -> Option<ResourceType> {
+        self.0
+            .get_resource_type
+            .map(|get_resource_type| unsafe { get_resource_type(self.as_ptr()).into() })
+    }
+
     // TODO: Fix this!
 
-    //     ///
-    //     /// Get the resource type for this request. Only available in the browser
-    //     /// process.
-    //     ///
-    //     cef_resource_type_t(CEF_CALLBACK* get_resource_type)(
-    //     struct _cef_request_t* self);
-    //
     //     ///
     //     /// Get the transition type for this request. Only available in the browser
     //     /// process and only applies to requests that represent a main frame or sub-

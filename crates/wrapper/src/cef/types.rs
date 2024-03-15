@@ -1,8 +1,9 @@
 use bindings::{
     cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
     cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_referrer_policy_t,
-    cef_screen_info_t, cef_size_t, cef_state_t, cef_termination_status_t, cef_text_input_mode_t,
-    cef_touch_handle_state_flags_t, cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
+    cef_resource_type_t, cef_screen_info_t, cef_size_t, cef_state_t, cef_termination_status_t,
+    cef_text_input_mode_t, cef_touch_handle_state_flags_t,
+    cef_touch_handle_state_flags_t_CEF_THS_FLAG_ALPHA,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ENABLED,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_NONE,
     cef_touch_handle_state_flags_t_CEF_THS_FLAG_ORIENTATION,
@@ -2180,6 +2181,146 @@ impl From<&ReferrerPolicy> for cef_referrer_policy_t {
                 cef_referrer_policy_t::REFERRER_POLICY_ORIGIN_CLEAR_ON_TRANSITION_FROM_SECURE_TO_INSECURE
             },
             ReferrerPolicy::NoReferrer => cef_referrer_policy_t::REFERRER_POLICY_NO_REFERRER
+        }
+    }
+}
+
+/// Resource type for a request. These constants match their equivalents in
+/// Chromium's ResourceType and should not be renumbered.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ResourceType {
+    /// Top level page.
+    MainFrame,
+
+    /// Frame or iframe.
+    SubFrame,
+
+    /// CSS stylesheet.
+    Stylesheet,
+
+    /// External script.
+    Script,
+
+    /// Image (jpg/gif/png/etc).
+    Image,
+
+    /// Font.
+    FontResource,
+
+    /// Some other subresource. This is the default type if the actual type is
+    /// unknown.
+    SubResource,
+
+    /// Object (or embed) tag for a plugin, or a resource that a plugin requested.
+    Object,
+
+    /// Media resource.
+    Media,
+
+    /// Main resource of a dedicated worker.
+    Worker,
+
+    /// Main resource of a shared worker.
+    SharedWorker,
+
+    /// Explicitly requested prefetch.
+    Prefetch,
+
+    /// Favicon.
+    Favicon,
+
+    /// XMLHttpRequest.
+    Xhr,
+
+    /// A request for a "<ping>".
+    Ping,
+
+    /// Main resource of a service worker.
+    ServiceWorker,
+
+    /// A report of Content Security Policy violations.
+    CspReport,
+
+    /// A resource that a plugin requested.
+    PluginResource,
+
+    /// A main-frame service worker navigation preload request.
+    NavigationPreloadMainFrame,
+
+    /// A sub-frame service worker navigation preload request.
+    NavigationPreloadSubFrame
+}
+
+impl From<cef_resource_type_t> for ResourceType {
+    fn from(value: cef_resource_type_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_resource_type_t> for ResourceType {
+    fn from(value: &cef_resource_type_t) -> Self {
+        match value {
+            cef_resource_type_t::RT_MAIN_FRAME => ResourceType::MainFrame,
+            cef_resource_type_t::RT_SUB_FRAME => ResourceType::SubFrame,
+            cef_resource_type_t::RT_STYLESHEET => ResourceType::Stylesheet,
+            cef_resource_type_t::RT_SCRIPT => ResourceType::Script,
+            cef_resource_type_t::RT_IMAGE => ResourceType::Image,
+            cef_resource_type_t::RT_FONT_RESOURCE => ResourceType::FontResource,
+            cef_resource_type_t::RT_SUB_RESOURCE => ResourceType::SubResource,
+            cef_resource_type_t::RT_OBJECT => ResourceType::Object,
+            cef_resource_type_t::RT_MEDIA => ResourceType::Media,
+            cef_resource_type_t::RT_WORKER => ResourceType::Worker,
+            cef_resource_type_t::RT_SHARED_WORKER => ResourceType::SharedWorker,
+            cef_resource_type_t::RT_PREFETCH => ResourceType::Prefetch,
+            cef_resource_type_t::RT_FAVICON => ResourceType::Favicon,
+            cef_resource_type_t::RT_XHR => ResourceType::Xhr,
+            cef_resource_type_t::RT_PING => ResourceType::Ping,
+            cef_resource_type_t::RT_SERVICE_WORKER => ResourceType::ServiceWorker,
+            cef_resource_type_t::RT_CSP_REPORT => ResourceType::CspReport,
+            cef_resource_type_t::RT_PLUGIN_RESOURCE => ResourceType::PluginResource,
+            cef_resource_type_t::RT_NAVIGATION_PRELOAD_MAIN_FRAME => {
+                ResourceType::NavigationPreloadMainFrame
+            },
+            cef_resource_type_t::RT_NAVIGATION_PRELOAD_SUB_FRAME => {
+                ResourceType::NavigationPreloadSubFrame
+            },
+        }
+    }
+}
+
+impl From<ResourceType> for cef_resource_type_t {
+    fn from(value: ResourceType) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&ResourceType> for cef_resource_type_t {
+    fn from(value: &ResourceType) -> Self {
+        match value {
+            ResourceType::MainFrame => cef_resource_type_t::RT_MAIN_FRAME,
+            ResourceType::SubFrame => cef_resource_type_t::RT_SUB_FRAME,
+            ResourceType::Stylesheet => cef_resource_type_t::RT_STYLESHEET,
+            ResourceType::Script => cef_resource_type_t::RT_SCRIPT,
+            ResourceType::Image => cef_resource_type_t::RT_IMAGE,
+            ResourceType::FontResource => cef_resource_type_t::RT_FONT_RESOURCE,
+            ResourceType::SubResource => cef_resource_type_t::RT_SUB_RESOURCE,
+            ResourceType::Object => cef_resource_type_t::RT_OBJECT,
+            ResourceType::Media => cef_resource_type_t::RT_MEDIA,
+            ResourceType::Worker => cef_resource_type_t::RT_WORKER,
+            ResourceType::SharedWorker => cef_resource_type_t::RT_SHARED_WORKER,
+            ResourceType::Prefetch => cef_resource_type_t::RT_PREFETCH,
+            ResourceType::Favicon => cef_resource_type_t::RT_FAVICON,
+            ResourceType::Xhr => cef_resource_type_t::RT_XHR,
+            ResourceType::Ping => cef_resource_type_t::RT_PING,
+            ResourceType::ServiceWorker => cef_resource_type_t::RT_SERVICE_WORKER,
+            ResourceType::CspReport => cef_resource_type_t::RT_CSP_REPORT,
+            ResourceType::PluginResource => cef_resource_type_t::RT_PLUGIN_RESOURCE,
+            ResourceType::NavigationPreloadMainFrame => {
+                cef_resource_type_t::RT_NAVIGATION_PRELOAD_MAIN_FRAME
+            },
+            ResourceType::NavigationPreloadSubFrame => {
+                cef_resource_type_t::RT_NAVIGATION_PRELOAD_SUB_FRAME
+            },
         }
     }
 }
