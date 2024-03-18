@@ -1,8 +1,8 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Extension, Frame, KeyEvent, MouseButtonType, MouseEvent, PaintElementType, Point,
-    RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo, WindowOpenDisposition,
-    ZoomCommand
+    DragData, DragOperations, Extension, Frame, KeyEvent, MouseButtonType, MouseEvent,
+    PaintElementType, Point, RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo,
+    WindowOpenDisposition, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -1158,34 +1158,42 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix this!
+    /// Call this function when the user drags the mouse into the web view (before
+    /// calling DragTargetDragOver/DragTargetLeave/DragTargetDrop). |drag_data|
+    /// should not contain file contents as this type of data is not allowed to be
+    /// dragged into the web view. File contents can be removed using
+    /// cef_drag_data_t::ResetFileContents (for example, if |drag_data| comes from
+    /// cef_render_handler_t::StartDragging). This function is only used when
+    /// window rendering is disabled.
+    pub fn drag_target_drag_enter(
+        &self,
+        drag_data: DragData,
+        event: &MouseEvent,
+        allowed_ops: DragOperations
+    ) {
+        if let Some(drag_target_drag_enter) = self.0.drag_target_drag_enter {
+            unsafe {
+                drag_target_drag_enter(
+                    self.as_ptr(),
+                    drag_data.into_raw(),
+                    &event.into(),
+                    allowed_ops.into()
+                );
+            }
+        }
+    }
 
-    // ///
-    // /// Call this function when the user drags the mouse into the web view (before
-    // /// calling DragTargetDragOver/DragTargetLeave/DragTargetDrop). |drag_data|
-    // /// should not contain file contents as this type of data is not allowed to be
-    // /// dragged into the web view. File contents can be removed using
-    // /// cef_drag_data_t::ResetFileContents (for example, if |drag_data| comes from
-    // /// cef_render_handler_t::StartDragging). This function is only used when
-    // /// window rendering is disabled.
-    // ///
-    // void(CEF_CALLBACK* drag_target_drag_enter)(
-    // struct _cef_browser_host_t* self,
-    // struct _cef_drag_data_t* drag_data,
-    // const cef_mouse_event_t* event,
-    // cef_drag_operations_mask_t allowed_ops);
-
-    // ///
-    // /// Call this function each time the mouse is moved across the web view during
-    // /// a drag operation (after calling DragTargetDragEnter and before calling
-    // /// DragTargetDragLeave/DragTargetDrop). This function is only used when
-    // /// window rendering is disabled.
-    // ///
-    // void(CEF_CALLBACK* drag_target_drag_over)(
-    // struct _cef_browser_host_t* self,
-    // const cef_mouse_event_t* event,
-    // cef_drag_operations_mask_t allowed_ops);
-    //
+    /// Call this function each time the mouse is moved across the web view during
+    /// a drag operation (after calling DragTargetDragEnter and before calling
+    /// DragTargetDragLeave/DragTargetDrop). This function is only used when
+    /// window rendering is disabled.
+    pub fn drag_target_drag_over(&self, event: &MouseEvent, allowed_ops: DragOperations) {
+        if let Some(drag_target_drag_over) = self.0.drag_target_drag_over {
+            unsafe {
+                drag_target_drag_over(self.as_ptr(), &event.into(), allowed_ops.into());
+            }
+        }
+    }
 
     /// Call this function when the user drags the mouse out of the web view
     /// (after calling DragTargetDragEnter). This function is only used when
@@ -1198,31 +1206,33 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix this!
+    /// Call this function when the user completes the drag operation by dropping
+    /// the object onto the web view (after calling DragTargetDragEnter). The
+    /// object being dropped is |drag_data|, given as an argument to the previous
+    /// DragTargetDragEnter call. This function is only used when window rendering
+    /// is disabled.
+    pub fn drag_target_drop(&self, event: &MouseEvent) {
+        if let Some(drag_target_drop) = self.0.drag_target_drop {
+            unsafe {
+                drag_target_drop(self.as_ptr(), &event.into());
+            }
+        }
+    }
 
-    // ///
-    // /// Call this function when the user completes the drag operation by dropping
-    // /// the object onto the web view (after calling DragTargetDragEnter). The
-    // /// object being dropped is |drag_data|, given as an argument to the previous
-    // /// DragTargetDragEnter call. This function is only used when window rendering
-    // /// is disabled.
-    // ///
-    // void(CEF_CALLBACK* drag_target_drop)(struct _cef_browser_host_t* self,
-    // const cef_mouse_event_t* event);
-
-    // ///
-    // /// Call this function when the drag operation started by a
-    // /// cef_render_handler_t::StartDragging call has ended either in a drop or by
-    // /// being cancelled. |x| and |y| are mouse coordinates relative to the upper-
-    // /// left corner of the view. If the web view is both the drag source and the
-    // /// drag target then all DragTarget* functions should be called before
-    // /// DragSource* mthods. This function is only used when window rendering is
-    // /// disabled.
-    // ///
-    // void(CEF_CALLBACK* drag_source_ended_at)(struct _cef_browser_host_t* self,
-    // int x,
-    // int y,
-    // cef_drag_operations_mask_t op);
+    /// Call this function when the drag operation started by a
+    /// cef_render_handler_t::StartDragging call has ended either in a drop or by
+    /// being cancelled. |x| and |y| are mouse coordinates relative to the upper-
+    /// left corner of the view. If the web view is both the drag source and the
+    /// drag target then all DragTarget* functions should be called before
+    /// DragSource* mthods. This function is only used when window rendering is
+    /// disabled.
+    pub fn drag_source_ended_at(&self, x: i32, y: i32, op: DragOperations) {
+        if let Some(drag_source_ended_at) = self.0.drag_source_ended_at {
+            unsafe {
+                drag_source_ended_at(self.as_ptr(), x, y, op.into());
+            }
+        }
+    }
 
     /// Call this function when the drag operation started by a
     /// cef_render_handler_t::StartDragging call has completed. This function may
