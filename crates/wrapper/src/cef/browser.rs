@@ -607,7 +607,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Call to run a file chooser dialog. Only a single file chooser dialog may
@@ -644,7 +644,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Download |image_url| and execute |callback| on completion with the images
@@ -676,7 +676,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Print the current browser contents to the PDF file specified by |path| and
@@ -854,7 +854,7 @@ impl BrowserHost {
             .unwrap_or(false)
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Add an observer for DevTools protocol messages (function results and
@@ -1083,7 +1083,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     //
     // ///
@@ -1157,7 +1157,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Call this function when the user drags the mouse into the web view (before
@@ -1197,7 +1197,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Call this function when the user completes the drag operation by dropping
@@ -1238,7 +1238,7 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     //
     // ///
@@ -1363,7 +1363,7 @@ impl BrowserHost {
             .unwrap_or(false)
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // ///
     // /// Execute a Chrome command. Values for |command_id| can be found in the

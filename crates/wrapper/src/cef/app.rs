@@ -1,10 +1,12 @@
-use crate::{ref_counted_ptr, CefString, CommandLine, RefCountedPtr, Wrappable, Wrapped};
+use crate::{
+    ref_counted_ptr, BrowserProcessHandler, CefString, CommandLine, RefCountedPtr, Wrappable,
+    Wrapped
+};
 use bindings::{
     cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
     cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
 };
-
-use std::mem::zeroed;
+use std::{mem::zeroed, ptr::null_mut};
 
 /// Implement this structure to provide handler implementations. Methods will be
 /// called by the process and/or thread indicated.
@@ -27,7 +29,7 @@ pub trait AppCallbacks: Send + Sync + 'static {
     ) {
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // /// Provides an opportunity to register custom schemes. Do not keep a
     // /// reference to the |registrar| object. This function is called on the main
@@ -44,11 +46,13 @@ pub trait AppCallbacks: Send + Sync + 'static {
     //     None
     // }
 
-    // /// Return the handler for functionality specific to the browser process. This
-    // /// function is called on multiple threads in the browser process.
-    // fn get_browser_process_handler(&self) -> Option<BrowserProcessHandler> {
-    //     None
-    // }
+    /// Return the handler for functionality specific to the browser process. This
+    /// function is called on multiple threads in the browser process.
+    fn get_browser_process_handler(&self) -> Option<BrowserProcessHandler> {
+        None
+    }
+
+    // TODO: Fix this!
 
     // /// Return the handler for functionality specific to the render process. This
     // /// function is called on the render process main thread.
@@ -99,7 +103,7 @@ impl AppWrapper {
             .on_before_command_line_processing(process_type, command_line);
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     /// Provides an opportunity to register custom schemes. Do not keep a
     /// reference to the |registrar| object. This function is called on the main
@@ -128,7 +132,12 @@ impl AppWrapper {
     unsafe extern "C" fn c_get_browser_process_handler(
         this: *mut cef_app_t
     ) -> *mut cef_browser_process_handler_t {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+
+        this.0
+            .get_browser_process_handler()
+            .map(|handler| handler.into_raw())
+            .unwrap_or_else(null_mut)
     }
 
     /// Return the handler for functionality specific to the render process. This
@@ -149,11 +158,11 @@ impl Wrappable for AppWrapper {
             cef_app_t {
                 base: unsafe { zeroed() },
 
-                // TODO: Fix these!
+                // TODO: Fix this!
                 on_before_command_line_processing: Some(Self::c_on_before_command_line_processing),
                 on_register_custom_schemes:        None,
                 get_resource_bundle_handler:       None,
-                get_browser_process_handler:       None,
+                get_browser_process_handler:       Some(Self::c_get_browser_process_handler),
                 get_render_process_handler:        None
             },
             self

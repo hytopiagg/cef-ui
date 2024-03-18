@@ -1,6 +1,7 @@
 mod accessibility_handler;
 mod app;
 mod browser;
+mod browser_process_handler;
 mod callbacks;
 mod client;
 mod color;
@@ -33,6 +34,7 @@ mod x509_certificate;
 pub use accessibility_handler::*;
 pub use app::*;
 pub use browser::*;
+pub use browser_process_handler::*;
 pub use callbacks::*;
 pub use client::*;
 pub use color::*;

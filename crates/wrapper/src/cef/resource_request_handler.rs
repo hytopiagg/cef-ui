@@ -157,7 +157,7 @@ impl ResourceRequestHandlerWrapper {
         Self(Box::new(delegate))
     }
 
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     /// Called on the IO thread before a resource request is loaded. The |browser|
     /// and |frame| values represent the source of the request, and may be NULL
@@ -317,7 +317,7 @@ impl Wrappable for ResourceRequestHandlerWrapper {
             cef_resource_request_handler_t {
                 base: unsafe { zeroed() },
 
-                // TODO: Fix these!
+                // TODO: Fix this!
                 get_cookie_access_filter:     None,
                 on_before_resource_load:      None,
                 get_resource_handler:         None,

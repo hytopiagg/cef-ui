@@ -11,7 +11,7 @@ use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 
 /// Implement this structure to provide handler implementations.
 pub trait ClientCallbacks: Send + Sync + 'static {
-    // TODO: Fix these!
+    // TODO: Fix this!
 
     // /// Return the handler for audio rendering events.
     // struct _cef_audio_handler_t*(CEF_CALLBACK* get_audio_handler)(
@@ -270,7 +270,7 @@ impl Wrappable for ClientWrapper {
             cef_client_t {
                 base: unsafe { zeroed() },
 
-                // TODO: Fix these!
+                // TODO: Fix this!
                 get_audio_handler:           None,
                 get_command_handler:         None,
                 get_context_menu_handler:    None,
