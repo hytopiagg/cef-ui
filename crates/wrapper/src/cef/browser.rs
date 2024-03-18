@@ -1,7 +1,8 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    Frame, KeyEvent, MouseButtonType, MouseEvent, PaintElementType, Point, RequestContext, State,
-    TouchEvent, WindowHandle, WindowInfo, ZoomCommand
+    Extension, Frame, KeyEvent, MouseButtonType, MouseEvent, PaintElementType, Point,
+    RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo, WindowOpenDisposition,
+    ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -865,7 +866,7 @@ impl BrowserHost {
     // struct _cef_registration_t*(CEF_CALLBACK* add_dev_tools_message_observer)(
     // struct _cef_browser_host_t* self,
     // struct _cef_dev_tools_message_observer_t* observer);
-    //
+
     // ///
     // /// Retrieve a snapshot of current navigation entries as values sent to the
     // /// specified visitor. If |current_only| is true (1) only the current
@@ -1118,7 +1119,7 @@ impl BrowserHost {
     // cef_composition_underline_t const* underlines,
     // const cef_range_t* replacement_range,
     // const cef_range_t* selection_range);
-    //
+
     // ///
     // /// Completes the existing composition by optionally inserting the specified
     // /// |text| into the composition node. |replacement_range| is an optional range
@@ -1173,7 +1174,7 @@ impl BrowserHost {
     // struct _cef_drag_data_t* drag_data,
     // const cef_mouse_event_t* event,
     // cef_drag_operations_mask_t allowed_ops);
-    //
+
     // ///
     // /// Call this function each time the mouse is moved across the web view during
     // /// a drag operation (after calling DragTargetDragEnter and before calling
@@ -1208,7 +1209,7 @@ impl BrowserHost {
     // ///
     // void(CEF_CALLBACK* drag_target_drop)(struct _cef_browser_host_t* self,
     // const cef_mouse_event_t* event);
-    //
+
     // ///
     // /// Call this function when the drag operation started by a
     // /// cef_render_handler_t::StartDragging call has ended either in a drop or by
@@ -1222,7 +1223,6 @@ impl BrowserHost {
     // int x,
     // int y,
     // cef_drag_operations_mask_t op);
-    //
 
     /// Call this function when the drag operation started by a
     /// cef_render_handler_t::StartDragging call has completed. This function may
@@ -1247,52 +1247,61 @@ impl BrowserHost {
     // ///
     // struct _cef_navigation_entry_t*(CEF_CALLBACK* get_visible_navigation_entry)(
     // struct _cef_browser_host_t* self);
-    //
-    // ///
-    // /// Set accessibility state for all frames. |accessibility_state| may be
-    // /// default, enabled or disabled. If |accessibility_state| is STATE_DEFAULT
-    // /// then accessibility will be disabled by default and the state may be
-    // /// further controlled with the "force-renderer-accessibility" and "disable-
-    // /// renderer-accessibility" command-line switches. If |accessibility_state| is
-    // /// STATE_ENABLED then accessibility will be enabled. If |accessibility_state|
-    // /// is STATE_DISABLED then accessibility will be completely disabled.
-    // ///
-    // /// For windowed browsers accessibility will be enabled in Complete mode
-    // /// (which corresponds to kAccessibilityModeComplete in Chromium). In this
-    // /// mode all platform accessibility objects will be created and managed by
-    // /// Chromium's internal implementation. The client needs only to detect the
-    // /// screen reader and call this function appropriately. For example, on macOS
-    // /// the client can handle the @"AXEnhancedUserStructure" accessibility
-    // /// attribute to detect VoiceOver state changes and on Windows the client can
-    // /// handle WM_GETOBJECT with OBJID_CLIENT to detect accessibility readers.
-    // ///
-    // /// For windowless browsers accessibility will be enabled in TreeOnly mode
-    // /// (which corresponds to kAccessibilityModeWebContentsOnly in Chromium). In
-    // /// this mode renderer accessibility is enabled, the full tree is computed,
-    // /// and events are passed to CefAccessibiltyHandler, but platform
-    // /// accessibility objects are not created. The client may implement platform
-    // /// accessibility objects using CefAccessibiltyHandler callbacks if desired.
-    // ///
-    // void(CEF_CALLBACK* set_accessibility_state)(struct _cef_browser_host_t* self,
-    // cef_state_t accessibility_state);
-    //
-    // ///
-    // /// Enable notifications of auto resize via
-    // /// cef_display_handler_t::OnAutoResize. Notifications are disabled by
-    // /// default. |min_size| and |max_size| define the range of allowed sizes.
-    // ///
-    // void(CEF_CALLBACK* set_auto_resize_enabled)(struct _cef_browser_host_t* self,
-    // int enabled,
-    // const cef_size_t* min_size,
-    // const cef_size_t* max_size);
-    //
-    // ///
-    // /// Returns the extension hosted in this browser or NULL if no extension is
-    // /// hosted. See cef_request_context_t::LoadExtension for details.
-    // ///
-    // struct _cef_extension_t*(CEF_CALLBACK* get_extension)(
-    // struct _cef_browser_host_t* self);
-    //
+
+    /// Set accessibility state for all frames. |accessibility_state| may be
+    /// default, enabled or disabled. If |accessibility_state| is STATE_DEFAULT
+    /// then accessibility will be disabled by default and the state may be
+    /// further controlled with the "force-renderer-accessibility" and "disable-
+    /// renderer-accessibility" command-line switches. If |accessibility_state| is
+    /// STATE_ENABLED then accessibility will be enabled. If |accessibility_state|
+    /// is STATE_DISABLED then accessibility will be completely disabled.
+    ///
+    /// For windowed browsers accessibility will be enabled in Complete mode
+    /// (which corresponds to kAccessibilityModeComplete in Chromium). In this
+    /// mode all platform accessibility objects will be created and managed by
+    /// Chromium's internal implementation. The client needs only to detect the
+    /// screen reader and call this function appropriately. For example, on macOS
+    /// the client can handle the @"AXEnhancedUserStructure" accessibility
+    /// attribute to detect VoiceOver state changes and on Windows the client can
+    /// handle WM_GETOBJECT with OBJID_CLIENT to detect accessibility readers.
+    ///
+    /// For windowless browsers accessibility will be enabled in TreeOnly mode
+    /// (which corresponds to kAccessibilityModeWebContentsOnly in Chromium). In
+    /// this mode renderer accessibility is enabled, the full tree is computed,
+    /// and events are passed to CefAccessibiltyHandler, but platform
+    /// accessibility objects are not created. The client may implement platform
+    /// accessibility objects using CefAccessibiltyHandler callbacks if desired.
+    pub fn set_accessibility_state(&self, accessibility_state: State) {
+        if let Some(set_accessibility_state) = self.0.set_accessibility_state {
+            unsafe {
+                set_accessibility_state(self.as_ptr(), accessibility_state.into());
+            }
+        }
+    }
+
+    /// Enable notifications of auto resize via
+    /// cef_display_handler_t::OnAutoResize. Notifications are disabled by
+    /// default. |min_size| and |max_size| define the range of allowed sizes.
+    pub fn set_auto_resize_enabled(&self, enabled: bool, min_size: Size, max_size: Size) {
+        if let Some(set_auto_resize_enabled) = self.0.set_auto_resize_enabled {
+            unsafe {
+                set_auto_resize_enabled(
+                    self.as_ptr(),
+                    enabled as c_int,
+                    &min_size.into(),
+                    &max_size.into()
+                );
+            }
+        }
+    }
+
+    /// Returns the extension hosted in this browser or NULL if no extension is
+    /// hosted. See cef_request_context_t::LoadExtension for details.
+    pub fn get_extension(&self) -> Option<Extension> {
+        self.0
+            .get_extension
+            .and_then(|get_extension| unsafe { Extension::from_ptr(get_extension(self.as_ptr())) })
+    }
 
     /// Returns true (1) if this browser is hosting an extension background
     /// script. Background hosts do not have a window and are not displayable. See
@@ -1363,17 +1372,18 @@ impl BrowserHost {
             .unwrap_or(false)
     }
 
-    // TODO: Fix this!
+    /// Execute a Chrome command. Values for |command_id| can be found in the
+    /// cef_command_ids.h file. |disposition| provides information about the
+    /// intended command target. Only used with the Chrome runtime.
+    pub fn execute_chrome_command(&self, command_id: i32, disposition: WindowOpenDisposition) {
+        if let Some(execute_chrome_command) = self.0.execute_chrome_command {
+            unsafe {
+                execute_chrome_command(self.as_ptr(), command_id, disposition.into());
+            }
+        }
+    }
 
-    // ///
-    // /// Execute a Chrome command. Values for |command_id| can be found in the
-    // /// cef_command_ids.h file. |disposition| provides information about the
-    // /// intended command target. Only used with the Chrome runtime.
-    // ///
-    // void(CEF_CALLBACK* execute_chrome_command)(
-    // struct _cef_browser_host_t* self,
-    // int command_id,
-    // cef_window_open_disposition_t disposition);
+    // TODO: Fix this!
 
     // ///
     // /// Create a new browser using the window parameters specified by |windowInfo|.
@@ -1392,7 +1402,6 @@ impl BrowserHost {
     // const struct _cef_browser_settings_t* settings,
     // struct _cef_dictionary_value_t* extra_info,
     // struct _cef_request_context_t* request_context);
-    //
 
     /// Create a new browser using the window parameters specified by |windowInfo|.
     /// If |request_context| is NULL the global request context will be used. This

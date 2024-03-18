@@ -9,6 +9,8 @@ mod command_line;
 mod context;
 mod drag;
 mod events;
+mod extension;
+mod extension_handler;
 mod frame;
 mod main_args;
 mod process;
@@ -42,6 +44,8 @@ pub use command_line::*;
 pub use context::*;
 pub use drag::*;
 pub use events::*;
+pub use extension::*;
+pub use extension_handler::*;
 pub use frame::*;
 pub use main_args::*;
 pub use process::*;
@@ -69,4 +73,8 @@ pub use x509_certificate::*;
 //  be dropped before you used the pointer. This is because you were using the
 //  original value by value instead of by reference.
 
-// TODO: Check that all bitflags are documented as appopriate.
+// TODO: Check that all bitflags are documented as appropriate.
+
+// TODO: Maybe don't provide default implementations for callbacks?
+//  If anything, check all your default implementations to make sure
+//  they return sane defaults per the documentation.
