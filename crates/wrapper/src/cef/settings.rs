@@ -320,7 +320,7 @@ impl Settings {
     /// transparent for a windowless (off-screen) browser then transparent
     /// painting will be enabled.
     pub fn background_color(mut self, value: Color) -> Self {
-        self.0.background_color = value.to_raw();
+        self.0.background_color = value.into();
         self
     }
 

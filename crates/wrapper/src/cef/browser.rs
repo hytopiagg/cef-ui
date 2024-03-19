@@ -1,12 +1,13 @@
 use crate::{
-    free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
-    DragData, DragOperations, Extension, Frame, KeyEvent, MouseButtonType, MouseEvent,
-    NavigationEntry, NavigationEntryVisitor, PaintElementType, Point, RequestContext, Size, State,
-    TouchEvent, WindowHandle, WindowInfo, WindowOpenDisposition, ZoomCommand
+    free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color,
+    CompositionUnderline, DictionaryValue, DragData, DragOperations, Extension, Frame, KeyEvent,
+    MouseButtonType, MouseEvent, NavigationEntry, NavigationEntryVisitor, PaintElementType, Point,
+    Range, RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo,
+    WindowOpenDisposition, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
-    cef_browser_t, cef_point_t, cef_string_t
+    cef_browser_t, cef_composition_underline_t, cef_point_t, cef_range_t, cef_string_t
 };
 use std::{
     ffi::{c_int, c_void},
@@ -216,7 +217,7 @@ impl BrowserSettings {
     /// fully transparent for a windowless (off-screen) browser then transparent
     /// painting will be enabled.
     pub fn background_color(mut self, background_color: &Color) -> Self {
-        self.0.background_color = background_color.to_raw();
+        self.0.background_color = background_color.into();
         self
     }
 
@@ -1083,56 +1084,116 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix this!
+    /// Begins a new composition or updates the existing composition. Blink has a
+    /// special node (a composition node) that allows the input function to change
+    /// text without affecting other DOM nodes. |text| is the optional text that
+    /// will be inserted into the composition node. |underlines| is an optional
+    /// set of ranges that will be underlined in the resulting text.
+    /// |replacement_range| is an optional range of the existing text that will be
+    /// replaced. |selection_range| is an optional range of the resulting text
+    /// that will be selected after insertion or replacement. The
+    /// |replacement_range| value is only used on OS X.
+    ///
+    /// This function may be called multiple times as the composition changes.
+    /// When the client is done making changes the composition should either be
+    /// canceled or completed. To cancel the composition call
+    /// ImeCancelComposition. To complete the composition call either
+    /// ImeCommitText or ImeFinishComposingText. Completion is usually signaled
+    /// when:
+    ///
+    /// 1. The client receives a WM_IME_COMPOSITION message with a GCS_RESULTSTR
+    ///    flag (on Windows), or;
+    /// 2. The client receives a "commit" signal of GtkIMContext (on Linux), or;
+    /// 3. insertText of NSTextInput is called (on Mac).
+    ///
+    /// This function is only used when window rendering is disabled.
+    pub fn ime_set_composition(
+        &self,
+        text: Option<&str>,
+        underlines: Option<&Vec<CompositionUnderline>>,
+        replacement_range: Option<Range>,
+        selection_range: Option<Range>
+    ) {
+        if let Some(ime_set_composition) = self.0.ime_set_composition {
+            let text = text.map(|text| CefString::new(text));
+            let text = text
+                .as_ref()
+                .map(|text| text.as_ptr())
+                .unwrap_or_else(null);
 
-    //
-    // ///
-    // /// Begins a new composition or updates the existing composition. Blink has a
-    // /// special node (a composition node) that allows the input function to change
-    // /// text without affecting other DOM nodes. |text| is the optional text that
-    // /// will be inserted into the composition node. |underlines| is an optional
-    // /// set of ranges that will be underlined in the resulting text.
-    // /// |replacement_range| is an optional range of the existing text that will be
-    // /// replaced. |selection_range| is an optional range of the resulting text
-    // /// that will be selected after insertion or replacement. The
-    // /// |replacement_range| value is only used on OS X.
-    // ///
-    // /// This function may be called multiple times as the composition changes.
-    // /// When the client is done making changes the composition should either be
-    // /// canceled or completed. To cancel the composition call
-    // /// ImeCancelComposition. To complete the composition call either
-    // /// ImeCommitText or ImeFinishComposingText. Completion is usually signaled
-    // /// when:
-    // ///
-    // /// 1. The client receives a WM_IME_COMPOSITION message with a GCS_RESULTSTR
-    // ///    flag (on Windows), or;
-    // /// 2. The client receives a "commit" signal of GtkIMContext (on Linux), or;
-    // /// 3. insertText of NSTextInput is called (on Mac).
-    // ///
-    // /// This function is only used when window rendering is disabled.
-    // ///
-    // void(CEF_CALLBACK* ime_set_composition)(
-    // struct _cef_browser_host_t* self,
-    // const cef_string_t* text,
-    // size_t underlinesCount,
-    // cef_composition_underline_t const* underlines,
-    // const cef_range_t* replacement_range,
-    // const cef_range_t* selection_range);
+            let underlines_count = underlines
+                .as_ref()
+                .map(|underlines| underlines.len())
+                .unwrap_or(0);
 
-    // ///
-    // /// Completes the existing composition by optionally inserting the specified
-    // /// |text| into the composition node. |replacement_range| is an optional range
-    // /// of the existing text that will be replaced. |relative_cursor_pos| is where
-    // /// the cursor will be positioned relative to the current cursor position. See
-    // /// comments on ImeSetComposition for usage. The |replacement_range| and
-    // /// |relative_cursor_pos| values are only used on OS X. This function is only
-    // /// used when window rendering is disabled.
-    // ///
-    // void(CEF_CALLBACK* ime_commit_text)(struct _cef_browser_host_t* self,
-    // const cef_string_t* text,
-    // const cef_range_t* replacement_range,
-    // int relative_cursor_pos);
-    //
+            let underlines = underlines.map(|underlines| {
+                underlines
+                    .iter()
+                    .map(|u| u.into())
+                    .collect::<Vec<cef_composition_underline_t>>()
+            });
+            let underlines = underlines
+                .as_ref()
+                .map(|underlines| underlines.as_ptr())
+                .unwrap_or_else(null);
+
+            let replacement_range: Option<cef_range_t> = replacement_range.map(|r| r.into());
+            let replacement_range = replacement_range
+                .as_ref()
+                .map(|r| r as *const cef_range_t)
+                .unwrap_or_else(null);
+
+            let selection_range: Option<cef_range_t> = selection_range.map(|r| r.into());
+            let selection_range = selection_range
+                .as_ref()
+                .map(|r| r as *const cef_range_t)
+                .unwrap_or_else(null);
+
+            unsafe {
+                ime_set_composition(
+                    self.as_ptr(),
+                    text,
+                    underlines_count,
+                    underlines.into(),
+                    replacement_range,
+                    selection_range
+                );
+            }
+        }
+    }
+
+    /// Completes the existing composition by optionally inserting the specified
+    /// |text| into the composition node. |replacement_range| is an optional range
+    /// of the existing text that will be replaced. |relative_cursor_pos| is where
+    /// the cursor will be positioned relative to the current cursor position. See
+    /// comments on ImeSetComposition for usage. The |replacement_range| and
+    /// |relative_cursor_pos| values are only used on OS X. This function is only
+    /// used when window rendering is disabled.
+    pub fn ime_commit_text(
+        &self,
+        text: &str,
+        replacement_range: Option<Range>,
+        relative_cursor_pos: i32
+    ) {
+        if let Some(ime_commit_text) = self.0.ime_commit_text {
+            let text = CefString::new(text);
+
+            let replacement_range: Option<cef_range_t> = replacement_range.map(|r| r.into());
+            let replacement_range = replacement_range
+                .as_ref()
+                .map(|r| r as *const cef_range_t)
+                .unwrap_or_else(null);
+
+            unsafe {
+                ime_commit_text(
+                    self.as_ptr(),
+                    text.as_ptr(),
+                    replacement_range,
+                    relative_cursor_pos
+                );
+            }
+        }
+    }
 
     /// Completes the existing composition by applying the current composition
     /// node contents. If |keep_selection| is false (0) the current selection, if
