@@ -31,6 +31,26 @@ impl BrowserSettings {
         Self(cef)
     }
 
+    /// Convert to a reference.
+    pub fn from_ptr<'a>(ptr: *const cef_browser_settings_t) -> Option<&'a Self> {
+        unsafe { (ptr as *const Self).as_ref() }
+    }
+
+    /// Convert to a reference without checking if the pointer is null.
+    pub fn from_ptr_unchecked<'a>(ptr: *const cef_browser_settings_t) -> &'a Self {
+        unsafe { &*(ptr as *const Self) }
+    }
+
+    /// Convert to a mutable reference.
+    pub fn from_ptr_mut<'a>(ptr: *mut cef_browser_settings_t) -> Option<&'a mut Self> {
+        unsafe { (ptr as *mut Self).as_mut() }
+    }
+
+    /// Convert to a mutable reference without checking if the pointer is null.
+    pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: *mut cef_browser_settings_t) -> &'a mut Self {
+        unsafe { &mut *(ptr as *mut Self) }
+    }
+
     /// The maximum rate in frames per second (fps) that CefRenderHandler::OnPaint
     /// will be called for a windowless browser. The actual fps may be lower if
     /// the browser cannot generate frames at the requested rate. The minimum

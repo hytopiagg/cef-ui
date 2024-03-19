@@ -50,12 +50,32 @@ mod inner {
     }
 
     /// Class representing window information.
-    #[derive(Debug)]
+    #[repr(transparent)]
     pub struct WindowInfo(cef_window_info_t);
 
     impl WindowInfo {
         pub fn new() -> Self {
             Self(unsafe { zeroed() })
+        }
+
+        /// Convert to a reference.
+        pub fn from_ptr<'a>(ptr: *const cef_window_info_t) -> Option<&'a Self> {
+            unsafe { (ptr as *const Self).as_ref() }
+        }
+
+        /// Convert to a reference without checking if the pointer is null.
+        pub fn from_ptr_unchecked<'a>(ptr: *const cef_window_info_t) -> &'a Self {
+            unsafe { &*(ptr as *const Self) }
+        }
+
+        /// Convert to a mutable reference.
+        pub fn from_ptr_mut<'a>(ptr: *mut cef_window_info_t) -> Option<&'a mut Self> {
+            unsafe { (ptr as *mut Self).as_mut() }
+        }
+
+        /// Convert to a mutable reference without checking if the pointer is null.
+        pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: *mut cef_window_info_t) -> &'a mut Self {
+            unsafe { &mut *(ptr as *mut Self) }
         }
 
         /// The initial title of the window, to be set when the window is created.
@@ -140,130 +160,12 @@ mod inner {
 
 /// Platform-specific types on Windows.
 #[cfg(target_os = "windows")]
-mod window_info {
-    use crate::bindings::cef_window_info_t;
-
-    /// Class representing window information.
-    #[derive(Debug)]
-    pub struct WindowInfo(cef_window_info_t);
-
-    impl WindowInfo {
-        //     // Standard parameters required by CreateWindowEx()
-        //     DWORD ex_style;
-        //     cef_string_t window_name;
-        //     DWORD style;
-        //     cef_rect_t bounds;
-        //     cef_window_handle_t parent_window;
-        //     HMENU menu;
-        //
-        //     ///
-        //     /// Set to true (1) to create the browser using windowless (off-screen)
-        //     /// rendering. No window will be created for the browser and all rendering
-        //     /// will occur via the CefRenderHandler interface. The |parent_window| value
-        //     /// will be used to identify monitor info and to act as the parent window for
-        //     /// dialogs, context menus, etc. If |parent_window| is not provided then the
-        //     /// main screen monitor will be used and some functionality that requires a
-        //     /// parent window may not function correctly. In order to create windowless
-        //     /// browsers the CefSettings.windowless_rendering_enabled value must be set to
-        //     /// true. Transparent painting is enabled by default but can be disabled by
-        //     /// setting CefBrowserSettings.background_color to an opaque value.
-        //     ///
-        //     int windowless_rendering_enabled;
-        //
-        //     ///
-        //     /// Set to true (1) to enable shared textures for windowless rendering. Only
-        //     /// valid if windowless_rendering_enabled above is also set to true. Currently
-        //     /// only supported on Windows (D3D11).
-        //     ///
-        //     int shared_texture_enabled;
-        //
-        //     ///
-        //     /// Set to true (1) to enable the ability to issue BeginFrame requests from
-        //     /// the client application by calling CefBrowserHost::SendExternalBeginFrame.
-        //     ///
-        //     int external_begin_frame_enabled;
-        //
-        //     ///
-        //     /// Handle for the new browser window. Only used with windowed rendering.
-        //     ///
-        //     cef_window_handle_t window;
-    }
-
-    impl Drop for WindowInfo {
-        fn drop(&mut self) {
-            todo!()
-        }
-    }
-}
+mod inner {}
 
 // TODO: Fix this!
 
 /// Platform-specific types on macOS.
 #[cfg(target_os = "macos")]
-mod window_info {
-    use crate::bindings::cef_window_info_t;
-
-    /// Class representing window information.
-    #[derive(Debug)]
-    pub struct WindowInfo(cef_window_info_t);
-
-    impl WindowInfo {
-        //     cef_string_t window_name;
-        //
-        //     ///
-        //     /// Initial window bounds.
-        //     ///
-        //     cef_rect_t bounds;
-        //
-        //     ///
-        //     /// Set to true (1) to create the view initially hidden.
-        //     ///
-        //     int hidden;
-        //
-        //     ///
-        //     /// NSView pointer for the parent view.
-        //     ///
-        //     cef_window_handle_t parent_view;
-        //
-        //     ///
-        //     /// Set to true (1) to create the browser using windowless (off-screen)
-        //     /// rendering. No view will be created for the browser and all rendering will
-        //     /// occur via the CefRenderHandler interface. The |parent_view| value will be
-        //     /// used to identify monitor info and to act as the parent view for dialogs,
-        //     /// context menus, etc. If |parent_view| is not provided then the main screen
-        //     /// monitor will be used and some functionality that requires a parent view
-        //     /// may not function correctly. In order to create windowless browsers the
-        //     /// CefSettings.windowless_rendering_enabled value must be set to true.
-        //     /// Transparent painting is enabled by default but can be disabled by setting
-        //     /// CefBrowserSettings.background_color to an opaque value.
-        //     ///
-        //     int windowless_rendering_enabled;
-        //
-        //     ///
-        //     /// Set to true (1) to enable shared textures for windowless rendering. Only
-        //     /// valid if windowless_rendering_enabled above is also set to true. Currently
-        //     /// only supported on Windows (D3D11).
-        //     ///
-        //     int shared_texture_enabled;
-        //
-        //     ///
-        //     /// Set to true (1) to enable the ability to issue BeginFrame from the client
-        //     /// application.
-        //     ///
-        //     int external_begin_frame_enabled;
-        //
-        //     ///
-        //     /// NSView pointer for the new browser view. Only used with windowed
-        //     /// rendering.
-        //     ///
-        //     cef_window_handle_t view;
-    }
-
-    impl Drop for WindowInfo {
-        fn drop(&mut self) {
-            todo!()
-        }
-    }
-}
+mod inner {}
 
 pub use inner::*;
