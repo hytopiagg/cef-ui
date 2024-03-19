@@ -12,7 +12,8 @@ use bindings::{
     cef_cert_status_t_CERT_STATUS_SHA1_SIGNATURE_PRESENT,
     cef_cert_status_t_CERT_STATUS_UNABLE_TO_CHECK_REVOCATION,
     cef_cert_status_t_CERT_STATUS_VALIDITY_TOO_LONG, cef_cert_status_t_CERT_STATUS_WEAK_KEY,
-    cef_cert_status_t_CERT_STATUS_WEAK_SIGNATURE_ALGORITHM, cef_sslinfo_t
+    cef_cert_status_t_CERT_STATUS_WEAK_SIGNATURE_ALGORITHM, cef_ssl_content_status_t,
+    cef_ssl_version_t, cef_sslinfo_t, cef_sslstatus_t
 };
 use bitflags::bitflags;
 
@@ -76,6 +77,111 @@ impl From<&CertStatus> for cef_cert_status_t {
     }
 }
 
+/// Supported SSL content status flags. See content/public/common/ssl_status.h
+/// for more information.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SslContentStatus {
+    NormalContent,
+    DisplayedInsecureContent,
+    RanInsecureContent
+}
+
+impl From<cef_ssl_content_status_t> for SslContentStatus {
+    fn from(value: cef_ssl_content_status_t) -> Self {
+        SslContentStatus::from(&value)
+    }
+}
+
+impl From<&cef_ssl_content_status_t> for SslContentStatus {
+    fn from(value: &cef_ssl_content_status_t) -> Self {
+        match value {
+            cef_ssl_content_status_t::SSL_CONTENT_NORMAL_CONTENT => SslContentStatus::NormalContent,
+            cef_ssl_content_status_t::SSL_CONTENT_DISPLAYED_INSECURE_CONTENT => {
+                SslContentStatus::DisplayedInsecureContent
+            },
+            cef_ssl_content_status_t::SSL_CONTENT_RAN_INSECURE_CONTENT => {
+                SslContentStatus::RanInsecureContent
+            },
+        }
+    }
+}
+
+impl From<SslContentStatus> for cef_ssl_content_status_t {
+    fn from(value: SslContentStatus) -> Self {
+        cef_ssl_content_status_t::from(&value)
+    }
+}
+
+impl From<&SslContentStatus> for cef_ssl_content_status_t {
+    fn from(value: &SslContentStatus) -> Self {
+        match value {
+            SslContentStatus::NormalContent => cef_ssl_content_status_t::SSL_CONTENT_NORMAL_CONTENT,
+            SslContentStatus::DisplayedInsecureContent => {
+                cef_ssl_content_status_t::SSL_CONTENT_DISPLAYED_INSECURE_CONTENT
+            },
+            SslContentStatus::RanInsecureContent => {
+                cef_ssl_content_status_t::SSL_CONTENT_RAN_INSECURE_CONTENT
+            },
+        }
+    }
+}
+
+/// Supported SSL version values. See net/ssl/ssl_connection_status_flags.h
+/// for more information.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SslVersion {
+    Unknown,
+    Ssl2,
+    Ssl3,
+    Tls1,
+    Tls11,
+    Tls12,
+    Tls13,
+    Quic
+}
+
+impl From<cef_ssl_version_t> for SslVersion {
+    fn from(value: cef_ssl_version_t) -> Self {
+        SslVersion::from(&value)
+    }
+}
+
+impl From<&cef_ssl_version_t> for SslVersion {
+    fn from(value: &cef_ssl_version_t) -> Self {
+        match value {
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_UNKNOWN => SslVersion::Unknown,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_SSL2 => SslVersion::Ssl2,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_SSL3 => SslVersion::Ssl3,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1 => SslVersion::Tls1,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_1 => SslVersion::Tls11,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_2 => SslVersion::Tls12,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_3 => SslVersion::Tls13,
+            cef_ssl_version_t::SSL_CONNECTION_VERSION_QUIC => SslVersion::Quic
+        }
+    }
+}
+
+impl From<SslVersion> for cef_ssl_version_t {
+    fn from(value: SslVersion) -> Self {
+        cef_ssl_version_t::from(&value)
+    }
+}
+
+impl From<&SslVersion> for cef_ssl_version_t {
+    fn from(value: &SslVersion) -> Self {
+        match value {
+            SslVersion::Unknown => cef_ssl_version_t::SSL_CONNECTION_VERSION_UNKNOWN,
+            SslVersion::Ssl2 => cef_ssl_version_t::SSL_CONNECTION_VERSION_SSL2,
+            SslVersion::Ssl3 => cef_ssl_version_t::SSL_CONNECTION_VERSION_SSL3,
+            SslVersion::Tls1 => cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1,
+            SslVersion::Tls11 => cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_1,
+            SslVersion::Tls12 => cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_2,
+            SslVersion::Tls13 => cef_ssl_version_t::SSL_CONNECTION_VERSION_TLS1_3,
+            SslVersion::Quic => cef_ssl_version_t::SSL_CONNECTION_VERSION_QUIC
+        }
+    }
+}
+
 // Structure representing SSL information.
 ref_counted_ptr!(SslInfo, cef_sslinfo_t);
 
@@ -86,6 +192,50 @@ impl SslInfo {
         self.0
             .get_cert_status
             .map(|get_cert_status| unsafe { get_cert_status(self.as_ptr()).into() })
+    }
+
+    /// Returns the X.509 certificate.
+    pub fn get_x509certificate(&self) -> Option<X509Certificate> {
+        self.0
+            .get_x509certificate
+            .map(|get_x509certificate| unsafe {
+                X509Certificate::from_ptr_unchecked(get_x509certificate(self.as_ptr()))
+            })
+    }
+}
+
+// Structure representing the SSL information for a navigation entry.
+ref_counted_ptr!(SslStatus, cef_sslstatus_t);
+
+impl SslStatus {
+    /// Returns true (1) if the status is related to a secure SSL/TLS connection.
+    pub fn is_secure_connection(&self) -> bool {
+        self.0
+            .is_secure_connection
+            .map(|is_secure_connection| unsafe { is_secure_connection(self.as_ptr()) != 0 })
+            .unwrap_or(false)
+    }
+
+    /// Returns a bitmask containing any and all problems verifying the server
+    /// certificate.
+    pub fn get_cert_status(&self) -> Option<CertStatus> {
+        self.0
+            .get_cert_status
+            .map(|get_cert_status| unsafe { get_cert_status(self.as_ptr()).into() })
+    }
+
+    /// Returns the SSL version used for the SSL connection.
+    pub fn get_ssl_version(&self) -> Option<SslVersion> {
+        self.0
+            .get_sslversion
+            .map(|get_sslversion| unsafe { get_sslversion(self.as_ptr()).into() })
+    }
+
+    /// Returns a bitmask containing the page security content status.
+    pub fn get_content_status(&self) -> Option<SslContentStatus> {
+        self.0
+            .get_content_status
+            .map(|get_content_status| unsafe { get_content_status(self.as_ptr()).into() })
     }
 
     /// Returns the X.509 certificate.

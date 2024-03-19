@@ -13,6 +13,7 @@ mod extension;
 mod extension_handler;
 mod frame;
 mod main_args;
+mod navigation_entry;
 mod process;
 mod refcounted;
 mod render_handler;
@@ -48,6 +49,7 @@ pub use extension::*;
 pub use extension_handler::*;
 pub use frame::*;
 pub use main_args::*;
+pub use navigation_entry::*;
 pub use process::*;
 pub use refcounted::*;
 pub use render_handler::*;
@@ -78,3 +80,11 @@ pub use x509_certificate::*;
 // TODO: Maybe don't provide default implementations for callbacks?
 //  If anything, check all your default implementations to make sure
 //  they return sane defaults per the documentation.
+
+// TODO: Write a From<..> trait for this string conversion:
+//  CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+
+// TODO: Return Option<T> for all getters on types. Otherwise you may
+//  be returning invalid default values.
+
+// TODO: Check all Wrapper registration functions!
