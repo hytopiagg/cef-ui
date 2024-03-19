@@ -1,8 +1,8 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color, DictionaryValue,
     DragData, DragOperations, Extension, Frame, KeyEvent, MouseButtonType, MouseEvent,
-    PaintElementType, Point, RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo,
-    WindowOpenDisposition, ZoomCommand
+    NavigationEntry, NavigationEntryVisitor, PaintElementType, Point, RequestContext, Size, State,
+    TouchEvent, WindowHandle, WindowInfo, WindowOpenDisposition, ZoomCommand
 };
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
@@ -632,7 +632,6 @@ impl BrowserHost {
     // const cef_string_t* default_file_path,
     // cef_string_list_t accept_filters,
     // struct _cef_run_file_dialog_callback_t* callback);
-    //
 
     /// Download the file at |url| using cef_download_handler_t.
     pub fn start_download(&self, url: &str) {
@@ -867,17 +866,17 @@ impl BrowserHost {
     // struct _cef_browser_host_t* self,
     // struct _cef_dev_tools_message_observer_t* observer);
 
-    // ///
-    // /// Retrieve a snapshot of current navigation entries as values sent to the
-    // /// specified visitor. If |current_only| is true (1) only the current
-    // /// navigation entry will be sent, otherwise all navigation entries will be
-    // /// sent.
-    // ///
-    // void(CEF_CALLBACK* get_navigation_entries)(
-    // struct _cef_browser_host_t* self,
-    // struct _cef_navigation_entry_visitor_t* visitor,
-    // int current_only);
-    //
+    /// Retrieve a snapshot of current navigation entries as values sent to the
+    /// specified visitor. If |current_only| is true (1) only the current
+    /// navigation entry will be sent, otherwise all navigation entries will be
+    /// sent.
+    pub fn get_navigation_entries(&self, visitor: NavigationEntryVisitor, current_only: bool) {
+        if let Some(get_navigation_entries) = self.0.get_navigation_entries {
+            unsafe {
+                get_navigation_entries(self.as_ptr(), visitor.into_raw(), current_only as c_int);
+            }
+        }
+    }
 
     /// If a misspelled word is currently selected in an editable node calling
     /// this function will replace it with the specified |word|.
@@ -1248,15 +1247,15 @@ impl BrowserHost {
         }
     }
 
-    // TODO: Fix this!
-
-    //
-    // ///
-    // /// Returns the current visible navigation entry for this browser. This
-    // /// function can only be called on the UI thread.
-    // ///
-    // struct _cef_navigation_entry_t*(CEF_CALLBACK* get_visible_navigation_entry)(
-    // struct _cef_browser_host_t* self);
+    /// Returns the current visible navigation entry for this browser. This
+    /// function can only be called on the UI thread.
+    pub fn get_visible_navigation_entry(&self) -> Option<NavigationEntry> {
+        self.0
+            .get_visible_navigation_entry
+            .map(|get_visible_navigation_entry| unsafe {
+                NavigationEntry::from_ptr_unchecked(get_visible_navigation_entry(self.as_ptr()))
+            })
+    }
 
     /// Set accessibility state for all frames. |accessibility_state| may be
     /// default, enabled or disabled. If |accessibility_state| is STATE_DEFAULT

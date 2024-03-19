@@ -305,13 +305,13 @@ impl Wrappable for ExtensionWrapper {
                 base: unsafe { zeroed() },
 
                 // TODO: Fix this!
-                on_extension_load_failed:     None,
-                on_extension_loaded:          None,
-                on_extension_unloaded:        None,
+                on_extension_load_failed:     Some(Self::c_on_extension_load_failed),
+                on_extension_loaded:          Some(Self::c_on_extension_loaded),
+                on_extension_unloaded:        Some(Self::c_on_extension_unloaded),
                 on_before_background_browser: None,
                 on_before_browser:            None,
-                get_active_browser:           None,
-                can_access_browser:           None,
+                get_active_browser:           Some(Self::c_get_active_browser),
+                can_access_browser:           Some(Self::c_can_access_browser),
                 get_extension_resource:       None
             },
             self
