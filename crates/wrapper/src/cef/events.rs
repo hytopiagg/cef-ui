@@ -339,6 +339,18 @@ pub struct KeyEvent {
     pub focus_on_editable_field: bool
 }
 
+impl KeyEvent {
+    /// Convert from a pointer.
+    pub fn from_ptr(ptr: *const cef_key_event_t) -> Option<KeyEvent> {
+        unsafe { ptr.as_ref().map(|v| v.into()) }
+    }
+
+    /// Convert from a pointer without checking if the pointer is null.
+    pub fn from_ptr_unchecked(ptr: *const cef_key_event_t) -> KeyEvent {
+        unsafe { (*ptr).into() }
+    }
+}
+
 impl From<cef_key_event_t> for KeyEvent {
     fn from(value: cef_key_event_t) -> Self {
         Self::from(&value)

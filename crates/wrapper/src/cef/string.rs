@@ -37,22 +37,22 @@ impl CefString {
         self.0.str_.is_null() || self.0.length == 0
     }
 
-    /// Convert to a CefString reference.
+    /// Convert to a reference.
     pub fn from_ptr<'a>(ptr: *const cef_string_t) -> Option<&'a Self> {
         unsafe { (ptr as *const Self).as_ref() }
     }
 
-    /// Convert to a CefString reference without checking if the pointer is null.
+    /// Convert to a reference without checking if the pointer is null.
     pub fn from_ptr_unchecked<'a>(ptr: *const cef_string_t) -> &'a Self {
         unsafe { &*(ptr as *const Self) }
     }
 
-    /// Convert to a mutable CefString reference.
+    /// Convert to a mutable reference.
     pub fn from_ptr_mut<'a>(ptr: *mut cef_string_t) -> Option<&'a mut Self> {
         unsafe { (ptr as *mut Self).as_mut() }
     }
 
-    /// Convert to a mutable CefString reference without checking if the pointer is null.
+    /// Convert to a mutable reference without checking if the pointer is null.
     pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: *mut cef_string_t) -> &'a mut Self {
         unsafe { &mut *(ptr as *mut Self) }
     }
@@ -188,22 +188,22 @@ impl CefStringList {
         Self(unsafe { cef_string_list_alloc() })
     }
 
-    /// Convert to a CefStringList reference.
+    /// Convert to a reference.
     pub fn from_ptr<'a>(ptr: cef_string_list_t) -> Option<&'a Self> {
         unsafe { (ptr as *const Self).as_ref() }
     }
 
-    /// Convert to a CefStringList reference without checking if the pointer is null.
+    /// Convert to a reference without checking if the pointer is null.
     pub fn from_ptr_unchecked<'a>(ptr: cef_string_list_t) -> &'a Self {
         unsafe { &*(ptr as *const Self) }
     }
 
-    /// Convert to a mutable CefStringList reference.
+    /// Convert to a mutable reference.
     pub fn from_ptr_mut<'a>(ptr: cef_string_list_t) -> Option<&'a mut Self> {
         unsafe { (ptr as *mut Self).as_mut() }
     }
 
-    /// Convert to a mutable CefStringList reference without checking if the pointer is null.
+    /// Convert to a mutable reference without checking if the pointer is null.
     pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_list_t) -> &'a mut Self {
         unsafe { &mut *(ptr as *mut Self) }
     }
@@ -323,22 +323,22 @@ impl CefStringMap {
         Self(unsafe { cef_string_map_alloc() })
     }
 
-    /// Convert to a CefStringMap reference.
+    /// Convert to a reference.
     pub fn from_ptr<'a>(ptr: cef_string_map_t) -> Option<&'a Self> {
         unsafe { (ptr as *const Self).as_ref() }
     }
 
-    /// Convert to a CefStringMap reference without checking if the pointer is null.
+    /// Convert to a reference without checking if the pointer is null.
     pub fn from_ptr_unchecked<'a>(ptr: cef_string_map_t) -> &'a Self {
         unsafe { &*(ptr as *const Self) }
     }
 
-    /// Convert to a mutable CefStringMap reference.
+    /// Convert to a mutable reference.
     pub fn from_ptr_mut<'a>(ptr: cef_string_map_t) -> Option<&'a mut Self> {
         unsafe { (ptr as *mut Self).as_mut() }
     }
 
-    /// Convert to a mutable CefStringMap reference without checking if the pointer is null.
+    /// Convert to a mutable reference without checking if the pointer is null.
     pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_map_t) -> &'a mut Self {
         unsafe { &mut *(ptr as *mut Self) }
     }
@@ -478,22 +478,22 @@ impl CefStringMultiMap {
         Self(unsafe { cef_string_multimap_alloc() })
     }
 
-    /// Convert to a CefStringMultiMap reference.
+    /// Convert to a reference.
     pub fn from_ptr<'a>(ptr: cef_string_multimap_t) -> Option<&'a Self> {
         unsafe { (ptr as *const Self).as_ref() }
     }
 
-    /// Convert to a CefStringMultiMap reference without checking if the pointer is null.
+    /// Convert to a reference without checking if the pointer is null.
     pub fn from_ptr_unchecked<'a>(ptr: cef_string_multimap_t) -> &'a Self {
         unsafe { &*(ptr as *const Self) }
     }
 
-    /// Convert to a mutable CefStringMultiMap reference.
+    /// Convert to a mutable reference.
     pub fn from_ptr_mut<'a>(ptr: cef_string_multimap_t) -> Option<&'a mut Self> {
         unsafe { (ptr as *mut Self).as_mut() }
     }
 
-    /// Convert to a mutable CefStringMultiMap reference without checking if the pointer is null.
+    /// Convert to a mutable reference without checking if the pointer is null.
     pub unsafe fn from_ptr_mut_unchecked<'a>(ptr: cef_string_multimap_t) -> &'a mut Self {
         unsafe { &mut *(ptr as *mut Self) }
     }

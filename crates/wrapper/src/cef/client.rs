@@ -1,6 +1,6 @@
 use crate::{
-    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, RefCountedPtr, RenderHandler,
-    Wrappable, Wrapped
+    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, LifeSpanHandler, RefCountedPtr,
+    RenderHandler, Wrappable, Wrapped
 };
 use bindings::{
     cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
@@ -76,9 +76,10 @@ pub trait ClientCallbacks: Send + Sync + 'static {
         None
     }
 
-    // /// Return the handler for browser life span events.
-    // struct _cef_life_span_handler_t*(CEF_CALLBACK* get_life_span_handler)(
-    // struct _cef_client_t* self);
+    /// Return the handler for browser life span events.
+    fn get_life_span_handler(&self) -> Option<LifeSpanHandler> {
+        None
+    }
 
     // /// Return the handler for browser load status events.
     // struct _cef_load_handler_t*(CEF_CALLBACK* get_load_handler)(
@@ -223,7 +224,12 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_life_span_handler(
         this: *mut cef_client_t
     ) -> *mut cef_life_span_handler_t {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+
+        this.0
+            .get_life_span_handler()
+            .map(|handler| handler.into_raw())
+            .unwrap_or(null_mut())
     }
 
     /// Return the handler for browser load status events.

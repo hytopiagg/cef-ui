@@ -14,6 +14,7 @@ mod extension_handler;
 mod frame;
 mod ime;
 mod keyboard_handler;
+mod life_span_handler;
 mod main_args;
 mod navigation_entry;
 mod platform;
@@ -51,6 +52,7 @@ pub use extension::*;
 pub use extension_handler::*;
 pub use frame::*;
 pub use ime::*;
+pub use life_span_handler::*;
 pub use main_args::*;
 pub use navigation_entry::*;
 pub use platform::*;
@@ -97,3 +99,5 @@ pub use x509_certificate::*;
 
 // TODO: Make sure platform-specific types are using the right cef
 //  typedefs instead of the actual values generated in Rust bindgen.
+
+// TODO: Make a macro for all the pointer conversion functions.

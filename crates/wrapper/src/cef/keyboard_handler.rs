@@ -71,7 +71,7 @@ impl KeyboardHandlerWrapper {
     ) -> c_int {
         let this: &Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
-        let event = (*event).into();
+        let event = KeyEvent::from_ptr_unchecked(event);
         let os_event = NativeEventHandle::try_from(os_event).ok();
         let mut local_is_keyboard_shortcut = *is_keyboard_shortcut != 0;
 
@@ -96,7 +96,7 @@ impl KeyboardHandlerWrapper {
     ) -> c_int {
         let this: &Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
-        let event = (*event).into();
+        let event = KeyEvent::from_ptr_unchecked(event);
         let os_event = NativeEventHandle::try_from(os_event).ok();
 
         this.0
