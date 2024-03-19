@@ -13,8 +13,10 @@ mod extension;
 mod extension_handler;
 mod frame;
 mod ime;
+mod keyboard_handler;
 mod main_args;
 mod navigation_entry;
+mod platform;
 mod process;
 mod refcounted;
 mod render_handler;
@@ -32,7 +34,6 @@ mod time;
 mod types;
 mod url_request;
 mod values;
-mod window;
 mod x509_certificate;
 
 pub use accessibility_handler::*;
@@ -52,6 +53,7 @@ pub use frame::*;
 pub use ime::*;
 pub use main_args::*;
 pub use navigation_entry::*;
+pub use platform::*;
 pub use process::*;
 pub use refcounted::*;
 pub use render_handler::*;
@@ -69,7 +71,6 @@ pub use time::*;
 pub use types::*;
 pub use url_request::*;
 pub use values::*;
-pub use window::*;
 pub use x509_certificate::*;
 
 // TODO: Evaluate that your code is actually save! You were doing some unsafe
@@ -90,3 +91,9 @@ pub use x509_certificate::*;
 //  be returning invalid default values.
 
 // TODO: Check all Wrapper registration functions!
+
+// TODO: Make all callback traits take self mutably. Otherwise they
+//  can't use internal fields to do things.
+
+// TODO: Make sure platform-specific types are using the right cef
+//  typedefs instead of the actual values generated in Rust bindgen.

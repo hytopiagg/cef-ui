@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bevy::{
     log::{
         tracing_subscriber::{filter::LevelFilter, FmtSubscriber},
@@ -14,7 +14,7 @@ use winit::{
 };
 use wrapper::{
     App, AppCallbacks, BrowserHost, BrowserSettings, Client, ClientCallbacks, Context, LogSeverity,
-    MainArgs, Settings, WindowHandle, WindowInfo
+    MainArgs, NativeWindowHandle, Settings, WindowInfo
 };
 
 pub struct MyAppCallbacks;
@@ -107,13 +107,12 @@ fn try_main() -> Result<()> {
 /// Get the window info on Linux.
 #[cfg(target_os = "linux")]
 fn get_window_info(window: &Window) -> Result<WindowInfo> {
-    let window_info = WindowInfo::new().window_name(&String::from("Bevy"));
-    let window_info = match window.window_handle()?.as_raw() {
-        RawWindowHandle::Xlib(handle) => {
-            window_info.parent_window(WindowHandle::new(handle.window))
-        },
-        _ => panic!("Unsupported window handle type!")
-    };
+    let native_window_handle = match window.window_handle()?.as_raw() {
+        RawWindowHandle::Xlib(handle) => NativeWindowHandle::try_from(handle.window),
+        _ => Err(anyhow!("Unsupported window handle type!"))
+    }?;
 
-    Ok(window_info)
+    Ok(WindowInfo::new()
+        .window_name(&String::from("Bevy"))
+        .parent_window(native_window_handle))
 }
