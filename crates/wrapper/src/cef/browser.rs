@@ -1,8 +1,8 @@
 use crate::{
     free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color,
     CompositionUnderline, DictionaryValue, DragData, DragOperations, Extension, Frame, KeyEvent,
-    MouseButtonType, MouseEvent, NavigationEntry, NavigationEntryVisitor, PaintElementType, Point,
-    Range, RequestContext, Size, State, TouchEvent, WindowHandle, WindowInfo,
+    MouseButtonType, MouseEvent, NativeWindowHandle, NavigationEntry, NavigationEntryVisitor,
+    PaintElementType, Point, Range, RequestContext, Size, State, TouchEvent, WindowInfo,
     WindowOpenDisposition, ZoomCommand
 };
 use bindings::{
@@ -516,21 +516,23 @@ impl BrowserHost {
     /// wrapped in a cef_browser_view_t this function should be called on the
     /// browser process UI thread and it will return the handle for the top-level
     /// native window.
-    pub fn get_window_handle(&self) -> Option<WindowHandle> {
+    pub fn get_window_handle(&self) -> Option<NativeWindowHandle> {
         self.0
             .get_window_handle
-            .map(|get_window_handle| unsafe { WindowHandle::new(get_window_handle(self.as_ptr())) })
+            .and_then(|get_window_handle| unsafe {
+                NativeWindowHandle::try_from(get_window_handle(self.as_ptr())).ok()
+            })
     }
 
     /// Retrieve the window handle (if any) of the browser that opened this
     /// browser. Will return NULL for non-popup browsers or if this browser is
     /// wrapped in a cef_browser_view_t. This function can be used in combination
     /// with custom handling of modal windows.
-    pub fn get_opener_window_handle(&self) -> Option<WindowHandle> {
+    pub fn get_opener_window_handle(&self) -> Option<NativeWindowHandle> {
         self.0
             .get_opener_window_handle
-            .map(|get_opener_window_handle| unsafe {
-                WindowHandle::new(get_opener_window_handle(self.as_ptr()))
+            .and_then(|get_opener_window_handle| unsafe {
+                NativeWindowHandle::try_from(get_opener_window_handle(self.as_ptr())).ok()
             })
     }
 

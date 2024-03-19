@@ -339,6 +339,27 @@ pub struct KeyEvent {
     pub focus_on_editable_field: bool
 }
 
+impl From<cef_key_event_t> for KeyEvent {
+    fn from(value: cef_key_event_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_key_event_t> for KeyEvent {
+    fn from(value: &cef_key_event_t) -> Self {
+        Self {
+            event_type:              value.type_.into(),
+            modifiers:               value.modifiers.into(),
+            windows_key_code:        WindowsKeyCode(value.windows_key_code as i32),
+            native_key_code:         value.native_key_code as i32,
+            is_system_key:           value.is_system_key != 0,
+            character:               value.character as u16,
+            unmodified_character:    value.unmodified_character as u16,
+            focus_on_editable_field: value.focus_on_editable_field != 0
+        }
+    }
+}
+
 impl From<KeyEvent> for cef_key_event_t {
     fn from(value: KeyEvent) -> Self {
         Self::from(&value)

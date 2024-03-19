@@ -1,20 +1,53 @@
-use bindings::cef_window_handle_t;
-
-/// The raw window handle.
-pub struct WindowHandle(cef_window_handle_t);
-
-impl WindowHandle {
-    pub fn new(handle: cef_window_handle_t) -> Self {
-        Self(handle)
-    }
-}
-
+/// Platform-specific types on Linux.
 #[cfg(target_os = "linux")]
-mod window_info {
-    use super::WindowHandle;
+mod inner {
     use crate::{free_cef_string, CefString, Rect};
-    use bindings::{cef_string_t, cef_window_info_t};
+    use anyhow::{anyhow, Error, Result};
+    use bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t};
     use std::{ffi::c_int, mem::zeroed};
+
+    /// Native window handle.
+    #[derive(Clone)]
+    pub struct NativeWindowHandle(cef_window_handle_t);
+
+    impl TryFrom<cef_window_handle_t> for NativeWindowHandle {
+        type Error = Error;
+
+        fn try_from(value: cef_window_handle_t) -> Result<Self> {
+            Ok(Self(value))
+        }
+    }
+
+    impl TryFrom<NativeWindowHandle> for cef_window_handle_t {
+        type Error = Error;
+
+        fn try_from(handle: NativeWindowHandle) -> Result<Self> {
+            Ok(handle.0)
+        }
+    }
+
+    /// Native event handle.
+    #[derive(Clone)]
+    pub struct NativeEventHandle(cef_event_handle_t);
+
+    impl TryFrom<cef_event_handle_t> for NativeEventHandle {
+        type Error = Error;
+
+        fn try_from(handle: cef_event_handle_t) -> Result<Self> {
+            match handle.is_null() {
+                true => Err(anyhow!("Native event handle is null!")),
+                false => Ok(Self(handle))
+            }
+        }
+    }
+
+    impl TryFrom<NativeEventHandle> for cef_event_handle_t {
+        type Error = Error;
+
+        fn try_from(handle: NativeEventHandle) -> Result<Self> {
+            Ok(handle.0)
+        }
+    }
 
     /// Class representing window information.
     #[derive(Debug)]
@@ -44,7 +77,7 @@ mod window_info {
         }
 
         /// Pointer for the parent window.
-        pub fn parent_window(mut self, value: WindowHandle) -> Self {
+        pub fn parent_window(mut self, value: NativeWindowHandle) -> Self {
             self.0.parent_window = value.0;
             self
         }
@@ -79,10 +112,8 @@ mod window_info {
             self
         }
 
-        // TODO: Fix this!
-
         /// Pointer for the new browser window. Only used with windowed rendering.
-        pub fn window(mut self, value: WindowHandle) -> Self {
+        pub fn window(mut self, value: NativeWindowHandle) -> Self {
             self.0.window = value.0;
             self
         }
@@ -107,6 +138,7 @@ mod window_info {
 
 // TODO: Fix this!
 
+/// Platform-specific types on Windows.
 #[cfg(target_os = "windows")]
 mod window_info {
     use crate::bindings::cef_window_info_t;
@@ -166,6 +198,7 @@ mod window_info {
 
 // TODO: Fix this!
 
+/// Platform-specific types on macOS.
 #[cfg(target_os = "macos")]
 mod window_info {
     use crate::bindings::cef_window_info_t;
@@ -233,4 +266,4 @@ mod window_info {
     }
 }
 
-pub use window_info::*;
+pub use inner::*;
