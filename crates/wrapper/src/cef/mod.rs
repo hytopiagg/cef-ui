@@ -91,7 +91,7 @@ pub use x509_certificate::*;
 //  they return sane defaults per the documentation.
 
 // TODO: Write a From<..> trait for this string conversion:
-//  CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+//  CefString::from_userfree_ptr(s).into()
 
 // TODO: Return Option<T> for all getters on types. Otherwise you may
 //  be returning invalid default values.

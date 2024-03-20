@@ -12,10 +12,10 @@ impl Extension {
     pub fn get_identifier(&self) -> Option<String> {
         self.0
             .get_identifier
-            .and_then(|get_identifier| {
+            .map(|get_identifier| {
                 let s = unsafe { get_identifier(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -23,13 +23,11 @@ impl Extension {
     /// will be prefixed with PK_DIR_RESOURCES if a relative path was passed to
     /// cef_request_context_t::LoadExtension.
     pub fn get_path(&self) -> Option<String> {
-        self.0
-            .get_path
-            .and_then(|get_path| {
-                let s = unsafe { get_path(self.as_ptr()) };
+        self.0.get_path.map(|get_path| {
+            let s = unsafe { get_path(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the extension manifest contents as a cef_dictionary_value_t

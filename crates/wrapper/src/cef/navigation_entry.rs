@@ -20,10 +20,10 @@ impl NavigationEntry {
     /// Returns the actual URL of the page. For some pages this may be data: URL
     /// or similar. Use get_display_url() to return a display-friendly version.
     pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.and_then(|get_url| {
+        self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+            CefString::from_userfree_ptr(s).into()
         })
     }
 
@@ -31,10 +31,10 @@ impl NavigationEntry {
     pub fn get_display_url(&self) -> Option<String> {
         self.0
             .get_display_url
-            .and_then(|get_display_url| {
+            .map(|get_display_url| {
                 let s = unsafe { get_display_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -43,22 +43,20 @@ impl NavigationEntry {
     pub fn get_original_url(&self) -> Option<String> {
         self.0
             .get_original_url
-            .and_then(|get_original_url| {
+            .map(|get_original_url| {
                 let s = unsafe { get_original_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
     /// Returns the title set by the page. This value may be NULL.
     pub fn get_title(&self) -> Option<String> {
-        self.0
-            .get_title
-            .and_then(|get_title| {
-                let s = unsafe { get_title(self.as_ptr()) };
+        self.0.get_title.map(|get_title| {
+            let s = unsafe { get_title(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     // TODO: Fix this!

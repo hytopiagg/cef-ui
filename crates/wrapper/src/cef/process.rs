@@ -82,13 +82,11 @@ impl ProcessMessage {
 
     /// Returns the message name.
     pub fn get_name(&self) -> Option<String> {
-        self.0
-            .get_name
-            .and_then(|get_name| {
-                let s = unsafe { get_name(self.as_ptr()) };
+        self.0.get_name.map(|get_name| {
+            let s = unsafe { get_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the list of arguments. Returns nullptr when message contains a
