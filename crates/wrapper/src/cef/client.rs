@@ -1,6 +1,6 @@
 use crate::{
-    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, LifeSpanHandler, RefCountedPtr,
-    RenderHandler, Wrappable, Wrapped
+    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, ContextMenuHandler, LifeSpanHandler,
+    RefCountedPtr, RenderHandler, Wrappable, Wrapped
 };
 use bindings::{
     cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
@@ -25,10 +25,11 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_command_handler_t*(CEF_CALLBACK* get_command_handler)(
     // struct _cef_client_t* self);
 
-    // /// Return the handler for context menus. If no handler is provided the
-    // /// default implementation will be used.
-    // struct _cef_context_menu_handler_t*(CEF_CALLBACK* get_context_menu_handler)(
-    // struct _cef_client_t* self);
+    /// Return the handler for context menus. If no handler is provided the
+    /// default implementation will be used.
+    fn get_context_menu_handler(&self) -> Option<ContextMenuHandler> {
+        None
+    }
 
     // /// Return the handler for dialogs. If no handler is provided the default
     // /// implementation will be used.
@@ -145,7 +146,12 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_context_menu_handler(
         this: *mut cef_client_t
     ) -> *mut cef_context_menu_handler_t {
-        todo!()
+        let this: &Self = Wrapped::wrappable(this);
+
+        this.0
+            .get_context_menu_handler()
+            .map(|handler| handler.into_raw())
+            .unwrap_or(null_mut())
     }
 
     /// Return the handler for dialogs. If no handler is provided the default
@@ -288,7 +294,7 @@ impl Wrappable for ClientWrapper {
                 // TODO: Fix this!
                 get_audio_handler:           None,
                 get_command_handler:         None,
-                get_context_menu_handler:    None,
+                get_context_menu_handler:    Some(Self::c_get_context_menu_handler),
                 get_dialog_handler:          None,
                 get_display_handler:         None,
                 get_download_handler:        None,
@@ -298,8 +304,8 @@ impl Wrappable for ClientWrapper {
                 get_frame_handler:           None,
                 get_permission_handler:      None,
                 get_jsdialog_handler:        None,
-                get_keyboard_handler:        None,
-                get_life_span_handler:       None,
+                get_keyboard_handler:        Some(Self::c_get_keyboard_handler),
+                get_life_span_handler:       Some(Self::c_get_life_span_handler),
                 get_load_handler:            None,
                 get_print_handler:           None,
                 get_render_handler:          Some(Self::c_get_render_handler),

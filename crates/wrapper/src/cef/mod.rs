@@ -7,6 +7,7 @@ mod client;
 mod color;
 mod command_line;
 mod context;
+mod context_menu_handler;
 mod drag;
 mod events;
 mod extension;
@@ -46,6 +47,7 @@ pub use client::*;
 pub use color::*;
 pub use command_line::*;
 pub use context::*;
+pub use context_menu_handler::*;
 pub use drag::*;
 pub use events::*;
 pub use extension::*;
@@ -101,3 +103,5 @@ pub use x509_certificate::*;
 //  typedefs instead of the actual values generated in Rust bindgen.
 
 // TODO: Make a macro for all the pointer conversion functions.
+
+// TODO: Return Result<..> everywhere you can when calling into C.

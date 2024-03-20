@@ -3180,17 +3180,14 @@ pub enum cef_menu_item_type_t {
     MENUITEMTYPE_SEPARATOR = 4,
     MENUITEMTYPE_SUBMENU = 5
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_context_menu_type_flags_t {
-    CM_TYPEFLAG_NONE = 0,
-    CM_TYPEFLAG_PAGE = 1,
-    CM_TYPEFLAG_FRAME = 2,
-    CM_TYPEFLAG_LINK = 4,
-    CM_TYPEFLAG_MEDIA = 8,
-    CM_TYPEFLAG_SELECTION = 16,
-    CM_TYPEFLAG_EDITABLE = 32
-}
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_NONE: cef_context_menu_type_flags_t = 0;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_PAGE: cef_context_menu_type_flags_t = 1;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_FRAME: cef_context_menu_type_flags_t = 2;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_LINK: cef_context_menu_type_flags_t = 4;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_MEDIA: cef_context_menu_type_flags_t = 8;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_SELECTION: cef_context_menu_type_flags_t = 16;
+pub const cef_context_menu_type_flags_t_CM_TYPEFLAG_EDITABLE: cef_context_menu_type_flags_t = 32;
+pub type cef_context_menu_type_flags_t = ::std::os::raw::c_uint;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum cef_context_menu_media_type_t {
@@ -3202,38 +3199,56 @@ pub enum cef_context_menu_media_type_t {
     CM_MEDIATYPE_FILE = 5,
     CM_MEDIATYPE_PLUGIN = 6
 }
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_context_menu_media_state_flags_t {
-    CM_MEDIAFLAG_NONE = 0,
-    CM_MEDIAFLAG_IN_ERROR = 1,
-    CM_MEDIAFLAG_PAUSED = 2,
-    CM_MEDIAFLAG_MUTED = 4,
-    CM_MEDIAFLAG_LOOP = 8,
-    CM_MEDIAFLAG_CAN_SAVE = 16,
-    CM_MEDIAFLAG_HAS_AUDIO = 32,
-    CM_MEDIAFLAG_CAN_TOGGLE_CONTROLS = 64,
-    CM_MEDIAFLAG_CONTROLS = 128,
-    CM_MEDIAFLAG_CAN_PRINT = 256,
-    CM_MEDIAFLAG_CAN_ROTATE = 512,
-    CM_MEDIAFLAG_CAN_PICTURE_IN_PICTURE = 1024,
-    CM_MEDIAFLAG_PICTURE_IN_PICTURE = 2048,
-    CM_MEDIAFLAG_CAN_LOOP = 4096
-}
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_context_menu_edit_state_flags_t {
-    CM_EDITFLAG_NONE = 0,
-    CM_EDITFLAG_CAN_UNDO = 1,
-    CM_EDITFLAG_CAN_REDO = 2,
-    CM_EDITFLAG_CAN_CUT = 4,
-    CM_EDITFLAG_CAN_COPY = 8,
-    CM_EDITFLAG_CAN_PASTE = 16,
-    CM_EDITFLAG_CAN_DELETE = 32,
-    CM_EDITFLAG_CAN_SELECT_ALL = 64,
-    CM_EDITFLAG_CAN_TRANSLATE = 128,
-    CM_EDITFLAG_CAN_EDIT_RICHLY = 256
-}
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_NONE:
+    cef_context_menu_media_state_flags_t = 0;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_IN_ERROR:
+    cef_context_menu_media_state_flags_t = 1;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_PAUSED:
+    cef_context_menu_media_state_flags_t = 2;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_MUTED:
+    cef_context_menu_media_state_flags_t = 4;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_LOOP:
+    cef_context_menu_media_state_flags_t = 8;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_SAVE:
+    cef_context_menu_media_state_flags_t = 16;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_HAS_AUDIO:
+    cef_context_menu_media_state_flags_t = 32;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_TOGGLE_CONTROLS:
+    cef_context_menu_media_state_flags_t = 64;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CONTROLS:
+    cef_context_menu_media_state_flags_t = 128;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_PRINT:
+    cef_context_menu_media_state_flags_t = 256;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_ROTATE:
+    cef_context_menu_media_state_flags_t = 512;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_PICTURE_IN_PICTURE:
+    cef_context_menu_media_state_flags_t = 1024;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_PICTURE_IN_PICTURE:
+    cef_context_menu_media_state_flags_t = 2048;
+pub const cef_context_menu_media_state_flags_t_CM_MEDIAFLAG_CAN_LOOP:
+    cef_context_menu_media_state_flags_t = 4096;
+pub type cef_context_menu_media_state_flags_t = ::std::os::raw::c_uint;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_NONE:
+    cef_context_menu_edit_state_flags_t = 0;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_UNDO:
+    cef_context_menu_edit_state_flags_t = 1;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_REDO:
+    cef_context_menu_edit_state_flags_t = 2;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_CUT:
+    cef_context_menu_edit_state_flags_t = 4;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_COPY:
+    cef_context_menu_edit_state_flags_t = 8;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_PASTE:
+    cef_context_menu_edit_state_flags_t = 16;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_DELETE:
+    cef_context_menu_edit_state_flags_t = 32;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_SELECT_ALL:
+    cef_context_menu_edit_state_flags_t = 64;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_TRANSLATE:
+    cef_context_menu_edit_state_flags_t = 128;
+pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_EDIT_RICHLY:
+    cef_context_menu_edit_state_flags_t = 256;
+pub type cef_context_menu_edit_state_flags_t = ::std::os::raw::c_uint;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum cef_quick_menu_edit_state_flags_t {
