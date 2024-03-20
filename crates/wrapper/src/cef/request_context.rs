@@ -65,10 +65,10 @@ impl RequestContext {
     pub fn get_cache_path(&self) -> Option<String> {
         self.0
             .get_cache_path
-            .and_then(|get_cache_path| {
+            .map(|get_cache_path| {
                 let s = unsafe { get_cache_path(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 

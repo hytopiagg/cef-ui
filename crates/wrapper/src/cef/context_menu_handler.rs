@@ -284,10 +284,10 @@ impl ContextMenuParams {
     pub fn get_link_url(&self) -> Option<String> {
         self.0
             .get_link_url
-            .and_then(|get_link_url| {
+            .map(|get_link_url| {
                 let s = unsafe { get_link_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -296,10 +296,10 @@ impl ContextMenuParams {
     pub fn get_unfiltered_link_url(&self) -> Option<String> {
         self.0
             .get_unfiltered_link_url
-            .and_then(|get_unfiltered_link_url| {
+            .map(|get_unfiltered_link_url| {
                 let s = unsafe { get_unfiltered_link_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -309,10 +309,10 @@ impl ContextMenuParams {
     pub fn get_source_url(&self) -> Option<String> {
         self.0
             .get_source_url
-            .and_then(|get_source_url| {
+            .map(|get_source_url| {
                 let s = unsafe { get_source_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -330,10 +330,10 @@ impl ContextMenuParams {
     pub fn get_title_text(&self) -> Option<String> {
         self.0
             .get_title_text
-            .and_then(|get_title_text| {
+            .map(|get_title_text| {
                 let s = unsafe { get_title_text(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -342,10 +342,10 @@ impl ContextMenuParams {
     pub fn get_page_url(&self) -> Option<String> {
         self.0
             .get_page_url
-            .and_then(|get_page_url| {
+            .map(|get_page_url| {
                 let s = unsafe { get_page_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -353,10 +353,10 @@ impl ContextMenuParams {
     pub fn get_frame_url(&self) -> Option<String> {
         self.0
             .get_frame_url
-            .and_then(|get_frame_url| {
+            .map(|get_frame_url| {
                 let s = unsafe { get_frame_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -365,10 +365,10 @@ impl ContextMenuParams {
     pub fn get_frame_charset(&self) -> Option<String> {
         self.0
             .get_frame_charset
-            .and_then(|get_frame_charset| {
+            .map(|get_frame_charset| {
                 let s = unsafe { get_frame_charset(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -392,10 +392,10 @@ impl ContextMenuParams {
     pub fn get_selection_text(&self) -> Option<String> {
         self.0
             .get_selection_text
-            .and_then(|get_selection_text| {
+            .map(|get_selection_text| {
                 let s = unsafe { get_selection_text(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -404,10 +404,10 @@ impl ContextMenuParams {
     pub fn get_misspelled_word(&self) -> Option<String> {
         self.0
             .get_misspelled_word
-            .and_then(|get_misspelled_word| {
+            .map(|get_misspelled_word| {
                 let s = unsafe { get_misspelled_word(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -742,10 +742,10 @@ impl MenuModel {
     pub fn get_label_at(&self, index: usize) -> Option<String> {
         self.0
             .get_label_at
-            .and_then(|get_label_at| {
+            .map(|get_label_at| {
                 let s = unsafe { get_label_at(self.as_ptr(), index) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 

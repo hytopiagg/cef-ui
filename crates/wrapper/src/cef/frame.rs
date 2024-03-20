@@ -181,13 +181,11 @@ impl Frame {
     /// parent hierarchy. The main (top-level) frame will always have an NULL name
     /// value.
     pub fn get_name(&self) -> Option<String> {
-        self.0
-            .get_name
-            .and_then(|get_name| {
-                let s = unsafe { get_name(self.as_ptr()) };
+        self.0.get_name.map(|get_name| {
+            let s = unsafe { get_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the globally unique identifier for this frame or < 0 if the
@@ -209,10 +207,10 @@ impl Frame {
 
     /// Returns the URL currently loaded in this frame.
     pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.and_then(|get_url| {
+        self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+            CefString::from_userfree_ptr(s).into()
         })
     }
 

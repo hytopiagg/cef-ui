@@ -102,13 +102,11 @@ impl PostDataElement {
 
     /// Return the file name.
     pub fn get_file(&self) -> Option<String> {
-        self.0
-            .get_file
-            .and_then(|get_file| {
-                let s = unsafe { get_file(self.as_ptr()) };
+        self.0.get_file.map(|get_file| {
+            let s = unsafe { get_file(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Return the number of bytes.
@@ -242,10 +240,10 @@ impl Request {
 
     /// Get the fully qualified URL.
     pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.and_then(|get_url| {
+        self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+            CefString::from_userfree_ptr(s).into()
         })
     }
 
@@ -261,13 +259,11 @@ impl Request {
     /// Get the request function type. The value will default to POST if post data
     /// is provided and GET otherwise.
     pub fn get_method(&self) -> Option<String> {
-        self.0
-            .get_method
-            .and_then(|get_method| {
-                let s = unsafe { get_method(self.as_ptr()) };
+        self.0.get_method.map(|get_method| {
+            let s = unsafe { get_method(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Set the request function type.
@@ -294,10 +290,10 @@ impl Request {
     pub fn get_referrer_url(&self) -> Option<String> {
         self.0
             .get_referrer_url
-            .and_then(|get_referrer_url| {
+            .map(|get_referrer_url| {
                 let s = unsafe { get_referrer_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -354,11 +350,11 @@ impl Request {
     pub fn get_header_by_name(&self, name: &str) -> Option<String> {
         self.0
             .get_header_by_name
-            .and_then(|get_header_by_name| {
+            .map(|get_header_by_name| {
                 let name = CefString::new(name);
                 let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -434,10 +430,10 @@ impl Request {
     pub fn get_first_party_for_cookies(&self) -> Option<String> {
         self.0
             .get_first_party_for_cookies
-            .and_then(|get_first_party_for_cookies| {
+            .map(|get_first_party_for_cookies| {
                 let s = unsafe { get_first_party_for_cookies(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 

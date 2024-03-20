@@ -1,5 +1,4 @@
 use crate::{ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped};
-use anyhow::{anyhow, Result};
 use bindings::{
     cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
     cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
@@ -59,21 +58,20 @@ impl CefString {
 
     /// Try and create a CefString from a cef_string_userfree_t pointer. This function
     /// will free the memory associated with the original cef_string_userfree_t value.
-    pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Result<Self> {
+    pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Self {
         let mut cef = Self::default();
 
-        let ret = match unsafe {
-            cef_string_utf16_set((*ptr).str_, (*ptr).length, cef.as_mut_ptr(), 1)
-        } {
-            0 => Err(anyhow!("Failed to copy cef_string_t.")),
-            _ => Ok(cef)
-        };
-
         unsafe {
-            cef_string_userfree_utf16_free(ptr);
-        }
+            let worked = cef_string_utf16_set((*ptr).str_, (*ptr).length, cef.as_mut_ptr(), 1);
 
-        ret
+            // Take care to always free, even in the event of an error.
+            cef_string_userfree_utf16_free(ptr);
+
+            match worked {
+                0 => panic!("Failed to copy cef_string_userfree_t!"),
+                _ => cef
+            }
+        }
     }
 
     /// Try and set the CefString from a str.
@@ -113,7 +111,7 @@ impl CefString {
         // only way it could fail is if we run out of memory, and if that happens we're screwed anyway.
         // This is used everywhere, so it's very inconvenient to have to handle the error every time.
         match unsafe { cef_string_utf8_to_utf16(s.as_ptr() as *const c_char, s.len(), &mut ret) } {
-            0 => panic!("Failed to convert from utf8 to utf16, this should be impossible!"),
+            0 => panic!("Failed to convert from utf8 to utf16!"),
             _ => ret
         }
     }

@@ -1,4 +1,5 @@
-use crate::{ref_counted_ptr, CefString, CefStringList, CefStringMap};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap};
+use anyhow::Result;
 use bindings::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t};
 use std::{
     collections::HashMap,
@@ -25,41 +26,35 @@ impl CommandLine {
 
     /// Returns the singleton global cef_command_line_t object. The returned object
     /// will be read-only.
-    pub fn get_global() -> Option<CommandLine> {
-        unsafe { CommandLine::from_ptr(cef_command_line_get_global()) }
+    pub fn get_global() -> CommandLine {
+        unsafe { CommandLine::from_ptr_unchecked(cef_command_line_get_global()) }
     }
 
     /// Returns true (1) if this object is valid. Do not call any other functions
     /// if this function returns false (0).
-    pub fn is_valid(&self) -> bool {
-        self.0
-            .is_valid
-            .map(|is_valid| unsafe { is_valid(self.as_ptr()) } != 0)
-            .unwrap_or(false)
+    pub fn is_valid(&self) -> Result<bool> {
+        try_c!(self, is_valid, { Ok(is_valid(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if the values of this object are read-only. Some APIs may
     /// expose read-only objects.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) } != 0)
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Returns a writable copy of this object.
-    pub fn copy(&self) -> Option<CommandLine> {
-        self.0
-            .copy
-            .map(|copy| unsafe { CommandLine::from_ptr_unchecked(copy(self.as_ptr())) })
+    pub fn copy(&self) -> Result<CommandLine> {
+        try_c!(self, copy, {
+            Ok(CommandLine::from_ptr_unchecked(copy(self.as_ptr())))
+        })
     }
 
     /// Initialize the command line with the specified |argc| and |argv| values.
     /// The first argument must be the name of the program. This function is only
     /// supported on non-Windows platforms.
     #[cfg(not(target_os = "windows"))]
-    pub fn init_from_argv(&self, argv: &[&str]) {
-        if let Some(init_from_argv) = self.0.init_from_argv {
+    pub fn init_from_argv(&self, argv: &[&str]) -> Result<()> {
+        try_c!(self, init_from_argv, {
             let cstrs = argv
                 .iter()
                 .map(|arg| CString::new(*arg).unwrap())
@@ -70,54 +65,49 @@ impl CommandLine {
                 .map(|arg| arg.as_ptr())
                 .collect::<Vec<*const c_char>>();
 
-            unsafe {
-                init_from_argv(
-                    self.as_ptr(),
-                    argv.len() as c_int,
-                    argv.as_ptr() as *const *const c_char
-                );
-            }
-        }
+            init_from_argv(
+                self.as_ptr(),
+                argv.len() as c_int,
+                argv.as_ptr() as *const *const c_char
+            );
+
+            Ok(())
+        })
     }
 
     /// Initialize the command line with the string returned by calling
     /// GetCommandLineW(). This function is only supported on Windows.
     #[cfg(target_os = "windows")]
-    pub fn init_from_string(&self, command_line: &str) {
-        if let Some(init_from_string) = self.0.init_from_string {
-            unsafe {
-                let command_line = CefString::new(command_line);
+    pub fn init_from_string(&self, command_line: &str) -> Result<()> {
+        try_c!(self, init_from_string, {
+            let command_line = CefString::new(command_line);
 
-                init_from_string(self.as_ptr(), command_line.as_ptr());
-            }
-        }
+            init_from_string(self.as_ptr(), command_line.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Reset the command-line switches and arguments but leave the program
     /// component unchanged.
-    pub fn reset(&self) {
-        if let Some(reset) = self.0.reset {
-            unsafe {
-                reset(self.as_ptr());
-            }
-        }
+    pub fn reset(&self) -> Result<()> {
+        try_c!(self, reset, {
+            reset(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Retrieve the original command line string as a vector of strings. The argv
     /// array: `{ program, [(--|-|/)switch[=value]]*, [--], [argument]* }`
-    pub fn get_argv(&self) -> Vec<String> {
-        self.0
-            .get_argv
-            .map(|get_argv| {
-                let mut list = CefStringList::new();
+    pub fn get_argv(&self) -> Result<Vec<String>> {
+        try_c!(self, get_argv, {
+            let mut list = CefStringList::new();
 
-                unsafe {
-                    get_argv(self.as_ptr(), list.as_mut_ptr());
-                }
+            get_argv(self.as_ptr(), list.as_mut_ptr());
 
-                list.into()
-            })
-            .unwrap_or_default()
+            Ok(list.into())
+        })
     }
 
     /// Constructs and returns the represented command line string. Use this
@@ -125,10 +115,10 @@ impl CommandLine {
     pub fn get_command_line_string(&self) -> Option<String> {
         self.0
             .get_command_line_string
-            .and_then(|get_command_line_string| {
+            .map(|get_command_line_string| {
                 let s = unsafe { get_command_line_string(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -136,10 +126,10 @@ impl CommandLine {
     pub fn get_program(&self) -> Option<String> {
         self.0
             .get_program
-            .and_then(|get_program| {
+            .map(|get_program| {
                 let s = unsafe { get_program(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -184,7 +174,7 @@ impl CommandLine {
 
                 match unsafe { get_switch_value(self.as_ptr(), name.as_ptr()) } {
                     s if s.is_null() => None,
-                    s => CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                    s => Some(CefString::from_userfree_ptr(s).into())
                 }
             })
     }

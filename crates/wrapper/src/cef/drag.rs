@@ -106,10 +106,10 @@ impl DragData {
     pub fn get_link_url(&self) -> Option<String> {
         self.0
             .get_link_url
-            .and_then(|get_link_url| {
+            .map(|get_link_url| {
                 let s = unsafe { get_link_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -117,10 +117,10 @@ impl DragData {
     pub fn get_link_title(&self) -> Option<String> {
         self.0
             .get_link_title
-            .and_then(|get_link_title| {
+            .map(|get_link_title| {
                 let s = unsafe { get_link_title(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -128,10 +128,10 @@ impl DragData {
     pub fn get_link_metadata(&self) -> Option<String> {
         self.0
             .get_link_metadata
-            .and_then(|get_link_metadata| {
+            .map(|get_link_metadata| {
                 let s = unsafe { get_link_metadata(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -139,10 +139,10 @@ impl DragData {
     pub fn get_fragment_text(&self) -> Option<String> {
         self.0
             .get_fragment_text
-            .and_then(|get_fragment_text| {
+            .map(|get_fragment_text| {
                 let s = unsafe { get_fragment_text(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -150,10 +150,10 @@ impl DragData {
     pub fn get_fragment_html(&self) -> Option<String> {
         self.0
             .get_fragment_html
-            .and_then(|get_fragment_html| {
+            .map(|get_fragment_html| {
                 let s = unsafe { get_fragment_html(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -162,10 +162,10 @@ impl DragData {
     pub fn get_fragment_base_url(&self) -> Option<String> {
         self.0
             .get_fragment_base_url
-            .and_then(|get_fragment_base_url| {
+            .map(|get_fragment_base_url| {
                 let s = unsafe { get_fragment_base_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -173,10 +173,10 @@ impl DragData {
     pub fn get_file_name(&self) -> Option<String> {
         self.0
             .get_file_name
-            .and_then(|get_file_name| {
+            .map(|get_file_name| {
                 let s = unsafe { get_file_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 

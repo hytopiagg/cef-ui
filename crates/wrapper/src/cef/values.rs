@@ -153,13 +153,11 @@ impl Value {
 
     /// Returns the underlying value as type string.
     pub fn get_string(&self) -> Option<String> {
-        self.0
-            .get_string
-            .and_then(|get_string| {
-                let s = unsafe { get_string(self.as_ptr()) };
+        self.0.get_string.map(|get_string| {
+            let s = unsafe { get_string(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the underlying value as type binary. The returned reference may
@@ -568,14 +566,12 @@ impl DictionaryValue {
 
     /// Returns the value at the specified key as type string.
     pub fn get_string(&self, key: &str) -> Option<String> {
-        self.0
-            .get_string
-            .and_then(|get_string| {
-                let key = CefString::new(key);
-                let s = unsafe { get_string(self.as_ptr(), key.as_ptr()) };
+        self.0.get_string.map(|get_string| {
+            let key = CefString::new(key);
+            let s = unsafe { get_string(self.as_ptr(), key.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the value at the specified key as type binary. The returned value
@@ -892,13 +888,11 @@ impl ListValue {
 
     /// Returns the value at the specified index as type string.
     pub fn get_string(&self, index: usize) -> Option<String> {
-        self.0
-            .get_string
-            .and_then(|get_string| {
-                let s = unsafe { get_string(self.as_ptr(), index) };
+        self.0.get_string.map(|get_string| {
+            let s = unsafe { get_string(self.as_ptr(), index) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
-            })
+            CefString::from_userfree_ptr(s).into()
+        })
     }
 
     /// Returns the value at the specified index as type binary. The returned

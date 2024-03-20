@@ -12,10 +12,10 @@ impl X509CertPrincipal {
     pub fn get_display_name(&self) -> Option<String> {
         self.0
             .get_display_name
-            .and_then(|get_display_name| {
+            .map(|get_display_name| {
                 let s = unsafe { get_display_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -23,10 +23,10 @@ impl X509CertPrincipal {
     pub fn get_common_name(&self) -> Option<String> {
         self.0
             .get_common_name
-            .and_then(|get_common_name| {
+            .map(|get_common_name| {
                 let s = unsafe { get_common_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -34,10 +34,10 @@ impl X509CertPrincipal {
     pub fn get_locality_name(&self) -> Option<String> {
         self.0
             .get_locality_name
-            .and_then(|get_locality_name| {
+            .map(|get_locality_name| {
                 let s = unsafe { get_locality_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -45,10 +45,10 @@ impl X509CertPrincipal {
     pub fn get_state_or_province_name(&self) -> Option<String> {
         self.0
             .get_state_or_province_name
-            .and_then(|get_state_or_province_name| {
+            .map(|get_state_or_province_name| {
                 let s = unsafe { get_state_or_province_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -56,10 +56,10 @@ impl X509CertPrincipal {
     pub fn get_country_name(&self) -> Option<String> {
         self.0
             .get_country_name
-            .and_then(|get_country_name| {
+            .map(|get_country_name| {
                 let s = unsafe { get_country_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 

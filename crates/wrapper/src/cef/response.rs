@@ -57,10 +57,10 @@ impl Response {
     pub fn get_status_text(&self) -> Option<String> {
         self.0
             .get_status_text
-            .and_then(|get_status_text| {
+            .map(|get_status_text| {
                 let s = unsafe { get_status_text(self.as_ptr()) };
 
-                crate::CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                crate::CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -79,10 +79,10 @@ impl Response {
     pub fn get_mime_type(&self) -> Option<String> {
         self.0
             .get_mime_type
-            .and_then(|get_mime_type| {
+            .map(|get_mime_type| {
                 let s = unsafe { get_mime_type(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -101,10 +101,10 @@ impl Response {
     pub fn get_charset(&self) -> Option<String> {
         self.0
             .get_charset
-            .and_then(|get_charset| {
+            .map(|get_charset| {
                 let s = unsafe { get_charset(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -123,11 +123,11 @@ impl Response {
     pub fn get_header_by_name(&self, name: &str) -> Option<String> {
         self.0
             .get_header_by_name
-            .and_then(|get_header_by_name| {
+            .map(|get_header_by_name| {
                 let name = CefString::new(name);
                 let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+                CefString::from_userfree_ptr(s).into()
             })
     }
 
@@ -175,10 +175,10 @@ impl Response {
 
     /// Get the resolved URL after redirects or changed as a result of HSTS.
     pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.and_then(|get_url| {
+        self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).map_or(None, |s| Some(s.into()))
+            CefString::from_userfree_ptr(s).into()
         })
     }
 
