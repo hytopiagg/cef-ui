@@ -16,6 +16,7 @@ mod frame;
 mod ime;
 mod keyboard_handler;
 mod life_span_handler;
+mod macros;
 mod main_args;
 mod navigation_entry;
 mod platform;
@@ -55,6 +56,7 @@ pub use extension_handler::*;
 pub use frame::*;
 pub use ime::*;
 pub use life_span_handler::*;
+pub use macros::*;
 pub use main_args::*;
 pub use navigation_entry::*;
 pub use platform::*;
@@ -105,3 +107,5 @@ pub use x509_certificate::*;
 // TODO: Make a macro for all the pointer conversion functions.
 
 // TODO: Return Result<..> everywhere you can when calling into C.
+
+// TODO: Fix issues where we're using command ids.
