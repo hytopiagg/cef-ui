@@ -1,7 +1,8 @@
 use crate::{
-    ref_counted_ptr, CefString, CefStringList, ErrorCode, RefCountedPtr, Wrappable, Wrapped,
+    ref_counted_ptr, try_c, CefString, CefStringList, ErrorCode, RefCountedPtr, Wrappable, Wrapped,
     X509Certificate
 };
+use anyhow::Result;
 use bindings::{
     cef_auth_callback_t, cef_callback_t, cef_completion_callback_t, cef_errorcode_t,
     cef_resolve_callback_t, cef_select_client_certificate_callback_t, cef_string_list_t
@@ -14,21 +15,13 @@ ref_counted_ptr!(Callback, cef_callback_t);
 
 impl Callback {
     /// Continue processing.
-    pub fn cont(&self) {
-        if let Some(cont) = self.0.cont {
-            unsafe {
-                cont(self.as_ptr());
-            }
-        }
+    pub fn cont(&self) -> Result<()> {
+        try_c!(self, cont, { Ok(cont(self.as_ptr())) })
     }
 
     /// Cancel processing.
-    pub fn cancel(&self) {
-        if let Some(cancel) = self.0.cancel {
-            unsafe {
-                cancel(self.as_ptr());
-            }
-        }
+    pub fn cancel(&self) -> Result<()> {
+        try_c!(self, cancel, { Ok(cancel(self.as_ptr())) })
     }
 }
 
@@ -81,24 +74,24 @@ ref_counted_ptr!(AuthCallback, cef_auth_callback_t);
 
 impl AuthCallback {
     /// Continue the authentication request.
-    pub fn cont(&self, username: &str, password: &str) {
-        if let Some(cont) = self.0.cont {
+    pub fn cont(&self, username: &str, password: &str) -> Result<()> {
+        try_c!(self, cont, {
             let username = CefString::new(username);
             let password = CefString::new(password);
 
-            unsafe {
-                cont(self.as_ptr(), username.as_ptr(), password.as_ptr());
-            }
-        }
+            cont(self.as_ptr(), username.as_ptr(), password.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Cancel the authentication request.
-    pub fn cancel(&self) {
-        if let Some(cancel) = self.0.cancel {
-            unsafe {
-                cancel(self.as_ptr());
-            }
-        }
+    pub fn cancel(&self) -> Result<()> {
+        try_c!(self, cancel, {
+            cancel(self.as_ptr());
+
+            Ok(())
+        })
     }
 }
 
@@ -163,13 +156,13 @@ ref_counted_ptr!(
 impl SelectClientCertificateCallback {
     /// Chooses the specified certificate for client certificate authentication.
     /// NULL value means that no client certificate should be used.
-    pub fn select(&self, cert: Option<X509Certificate>) {
-        if let Some(select) = self.0.select {
-            unsafe {
-                let cert = cert.map_or(null_mut(), |cert| cert.into_raw());
+    pub fn select(&self, cert: Option<X509Certificate>) -> Result<()> {
+        try_c!(self, select, {
+            let cert = cert.map_or(null_mut(), |cert| cert.into_raw());
 
-                select(self.as_ptr(), cert);
-            }
-        }
+            select(self.as_ptr(), cert);
+
+            Ok(())
+        })
     }
 }
