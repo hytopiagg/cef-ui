@@ -1,10 +1,11 @@
 use crate::{
-    free_cef_string, ref_counted_ptr, CefString, CefStringList, Client, Color,
+    free_cef_string, ref_counted_ptr, try_c, CefString, CefStringList, Client, Color,
     CompositionUnderline, DictionaryValue, DragData, DragOperations, Extension, Frame, KeyEvent,
     MouseButtonType, MouseEvent, NativeWindowHandle, NavigationEntry, NavigationEntryVisitor,
     PaintElementType, Point, Range, RequestContext, Size, State, TouchEvent, WindowInfo,
     WindowOpenDisposition, ZoomCommand
 };
+use anyhow::Result;
 use bindings::{
     cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
     cef_browser_t, cef_composition_underline_t, cef_point_t, cef_range_t, cef_string_t
@@ -288,122 +289,102 @@ ref_counted_ptr!(Browser, cef_browser_t);
 impl Browser {
     /// True if this object is currently valid. This will return false (0) after
     /// cef_life_span_handler_t::OnBeforeClose is called.
-    pub fn is_valid(&self) -> bool {
-        self.0
-            .is_valid
-            .map(|is_valid| unsafe { is_valid(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_valid(&self) -> Result<bool> {
+        try_c!(self, is_valid, { Ok(is_valid(self.as_ptr()) != 0) })
     }
 
     /// Returns the browser host object. This function can only be called in the
     /// browser process.
-    pub fn get_host(&self) -> Option<BrowserHost> {
-        self.0
-            .get_host
-            .and_then(|get_host| unsafe { BrowserHost::from_ptr(get_host(self.as_ptr())) })
+    pub fn get_host(&self) -> Result<BrowserHost> {
+        try_c!(self, get_host, {
+            Ok(BrowserHost::from_ptr_unchecked(get_host(self.as_ptr())))
+        })
     }
 
     /// Returns true (1) if the browser can navigate backwards.
-    pub fn can_go_back(&self) -> bool {
-        self.0
-            .can_go_back
-            .map(|can_go_back| unsafe { can_go_back(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn can_go_back(&self) -> Result<bool> {
+        try_c!(self, can_go_back, { Ok(can_go_back(self.as_ptr()) != 0) })
     }
 
     /// Navigate backwards.
-    pub fn go_back(&self) {
-        if let Some(go_back) = self.0.go_back {
-            unsafe {
-                go_back(self.as_ptr());
-            }
-        }
+    pub fn go_back(&self) -> Result<()> {
+        try_c!(self, go_back, {
+            go_back(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if the browser can navigate forwards.
-    pub fn can_go_forward(&self) -> bool {
-        self.0
-            .can_go_forward
-            .map(|can_go_forward| unsafe { can_go_forward(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn can_go_forward(&self) -> Result<bool> {
+        try_c!(self, can_go_forward, {
+            Ok(can_go_forward(self.as_ptr()) != 0)
+        })
     }
 
     /// Navigate forwards.
-    pub fn go_forward(&self) {
-        if let Some(go_forward) = self.0.go_forward {
-            unsafe {
-                go_forward(self.as_ptr());
-            }
-        }
+    pub fn go_forward(&self) -> Result<()> {
+        try_c!(self, go_forward, {
+            go_forward(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if the browser is currently loading.
-    pub fn is_loading(&self) -> bool {
-        self.0
-            .is_loading
-            .map(|is_loading| unsafe { is_loading(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_loading(&self) -> Result<bool> {
+        try_c!(self, is_loading, { Ok(is_loading(self.as_ptr()) != 0) })
     }
 
     /// Reload the current page.
-    pub fn reload(&self) {
-        if let Some(reload) = self.0.reload {
-            unsafe {
-                reload(self.as_ptr());
-            }
-        }
+    pub fn reload(&self) -> Result<()> {
+        try_c!(self, reload, {
+            reload(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Reload the current page ignoring any cached data.
-    pub fn reload_ignore_cache(&self) {
-        if let Some(reload_ignore_cache) = self.0.reload_ignore_cache {
-            unsafe {
-                reload_ignore_cache(self.as_ptr());
-            }
-        }
+    pub fn reload_ignore_cache(&self) -> Result<()> {
+        try_c!(self, reload_ignore_cache, {
+            reload_ignore_cache(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Stop loading the page.
-    pub fn stop_load(&self) {
-        if let Some(stop_load) = self.0.stop_load {
-            unsafe {
-                stop_load(self.as_ptr());
-            }
-        }
+    pub fn stop_load(&self) -> Result<()> {
+        try_c!(self, stop_load, {
+            stop_load(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns the globally unique identifier for this browser. This value is
     /// also used as the tabId for extension APIs.
-    pub fn get_identifier(&self) -> i32 {
-        self.0
-            .get_identifier
-            .map(|get_identifier| unsafe { get_identifier(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_identifier(&self) -> Result<i32> {
+        try_c!(self, get_identifier, { Ok(get_identifier(self.as_ptr())) })
     }
 
     /// Returns true (1) if this object is pointing to the same handle as |that|
     /// object.
-    pub fn is_same(&self, that: Browser) -> bool {
-        self.0
-            .is_same
-            .map(|is_same| unsafe { is_same(self.as_ptr(), that.into_raw()) != 0 })
-            .unwrap_or(false)
+    pub fn is_same(&self, that: Browser) -> Result<bool> {
+        try_c!(self, is_same, {
+            Ok(is_same(self.as_ptr(), that.into_raw()) != 0)
+        })
     }
 
     /// Returns true (1) if the browser is a popup.
-    pub fn is_popup(&self) -> bool {
-        self.0
-            .is_popup
-            .map(|is_popup| unsafe { is_popup(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_popup(&self) -> Result<bool> {
+        try_c!(self, is_popup, { Ok(is_popup(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if a document has been loaded in the browser.
-    pub fn has_document(&self) -> bool {
-        self.0
-            .has_document
-            .map(|has_document| unsafe { has_document(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_document(&self) -> Result<bool> {
+        try_c!(self, has_document, { Ok(has_document(self.as_ptr()) != 0) })
     }
 
     /// Returns the main (top-level) frame for the browser. In the browser process
@@ -413,69 +394,57 @@ impl Browser {
     /// process (e.g. for cross-origin sub-frames). The main frame object will
     /// change during cross-origin navigation or re-navigation after renderer
     /// process termination (due to crashes, etc).
-    pub fn get_main_frame(&self) -> Option<Frame> {
-        self.0
-            .get_main_frame
-            .and_then(|get_main_frame| unsafe { Frame::from_ptr(get_main_frame(self.as_ptr())) })
+    pub fn get_main_frame(&self) -> Result<Option<Frame>> {
+        try_c!(self, get_main_frame, {
+            Ok(Frame::from_ptr(get_main_frame(self.as_ptr())))
+        })
     }
 
     /// Returns the focused frame for the browser.
-    pub fn get_focused_frame(&self) -> Option<Frame> {
-        self.0
-            .get_focused_frame
-            .and_then(|get_focused_frame| unsafe {
-                Frame::from_ptr(get_focused_frame(self.as_ptr()))
-            })
+    pub fn get_focused_frame(&self) -> Result<Frame> {
+        try_c!(self, get_focused_frame, {
+            Ok(Frame::from_ptr_unchecked(get_focused_frame(self.as_ptr())))
+        })
     }
 
     /// Returns the frame with the specified identifier, or NULL if not found.
-    pub fn get_frame_by_identifier(&self, identifier: i64) -> Option<Frame> {
-        self.0
-            .get_frame_byident
-            .and_then(|get_frame_by_identifier| unsafe {
-                Frame::from_ptr(get_frame_by_identifier(self.as_ptr(), identifier))
-            })
+    pub fn get_frame_by_identifier(&self, identifier: i64) -> Result<Option<Frame>> {
+        try_c!(self, get_frame_byident, {
+            Ok(Frame::from_ptr(get_frame_byident(
+                self.as_ptr(),
+                identifier
+            )))
+        })
     }
 
     /// Returns the number of frames that currently exist.
-    pub fn get_frame_count(&self) -> usize {
-        self.0
-            .get_frame_count
-            .map(|get_frame_count| unsafe { get_frame_count(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_frame_count(&self) -> Result<usize> {
+        try_c!(self, get_frame_count, {
+            Ok(get_frame_count(self.as_ptr()))
+        })
     }
 
     /// Returns the identifiers of all existing frames.
-    pub fn get_frame_identifiers(&self) -> Vec<i64> {
-        self.0
-            .get_frame_identifiers
-            .map(|get_frame_identifiers| {
-                let mut count = self.get_frame_count();
-                let mut identifiers = vec![0; count];
+    pub fn get_frame_identifiers(&self) -> Result<Vec<i64>> {
+        try_c!(self, get_frame_identifiers, {
+            let mut count = self.get_frame_count()?;
+            let mut identifiers = vec![0; count];
 
-                unsafe {
-                    get_frame_identifiers(self.as_ptr(), &mut count, identifiers.as_mut_ptr());
-                }
+            get_frame_identifiers(self.as_ptr(), &mut count, identifiers.as_mut_ptr());
 
-                identifiers
-            })
-            .unwrap_or_default()
+            Ok(identifiers)
+        })
     }
 
     /// Returns the names of all existing frames.
-    pub fn get_frame_names(&self) -> Vec<String> {
-        self.0
-            .get_frame_names
-            .map(|get_frame_names| {
-                let mut list = CefStringList::new();
+    pub fn get_frame_names(&self) -> Result<Vec<String>> {
+        try_c!(self, get_frame_names, {
+            let mut list = CefStringList::new();
 
-                unsafe {
-                    get_frame_names(self.as_ptr(), list.as_mut_ptr());
-                }
+            get_frame_names(self.as_ptr(), list.as_mut_ptr());
 
-                list.into()
-            })
-            .unwrap_or_default()
+            Ok(list.into())
+        })
     }
 }
 
@@ -487,10 +456,10 @@ ref_counted_ptr!(BrowserHost, cef_browser_host_t);
 
 impl BrowserHost {
     /// Returns the hosted browser object.
-    pub fn get_browser(&self) -> Option<Browser> {
-        self.0
-            .get_browser
-            .and_then(|get_browser| unsafe { Browser::from_ptr(get_browser(self.as_ptr())) })
+    pub fn get_browser(&self) -> Result<Browser> {
+        try_c!(self, get_browser, {
+            Ok(Browser::from_ptr_unchecked(get_browser(self.as_ptr())))
+        })
     }
 
     /// Request that the browser close. The JavaScript 'onbeforeunload' event will
@@ -501,12 +470,12 @@ impl BrowserHost {
     /// cef_life_span_handler_t::do_close() if the event handler allows the close
     /// or if |force_close| is true (1). See cef_life_span_handler_t::do_close()
     /// documentation for additional usage information.
-    pub fn close_browser(&self, force_close: bool) {
-        if let Some(close_browser) = self.0.close_browser {
-            unsafe {
-                close_browser(self.as_ptr(), force_close as c_int);
-            }
-        }
+    pub fn close_browser(&self, force_close: bool) -> Result<()> {
+        try_c!(self, close_browser, {
+            close_browser(self.as_ptr(), force_close as c_int);
+
+            Ok(())
+        })
     }
 
     /// Helper for closing a browser. Call this function from the top-level window
@@ -516,119 +485,106 @@ impl BrowserHost {
     /// close_browser() and cef_life_span_handler_t::do_close() documentation for
     /// additional usage information. This function must be called on the browser
     /// process UI thread.
-    pub fn try_close_browser(&self) -> bool {
-        self.0
-            .try_close_browser
-            .map(|try_close_browser| unsafe { try_close_browser(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn try_close_browser(&self) -> Result<bool> {
+        try_c!(self, try_close_browser, {
+            Ok(try_close_browser(self.as_ptr()) != 0)
+        })
     }
 
     /// Set whether the browser is focused.
-    pub fn set_focus(&self, focus: bool) {
-        if let Some(set_focus) = self.0.set_focus {
-            unsafe {
-                set_focus(self.as_ptr(), focus as c_int);
-            }
-        }
+    pub fn set_focus(&self, focus: bool) -> Result<()> {
+        try_c!(self, set_focus, {
+            set_focus(self.as_ptr(), focus as c_int);
+
+            Ok(())
+        })
     }
 
     /// Retrieve the window handle (if any) for this browser. If this browser is
     /// wrapped in a cef_browser_view_t this function should be called on the
     /// browser process UI thread and it will return the handle for the top-level
     /// native window.
-    pub fn get_window_handle(&self) -> Option<NativeWindowHandle> {
-        self.0
-            .get_window_handle
-            .and_then(|get_window_handle| unsafe {
-                NativeWindowHandle::try_from(get_window_handle(self.as_ptr())).ok()
-            })
+    pub fn get_window_handle(&self) -> Result<NativeWindowHandle> {
+        try_c!(self, get_window_handle, {
+            NativeWindowHandle::try_from(get_window_handle(self.as_ptr()))
+        })
     }
 
     /// Retrieve the window handle (if any) of the browser that opened this
     /// browser. Will return NULL for non-popup browsers or if this browser is
     /// wrapped in a cef_browser_view_t. This function can be used in combination
     /// with custom handling of modal windows.
-    pub fn get_opener_window_handle(&self) -> Option<NativeWindowHandle> {
-        self.0
-            .get_opener_window_handle
-            .and_then(|get_opener_window_handle| unsafe {
-                NativeWindowHandle::try_from(get_opener_window_handle(self.as_ptr())).ok()
-            })
+    pub fn get_opener_window_handle(&self) -> Result<NativeWindowHandle> {
+        try_c!(self, get_opener_window_handle, {
+            NativeWindowHandle::try_from(get_opener_window_handle(self.as_ptr()))
+        })
     }
 
     /// Returns true (1) if this browser is wrapped in a cef_browser_view_t.
-    pub fn has_view(&self) -> bool {
-        self.0
-            .has_view
-            .map(|has_view| unsafe { has_view(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_view(&self) -> Result<bool> {
+        try_c!(self, has_view, { Ok(has_view(self.as_ptr()) != 0) })
     }
 
     /// Returns the client for this browser.
-    pub fn get_client(&self) -> Option<Client> {
-        self.0
-            .get_client
-            .and_then(|get_client| unsafe { Client::from_ptr(get_client(self.as_ptr())) })
+    pub fn get_client(&self) -> Result<Client> {
+        try_c!(self, get_client, {
+            Ok(Client::from_ptr_unchecked(get_client(self.as_ptr())))
+        })
     }
 
     /// Returns the request context for this browser.
-    pub fn get_request_context(&self) -> Option<RequestContext> {
-        self.0
-            .get_request_context
-            .and_then(|get_request_context| unsafe {
-                RequestContext::from_ptr(get_request_context(self.as_ptr()))
-            })
+    pub fn get_request_context(&self) -> Result<RequestContext> {
+        try_c!(self, get_request_context, {
+            Ok(RequestContext::from_ptr_unchecked(get_request_context(
+                self.as_ptr()
+            )))
+        })
     }
 
     /// Returns true (1) if this browser can execute the specified zoom command.
     /// This function can only be called on the UI thread.
-    pub fn can_zoom(&self, command: ZoomCommand) -> bool {
-        self.0
-            .can_zoom
-            .map(|can_zoom| unsafe { can_zoom(self.as_ptr(), command.into()) != 0 })
-            .unwrap_or(false)
+    pub fn can_zoom(&self, command: ZoomCommand) -> Result<bool> {
+        try_c!(self, can_zoom, {
+            Ok(can_zoom(self.as_ptr(), command.into()) != 0)
+        })
     }
 
     /// Execute a zoom command in this browser. If called on the UI thread the
     /// change will be applied immediately. Otherwise, the change will be applied
     /// asynchronously on the UI thread.
-    pub fn zoom(&self, command: ZoomCommand) {
-        if let Some(zoom) = self.0.zoom {
-            unsafe {
-                zoom(self.as_ptr(), command.into());
-            }
-        }
+    pub fn zoom(&self, command: ZoomCommand) -> Result<()> {
+        try_c!(self, zoom, {
+            zoom(self.as_ptr(), command.into());
+
+            Ok(())
+        })
     }
 
     /// Get the default zoom level. This value will be 0.0 by default but can be
     /// configured with the Chrome runtime. This function can only be called on
     /// the UI thread.
-    pub fn get_default_zoom_level(&self) -> f64 {
-        self.0
-            .get_default_zoom_level
-            .map(|get_default_zoom_level| unsafe { get_default_zoom_level(self.as_ptr()) })
-            .unwrap_or(0.0)
+    pub fn get_default_zoom_level(&self) -> Result<f64> {
+        try_c!(self, get_default_zoom_level, {
+            Ok(get_default_zoom_level(self.as_ptr()))
+        })
     }
 
     /// Get the current zoom level. This function can only be called on the UI
     /// thread.
-    pub fn get_zoom_level(&self) -> f64 {
-        self.0
-            .get_zoom_level
-            .map(|get_zoom_level| unsafe { get_zoom_level(self.as_ptr()) })
-            .unwrap_or(0.0)
+    pub fn get_zoom_level(&self) -> Result<f64> {
+        try_c!(self, get_zoom_level, { Ok(get_zoom_level(self.as_ptr())) })
     }
 
     /// Change the zoom level to the specified value. Specify 0.0 to reset the
     /// zoom level to the default. If called on the UI thread the change will be
     /// applied immediately. Otherwise, the change will be applied asynchronously
     /// on the UI thread.
-    pub fn set_zoom_level(&self, zoom_level: f64) {
-        if let Some(set_zoom_level) = self.0.set_zoom_level {
-            unsafe {
-                set_zoom_level(self.as_ptr(), zoom_level);
-            }
-        }
+    pub fn set_zoom_level(&self, zoom_level: f64) -> Result<()> {
+        try_c!(self, set_zoom_level, {
+            set_zoom_level(self.as_ptr(), zoom_level);
+
+            Ok(())
+        })
     }
 
     // TODO: Fix this!
@@ -657,14 +613,14 @@ impl BrowserHost {
     // struct _cef_run_file_dialog_callback_t* callback);
 
     /// Download the file at |url| using cef_download_handler_t.
-    pub fn start_download(&self, url: &str) {
-        if let Some(start_download) = self.0.start_download {
+    pub fn start_download(&self, url: &str) -> Result<()> {
+        try_c!(self, start_download, {
             let url = CefString::new(url);
 
-            unsafe {
-                start_download(self.as_ptr(), url.as_ptr());
-            }
-        }
+            start_download(self.as_ptr(), url.as_ptr());
+
+            Ok(())
+        })
     }
 
     // TODO: Fix this!
@@ -691,12 +647,12 @@ impl BrowserHost {
     //
 
     /// Print the current browser contents.
-    pub fn print(&self) {
-        if let Some(print) = self.0.print {
-            unsafe {
-                print(self.as_ptr());
-            }
-        }
+    pub fn print(&self) -> Result<()> {
+        try_c!(self, print, {
+            print(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     // TODO: Fix this!
@@ -721,29 +677,35 @@ impl BrowserHost {
     /// |matchCase| change. The search will be stopped if |searchText| is NULL.
     /// The cef_find_handler_t instance, if any, returned via
     /// cef_client_t::GetFindHandler will be called to report find results.
-    pub fn find(&self, search_text: &str, forward: bool, match_case: bool, find_next: bool) {
-        if let Some(find) = self.0.find {
+    pub fn find(
+        &self,
+        search_text: &str,
+        forward: bool,
+        match_case: bool,
+        find_next: bool
+    ) -> Result<()> {
+        try_c!(self, find, {
             let search_text = CefString::new(search_text);
 
-            unsafe {
-                find(
-                    self.as_ptr(),
-                    search_text.as_ptr(),
-                    forward as c_int,
-                    match_case as c_int,
-                    find_next as c_int
-                );
-            }
-        }
+            find(
+                self.as_ptr(),
+                search_text.as_ptr(),
+                forward as c_int,
+                match_case as c_int,
+                find_next as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Cancel all searches that are currently going on.
-    pub fn stop_finding(&self, clear_selection: bool) {
-        if let Some(stop_finding) = self.0.stop_finding {
-            unsafe {
-                stop_finding(self.as_ptr(), clear_selection as c_int);
-            }
-        }
+    pub fn stop_finding(&self, clear_selection: bool) -> Result<()> {
+        try_c!(self, stop_finding, {
+            stop_finding(self.as_ptr(), clear_selection as c_int);
+
+            Ok(())
+        })
     }
 
     /// Open developer tools (DevTools) in its own browser. The DevTools browser
@@ -759,42 +721,41 @@ impl BrowserHost {
         client: Client,
         settings: &BrowserSettings,
         inspect_element_at: Option<Point>
-    ) {
-        if let Some(show_dev_tools) = self.0.show_dev_tools {
-            unsafe {
-                let inspect_element_at =
-                    inspect_element_at.map(|inspect_element_at| inspect_element_at.into());
-                let inspect_element_at = inspect_element_at
-                    .as_ref()
-                    .map_or(null(), |p| p as *const cef_point_t);
+    ) -> Result<()> {
+        try_c!(self, show_dev_tools, {
+            let inspect_element_at =
+                inspect_element_at.map(|inspect_element_at| inspect_element_at.into());
+            let inspect_element_at = inspect_element_at
+                .as_ref()
+                .map_or(null(), |p| p as *const cef_point_t);
 
-                show_dev_tools(
-                    self.as_ptr(),
-                    window_info.as_raw(),
-                    client.into_raw(),
-                    settings.as_raw(),
-                    inspect_element_at
-                );
-            }
-        }
+            show_dev_tools(
+                self.as_ptr(),
+                window_info.as_raw(),
+                client.into_raw(),
+                settings.as_raw(),
+                inspect_element_at
+            );
+
+            Ok(())
+        })
     }
 
     /// Explicitly close the associated DevTools browser, if any.
-    pub fn close_dev_tools(&self) {
-        if let Some(close_dev_tools) = self.0.close_dev_tools {
-            unsafe {
-                close_dev_tools(self.as_ptr());
-            }
-        }
+    pub fn close_dev_tools(&self) -> Result<()> {
+        try_c!(self, close_dev_tools, {
+            close_dev_tools(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if this browser currently has an associated DevTools
     /// browser. Must be called on the browser process UI thread.
-    pub fn has_dev_tools(&self) -> bool {
-        self.0
-            .has_dev_tools
-            .map(|has_dev_tools| unsafe { has_dev_tools(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_dev_tools(&self) -> Result<bool> {
+        try_c!(self, has_dev_tools, {
+            Ok(has_dev_tools(self.as_ptr()) != 0)
+        })
     }
 
     /// Send a function call message over the DevTools protocol. |message| must be
@@ -828,17 +789,14 @@ impl BrowserHost {
     /// Communication with the DevTools front-end (when displayed) can be logged
     /// for development purposes by passing the `--devtools-protocol-log-
     /// file=<path>` command-line flag.
-    pub fn send_dev_tools_message(&self, message: &[u8]) -> bool {
-        self.0
-            .send_dev_tools_message
-            .map(|send_dev_tools_message| unsafe {
-                send_dev_tools_message(
-                    self.as_ptr(),
-                    message.as_ptr() as *const c_void,
-                    message.len()
-                ) != 0
-            })
-            .unwrap_or(false)
+    pub fn send_dev_tools_message(&self, message: &[u8]) -> Result<bool> {
+        try_c!(self, send_dev_tools_message, {
+            Ok(send_dev_tools_message(
+                self.as_ptr(),
+                message.as_ptr() as *const c_void,
+                message.len()
+            ) != 0)
+        })
     }
 
     /// Execute a function call over the DevTools protocol. This is a more
@@ -857,24 +815,19 @@ impl BrowserHost {
         message_id: i32,
         method: &str,
         params: Option<DictionaryValue>
-    ) -> bool {
-        self.0
-            .execute_dev_tools_method
-            .map(|execute_dev_tools_method| {
-                let method = CefString::new(method);
+    ) -> Result<bool> {
+        try_c!(self, execute_dev_tools_method, {
+            let method = CefString::new(method);
 
-                unsafe {
-                    execute_dev_tools_method(
-                        self.as_ptr(),
-                        message_id,
-                        method.as_ptr(),
-                        params
-                            .map(|params| params.into_raw())
-                            .unwrap_or(null_mut())
-                    ) != 0
-                }
-            })
-            .unwrap_or(false)
+            Ok(execute_dev_tools_method(
+                self.as_ptr(),
+                message_id,
+                method.as_ptr(),
+                params
+                    .map(|params| params.into_raw())
+                    .unwrap_or(null_mut())
+            ) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -893,68 +846,69 @@ impl BrowserHost {
     /// specified visitor. If |current_only| is true (1) only the current
     /// navigation entry will be sent, otherwise all navigation entries will be
     /// sent.
-    pub fn get_navigation_entries(&self, visitor: NavigationEntryVisitor, current_only: bool) {
-        if let Some(get_navigation_entries) = self.0.get_navigation_entries {
-            unsafe {
-                get_navigation_entries(self.as_ptr(), visitor.into_raw(), current_only as c_int);
-            }
-        }
+    pub fn get_navigation_entries(
+        &self,
+        visitor: NavigationEntryVisitor,
+        current_only: bool
+    ) -> Result<()> {
+        try_c!(self, get_navigation_entries, {
+            get_navigation_entries(self.as_ptr(), visitor.into_raw(), current_only as c_int);
+
+            Ok(())
+        })
     }
 
     /// If a misspelled word is currently selected in an editable node calling
     /// this function will replace it with the specified |word|.
-    pub fn replace_misspelling(&self, word: &str) {
-        if let Some(replace_misspelling) = self.0.replace_misspelling {
+    pub fn replace_misspelling(&self, word: &str) -> Result<()> {
+        try_c!(self, replace_misspelling, {
             let word = CefString::new(word);
 
-            unsafe {
-                replace_misspelling(self.as_ptr(), word.as_ptr());
-            }
-        }
+            replace_misspelling(self.as_ptr(), word.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Add the specified |word| to the spelling dictionary.
-    pub fn add_word_to_dictionary(&self, word: &str) {
-        if let Some(add_word_to_dictionary) = self.0.add_word_to_dictionary {
+    pub fn add_word_to_dictionary(&self, word: &str) -> Result<()> {
+        try_c!(self, add_word_to_dictionary, {
             let word = CefString::new(word);
 
-            unsafe {
-                add_word_to_dictionary(self.as_ptr(), word.as_ptr());
-            }
-        }
+            add_word_to_dictionary(self.as_ptr(), word.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if window rendering is disabled.
-    pub fn is_window_rendering_disabled(&self) -> bool {
-        self.0
-            .is_window_rendering_disabled
-            .map(|is_window_rendering_disabled| unsafe {
-                is_window_rendering_disabled(self.as_ptr()) != 0
-            })
-            .unwrap_or(false)
+    pub fn is_window_rendering_disabled(&self) -> Result<bool> {
+        try_c!(self, is_window_rendering_disabled, {
+            Ok(is_window_rendering_disabled(self.as_ptr()) != 0)
+        })
     }
 
     /// Notify the browser that the widget has been resized. The browser will
     /// first call cef_render_handler_t::GetViewRect to get the new size and then
     /// call cef_render_handler_t::OnPaint asynchronously with the updated
     /// regions. This function is only used when window rendering is disabled.
-    pub fn was_resized(&self) {
-        if let Some(was_resized) = self.0.was_resized {
-            unsafe {
-                was_resized(self.as_ptr());
-            }
-        }
+    pub fn was_resized(&self) -> Result<()> {
+        try_c!(self, was_resized, {
+            was_resized(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Notify the browser that it has been hidden or shown. Layouting and
     /// cef_render_handler_t::OnPaint notification will stop when the browser is
     /// hidden. This function is only used when window rendering is disabled.
-    pub fn was_hidden(&self, hidden: bool) {
-        if let Some(was_hidden) = self.0.was_hidden {
-            unsafe {
-                was_hidden(self.as_ptr(), hidden as c_int);
-            }
-        }
+    pub fn was_hidden(&self, hidden: bool) -> Result<()> {
+        try_c!(self, was_hidden, {
+            was_hidden(self.as_ptr(), hidden as c_int);
+
+            Ok(())
+        })
     }
 
     /// Send a notification to the browser that the screen info has changed. The
@@ -963,42 +917,42 @@ impl BrowserHost {
     /// window from one display to another, or changing the properties of the
     /// current display. This function is only used when window rendering is
     /// disabled.
-    pub fn notify_screen_info_changed(&self) {
-        if let Some(notify_screen_info_changed) = self.0.notify_screen_info_changed {
-            unsafe {
-                notify_screen_info_changed(self.as_ptr());
-            }
-        }
+    pub fn notify_screen_info_changed(&self) -> Result<()> {
+        try_c!(self, notify_screen_info_changed, {
+            notify_screen_info_changed(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Invalidate the view. The browser will call cef_render_handler_t::OnPaint
     /// asynchronously. This function is only used when window rendering is
     /// disabled.
-    pub fn invalidate(&self, element_type: PaintElementType) {
-        if let Some(invalidate) = self.0.invalidate {
-            unsafe {
-                invalidate(self.as_ptr(), element_type.into());
-            }
-        }
+    pub fn invalidate(&self, element_type: PaintElementType) -> Result<()> {
+        try_c!(self, invalidate, {
+            invalidate(self.as_ptr(), element_type.into());
+
+            Ok(())
+        })
     }
 
     /// Issue a BeginFrame request to Chromium.  Only valid when
     /// cef_window_tInfo::external_begin_frame_enabled is set to true (1).
-    pub fn send_external_begin_frame(&self) {
-        if let Some(send_external_begin_frame) = self.0.send_external_begin_frame {
-            unsafe {
-                send_external_begin_frame(self.as_ptr());
-            }
-        }
+    pub fn send_external_begin_frame(&self) -> Result<()> {
+        try_c!(self, send_external_begin_frame, {
+            send_external_begin_frame(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Send a key event to the browser.
-    pub fn send_key_event(&self, event: KeyEvent) {
-        if let Some(send_key_event) = self.0.send_key_event {
-            unsafe {
-                send_key_event(self.as_ptr(), &event.into());
-            }
-        }
+    pub fn send_key_event(&self, event: KeyEvent) -> Result<()> {
+        try_c!(self, send_key_event, {
+            send_key_event(self.as_ptr(), &event.into());
+
+            Ok(())
+        })
     }
 
     /// Send a mouse click event to the browser. The |x| and |y| coordinates are
@@ -1009,28 +963,28 @@ impl BrowserHost {
         mouse_button: MouseButtonType,
         mouse_up: bool,
         click_count: i32
-    ) {
-        if let Some(send_mouse_click_event) = self.0.send_mouse_click_event {
-            unsafe {
-                send_mouse_click_event(
-                    self.as_ptr(),
-                    &event.into(),
-                    mouse_button.into(),
-                    mouse_up as c_int,
-                    click_count as c_int
-                );
-            }
-        }
+    ) -> Result<()> {
+        try_c!(self, send_mouse_click_event, {
+            send_mouse_click_event(
+                self.as_ptr(),
+                &event.into(),
+                mouse_button.into(),
+                mouse_up as c_int,
+                click_count as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Send a mouse move event to the browser. The |x| and |y| coordinates are
     /// relative to the upper-left corner of the view.
-    pub fn send_mouse_move_event(&self, event: &MouseEvent, mouse_leave: bool) {
-        if let Some(send_mouse_move_event) = self.0.send_mouse_move_event {
-            unsafe {
-                send_mouse_move_event(self.as_ptr(), &event.into(), mouse_leave as c_int);
-            }
-        }
+    pub fn send_mouse_move_event(&self, event: &MouseEvent, mouse_leave: bool) -> Result<()> {
+        try_c!(self, send_mouse_move_event, {
+            send_mouse_move_event(self.as_ptr(), &event.into(), mouse_leave as c_int);
+
+            Ok(())
+        })
     }
 
     /// Send a mouse wheel event to the browser. The |x| and |y| coordinates are
@@ -1039,45 +993,50 @@ impl BrowserHost {
     /// respectively. In order to scroll inside select popups with window
     /// rendering disabled cef_render_handler_t::GetScreenPoint should be
     /// implemented properly.
-    pub fn send_mouse_wheel_event(&self, event: &MouseEvent, delta_x: i32, delta_y: i32) {
-        if let Some(send_mouse_wheel_event) = self.0.send_mouse_wheel_event {
-            unsafe {
-                send_mouse_wheel_event(
-                    self.as_ptr(),
-                    &event.into(),
-                    delta_x as c_int,
-                    delta_y as c_int
-                );
-            }
-        }
+    pub fn send_mouse_wheel_event(
+        &self,
+        event: &MouseEvent,
+        delta_x: i32,
+        delta_y: i32
+    ) -> Result<()> {
+        try_c!(self, send_mouse_wheel_event, {
+            send_mouse_wheel_event(
+                self.as_ptr(),
+                &event.into(),
+                delta_x as c_int,
+                delta_y as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Send a touch event to the browser for a windowless browser.
-    pub fn send_touch_event(&self, event: &TouchEvent) {
-        if let Some(send_touch_event) = self.0.send_touch_event {
-            unsafe {
-                send_touch_event(self.as_ptr(), &event.into());
-            }
-        }
+    pub fn send_touch_event(&self, event: &TouchEvent) -> Result<()> {
+        try_c!(self, send_touch_event, {
+            send_touch_event(self.as_ptr(), &event.into());
+
+            Ok(())
+        })
     }
 
     /// Send a capture lost event to the browser.
-    pub fn send_capture_lost_event(&self) {
-        if let Some(send_capture_lost_event) = self.0.send_capture_lost_event {
-            unsafe {
-                send_capture_lost_event(self.as_ptr());
-            }
-        }
+    pub fn send_capture_lost_event(&self) -> Result<()> {
+        try_c!(self, send_capture_lost_event, {
+            send_capture_lost_event(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Notify the browser that the window hosting it is about to be moved or
     /// resized. This function is only used on Windows and Linux.
-    pub fn notify_move_or_resize_started(&self) {
-        if let Some(notify_move_or_resize_started) = self.0.notify_move_or_resize_started {
-            unsafe {
-                notify_move_or_resize_started(self.as_ptr());
-            }
-        }
+    pub fn notify_move_or_resize_started(&self) -> Result<()> {
+        try_c!(self, notify_move_or_resize_started, {
+            notify_move_or_resize_started(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns the maximum rate in frames per second (fps) that
@@ -1085,11 +1044,10 @@ impl BrowserHost {
     /// actual fps may be lower if the browser cannot generate frames at the
     /// requested rate. The minimum value is 1 and the maximum value is 60
     /// (default 30). This function can only be called on the UI thread.
-    pub fn get_windowless_frame_rate(&self) -> i32 {
-        self.0
-            .get_windowless_frame_rate
-            .map(|get_windowless_frame_rate| unsafe { get_windowless_frame_rate(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_windowless_frame_rate(&self) -> Result<i32> {
+        try_c!(self, get_windowless_frame_rate, {
+            Ok(get_windowless_frame_rate(self.as_ptr()))
+        })
     }
 
     /// Set the maximum rate in frames per second (fps) that
@@ -1098,12 +1056,12 @@ impl BrowserHost {
     /// requested rate. The minimum value is 1 and the maximum value is 60
     /// (default 30). Can also be set at browser creation via
     /// cef_browser_tSettings.windowless_frame_rate.
-    pub fn set_windowless_frame_rate(&self, frame_rate: i32) {
-        if let Some(set_windowless_frame_rate) = self.0.set_windowless_frame_rate {
-            unsafe {
-                set_windowless_frame_rate(self.as_ptr(), frame_rate as c_int);
-            }
-        }
+    pub fn set_windowless_frame_rate(&self, frame_rate: i32) -> Result<()> {
+        try_c!(self, set_windowless_frame_rate, {
+            set_windowless_frame_rate(self.as_ptr(), frame_rate as c_int);
+
+            Ok(())
+        })
     }
 
     /// Begins a new composition or updates the existing composition. Blink has a
@@ -1135,8 +1093,8 @@ impl BrowserHost {
         underlines: Option<&Vec<CompositionUnderline>>,
         replacement_range: Option<Range>,
         selection_range: Option<Range>
-    ) {
-        if let Some(ime_set_composition) = self.0.ime_set_composition {
+    ) -> Result<()> {
+        try_c!(self, ime_set_composition, {
             let text = text.map(|text| CefString::new(text));
             let text = text
                 .as_ref()
@@ -1171,17 +1129,17 @@ impl BrowserHost {
                 .map(|r| r as *const cef_range_t)
                 .unwrap_or_else(null);
 
-            unsafe {
-                ime_set_composition(
-                    self.as_ptr(),
-                    text,
-                    underlines_count,
-                    underlines.into(),
-                    replacement_range,
-                    selection_range
-                );
-            }
-        }
+            ime_set_composition(
+                self.as_ptr(),
+                text,
+                underlines_count,
+                underlines.into(),
+                replacement_range,
+                selection_range
+            );
+
+            Ok(())
+        })
     }
 
     /// Completes the existing composition by optionally inserting the specified
@@ -1196,8 +1154,8 @@ impl BrowserHost {
         text: &str,
         replacement_range: Option<Range>,
         relative_cursor_pos: i32
-    ) {
-        if let Some(ime_commit_text) = self.0.ime_commit_text {
+    ) -> Result<()> {
+        try_c!(self, ime_commit_text, {
             let text = CefString::new(text);
 
             let replacement_range: Option<cef_range_t> = replacement_range.map(|r| r.into());
@@ -1206,38 +1164,38 @@ impl BrowserHost {
                 .map(|r| r as *const cef_range_t)
                 .unwrap_or_else(null);
 
-            unsafe {
-                ime_commit_text(
-                    self.as_ptr(),
-                    text.as_ptr(),
-                    replacement_range,
-                    relative_cursor_pos
-                );
-            }
-        }
+            ime_commit_text(
+                self.as_ptr(),
+                text.as_ptr(),
+                replacement_range,
+                relative_cursor_pos
+            );
+
+            Ok(())
+        })
     }
 
     /// Completes the existing composition by applying the current composition
     /// node contents. If |keep_selection| is false (0) the current selection, if
     /// any, will be discarded. See comments on ImeSetComposition for usage. This
     /// function is only used when window rendering is disabled.
-    pub fn ime_finish_composing_text(&self, keep_selection: bool) {
-        if let Some(ime_finish_composing_text) = self.0.ime_finish_composing_text {
-            unsafe {
-                ime_finish_composing_text(self.as_ptr(), keep_selection as c_int);
-            }
-        }
+    pub fn ime_finish_composing_text(&self, keep_selection: bool) -> Result<()> {
+        try_c!(self, ime_finish_composing_text, {
+            ime_finish_composing_text(self.as_ptr(), keep_selection as c_int);
+
+            Ok(())
+        })
     }
 
     /// Cancels the existing composition and discards the composition node
     /// contents without applying them. See comments on ImeSetComposition for
     /// usage. This function is only used when window rendering is disabled.
-    pub fn ime_cancel_composition(&self) {
-        if let Some(ime_cancel_composition) = self.0.ime_cancel_composition {
-            unsafe {
-                ime_cancel_composition(self.as_ptr());
-            }
-        }
+    pub fn ime_cancel_composition(&self) -> Result<()> {
+        try_c!(self, ime_cancel_composition, {
+            ime_cancel_composition(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Call this function when the user drags the mouse into the web view (before
@@ -1252,40 +1210,44 @@ impl BrowserHost {
         drag_data: DragData,
         event: &MouseEvent,
         allowed_ops: DragOperations
-    ) {
-        if let Some(drag_target_drag_enter) = self.0.drag_target_drag_enter {
-            unsafe {
-                drag_target_drag_enter(
-                    self.as_ptr(),
-                    drag_data.into_raw(),
-                    &event.into(),
-                    allowed_ops.into()
-                );
-            }
-        }
+    ) -> Result<()> {
+        try_c!(self, drag_target_drag_enter, {
+            drag_target_drag_enter(
+                self.as_ptr(),
+                drag_data.into_raw(),
+                &event.into(),
+                allowed_ops.into()
+            );
+
+            Ok(())
+        })
     }
 
     /// Call this function each time the mouse is moved across the web view during
     /// a drag operation (after calling DragTargetDragEnter and before calling
     /// DragTargetDragLeave/DragTargetDrop). This function is only used when
     /// window rendering is disabled.
-    pub fn drag_target_drag_over(&self, event: &MouseEvent, allowed_ops: DragOperations) {
-        if let Some(drag_target_drag_over) = self.0.drag_target_drag_over {
-            unsafe {
-                drag_target_drag_over(self.as_ptr(), &event.into(), allowed_ops.into());
-            }
-        }
+    pub fn drag_target_drag_over(
+        &self,
+        event: &MouseEvent,
+        allowed_ops: DragOperations
+    ) -> Result<()> {
+        try_c!(self, drag_target_drag_over, {
+            drag_target_drag_over(self.as_ptr(), &event.into(), allowed_ops.into());
+
+            Ok(())
+        })
     }
 
     /// Call this function when the user drags the mouse out of the web view
     /// (after calling DragTargetDragEnter). This function is only used when
     /// window rendering is disabled.
-    pub fn drag_target_drag_leave(&self) {
-        if let Some(drag_target_drag_leave) = self.0.drag_target_drag_leave {
-            unsafe {
-                drag_target_drag_leave(self.as_ptr());
-            }
-        }
+    pub fn drag_target_drag_leave(&self) -> Result<()> {
+        try_c!(self, drag_target_drag_leave, {
+            drag_target_drag_leave(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Call this function when the user completes the drag operation by dropping
@@ -1293,12 +1255,12 @@ impl BrowserHost {
     /// object being dropped is |drag_data|, given as an argument to the previous
     /// DragTargetDragEnter call. This function is only used when window rendering
     /// is disabled.
-    pub fn drag_target_drop(&self, event: &MouseEvent) {
-        if let Some(drag_target_drop) = self.0.drag_target_drop {
-            unsafe {
-                drag_target_drop(self.as_ptr(), &event.into());
-            }
-        }
+    pub fn drag_target_drop(&self, event: &MouseEvent) -> Result<()> {
+        try_c!(self, drag_target_drop, {
+            drag_target_drop(self.as_ptr(), &event.into());
+
+            Ok(())
+        })
     }
 
     /// Call this function when the drag operation started by a
@@ -1308,12 +1270,12 @@ impl BrowserHost {
     /// drag target then all DragTarget* functions should be called before
     /// DragSource* mthods. This function is only used when window rendering is
     /// disabled.
-    pub fn drag_source_ended_at(&self, x: i32, y: i32, op: DragOperations) {
-        if let Some(drag_source_ended_at) = self.0.drag_source_ended_at {
-            unsafe {
-                drag_source_ended_at(self.as_ptr(), x, y, op.into());
-            }
-        }
+    pub fn drag_source_ended_at(&self, x: i32, y: i32, op: DragOperations) -> Result<()> {
+        try_c!(self, drag_source_ended_at, {
+            drag_source_ended_at(self.as_ptr(), x, y, op.into());
+
+            Ok(())
+        })
     }
 
     /// Call this function when the drag operation started by a
@@ -1322,22 +1284,22 @@ impl BrowserHost {
     /// drag operation. If the web view is both the drag source and the drag
     /// target then all DragTarget* functions should be called before DragSource*
     /// methods. This function is only used when window rendering is disabled.
-    pub fn drag_source_system_drag_ended(&self) {
-        if let Some(drag_source_system_drag_ended) = self.0.drag_source_system_drag_ended {
-            unsafe {
-                drag_source_system_drag_ended(self.as_ptr());
-            }
-        }
+    pub fn drag_source_system_drag_ended(&self) -> Result<()> {
+        try_c!(self, drag_source_system_drag_ended, {
+            drag_source_system_drag_ended(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns the current visible navigation entry for this browser. This
     /// function can only be called on the UI thread.
-    pub fn get_visible_navigation_entry(&self) -> Option<NavigationEntry> {
-        self.0
-            .get_visible_navigation_entry
-            .map(|get_visible_navigation_entry| unsafe {
-                NavigationEntry::from_ptr_unchecked(get_visible_navigation_entry(self.as_ptr()))
-            })
+    pub fn get_visible_navigation_entry(&self) -> Result<NavigationEntry> {
+        try_c!(self, get_visible_navigation_entry, {
+            Ok(NavigationEntry::from_ptr_unchecked(
+                get_visible_navigation_entry(self.as_ptr())
+            ))
+        })
     }
 
     /// Set accessibility state for all frames. |accessibility_state| may be
@@ -1363,64 +1325,67 @@ impl BrowserHost {
     /// and events are passed to CefAccessibiltyHandler, but platform
     /// accessibility objects are not created. The client may implement platform
     /// accessibility objects using CefAccessibiltyHandler callbacks if desired.
-    pub fn set_accessibility_state(&self, accessibility_state: State) {
-        if let Some(set_accessibility_state) = self.0.set_accessibility_state {
-            unsafe {
-                set_accessibility_state(self.as_ptr(), accessibility_state.into());
-            }
-        }
+    pub fn set_accessibility_state(&self, accessibility_state: State) -> Result<()> {
+        try_c!(self, set_accessibility_state, {
+            set_accessibility_state(self.as_ptr(), accessibility_state.into());
+
+            Ok(())
+        })
     }
 
     /// Enable notifications of auto resize via
     /// cef_display_handler_t::OnAutoResize. Notifications are disabled by
     /// default. |min_size| and |max_size| define the range of allowed sizes.
-    pub fn set_auto_resize_enabled(&self, enabled: bool, min_size: Size, max_size: Size) {
-        if let Some(set_auto_resize_enabled) = self.0.set_auto_resize_enabled {
-            unsafe {
-                set_auto_resize_enabled(
-                    self.as_ptr(),
-                    enabled as c_int,
-                    &min_size.into(),
-                    &max_size.into()
-                );
-            }
-        }
+    pub fn set_auto_resize_enabled(
+        &self,
+        enabled: bool,
+        min_size: Size,
+        max_size: Size
+    ) -> Result<()> {
+        try_c!(self, set_auto_resize_enabled, {
+            set_auto_resize_enabled(
+                self.as_ptr(),
+                enabled as c_int,
+                &min_size.into(),
+                &max_size.into()
+            );
+
+            Ok(())
+        })
     }
 
     /// Returns the extension hosted in this browser or NULL if no extension is
     /// hosted. See cef_request_context_t::LoadExtension for details.
-    pub fn get_extension(&self) -> Option<Extension> {
-        self.0
-            .get_extension
-            .and_then(|get_extension| unsafe { Extension::from_ptr(get_extension(self.as_ptr())) })
+    pub fn get_extension(&self) -> Result<Option<Extension>> {
+        try_c!(self, get_extension, {
+            Ok(Extension::from_ptr(get_extension(self.as_ptr())))
+        })
     }
 
     /// Returns true (1) if this browser is hosting an extension background
     /// script. Background hosts do not have a window and are not displayable. See
     /// cef_request_context_t::LoadExtension for details.
-    pub fn is_background_host(&self) -> bool {
-        self.0
-            .is_background_host
-            .map(|is_background_host| unsafe { is_background_host(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_background_host(&self) -> Result<bool> {
+        try_c!(self, is_background_host, {
+            Ok(is_background_host(self.as_ptr()) != 0)
+        })
     }
 
     /// Set whether the browser's audio is muted.
-    pub fn set_audio_muted(&self, mute: bool) {
-        if let Some(set_audio_muted) = self.0.set_audio_muted {
-            unsafe {
-                set_audio_muted(self.as_ptr(), mute as c_int);
-            }
-        }
+    pub fn set_audio_muted(&self, mute: bool) -> Result<()> {
+        try_c!(self, set_audio_muted, {
+            set_audio_muted(self.as_ptr(), mute as c_int);
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if the browser's audio is muted.  This function can only
     /// be called on the UI thread.
-    pub fn is_audio_muted(&self) -> bool {
-        self.0
-            .is_audio_muted
-            .map(|is_audio_muted| unsafe { is_audio_muted(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_audio_muted(&self) -> Result<bool> {
+        try_c!(self, is_audio_muted, {
+            Ok(is_audio_muted(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns true (1) if the renderer is currently in browser fullscreen. This
@@ -1428,11 +1393,10 @@ impl BrowserHost {
     /// the JavaScript Fullscreen API and modifies CSS attributes such as the
     /// ::backdrop pseudo-element and :fullscreen pseudo-structure. This function
     /// can only be called on the UI thread.
-    pub fn is_fullscreen(&self) -> bool {
-        self.0
-            .is_fullscreen
-            .map(|is_fullscreen| unsafe { is_fullscreen(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_fullscreen(&self) -> Result<bool> {
+        try_c!(self, is_fullscreen, {
+            Ok(is_fullscreen(self.as_ptr()) != 0)
+        })
     }
 
     /// Requests the renderer to exit browser fullscreen. In most cases exiting
@@ -1444,35 +1408,36 @@ impl BrowserHost {
     /// Chrome runtime these standard exit actions are handled internally but
     /// new/additional user actions can use this function. Set |will_cause_resize|
     /// to true (1) if exiting browser fullscreen will cause a view resize.
-    pub fn exit_fullscreen(&self, will_cause_resize: bool) {
-        if let Some(exit_fullscreen) = self.0.exit_fullscreen {
-            unsafe {
-                exit_fullscreen(self.as_ptr(), will_cause_resize as c_int);
-            }
-        }
+    pub fn exit_fullscreen(&self, will_cause_resize: bool) -> Result<()> {
+        try_c!(self, exit_fullscreen, {
+            exit_fullscreen(self.as_ptr(), will_cause_resize as c_int);
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if a Chrome command is supported and enabled. Values for
     /// |command_id| can be found in the cef_command_ids.h file. This function can
     /// only be called on the UI thread. Only used with the Chrome runtime.
-    pub fn can_execute_chrome_command(&self, command_id: i32) -> bool {
-        self.0
-            .can_execute_chrome_command
-            .map(|can_execute_chrome_command| unsafe {
-                can_execute_chrome_command(self.as_ptr(), command_id) != 0
-            })
-            .unwrap_or(false)
+    pub fn can_execute_chrome_command(&self, command_id: i32) -> Result<bool> {
+        try_c!(self, can_execute_chrome_command, {
+            Ok(can_execute_chrome_command(self.as_ptr(), command_id) != 0)
+        })
     }
 
     /// Execute a Chrome command. Values for |command_id| can be found in the
     /// cef_command_ids.h file. |disposition| provides information about the
     /// intended command target. Only used with the Chrome runtime.
-    pub fn execute_chrome_command(&self, command_id: i32, disposition: WindowOpenDisposition) {
-        if let Some(execute_chrome_command) = self.0.execute_chrome_command {
-            unsafe {
-                execute_chrome_command(self.as_ptr(), command_id, disposition.into());
-            }
-        }
+    pub fn execute_chrome_command(
+        &self,
+        command_id: i32,
+        disposition: WindowOpenDisposition
+    ) -> Result<()> {
+        try_c!(self, execute_chrome_command, {
+            execute_chrome_command(self.as_ptr(), command_id, disposition.into());
+
+            Ok(())
+        })
     }
 
     // TODO: Fix this!
