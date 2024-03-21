@@ -108,9 +108,10 @@ impl RequestContext {
     /// completion.
     pub fn clear_certificate_exceptions(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, clear_certificate_exceptions, {
-            clear_certificate_exceptions(self.as_ptr(), callback.into_raw());
-
-            Ok(())
+            Ok(clear_certificate_exceptions(
+                self.as_ptr(),
+                callback.into_raw()
+            ))
         })
     }
 
@@ -119,9 +120,10 @@ impl RequestContext {
     /// on the UI thread after completion.
     pub fn clear_http_auth_credentials(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, clear_http_auth_credentials, {
-            clear_http_auth_credentials(self.as_ptr(), callback.into_raw());
-
-            Ok(())
+            Ok(clear_http_auth_credentials(
+                self.as_ptr(),
+                callback.into_raw()
+            ))
         })
     }
 
@@ -131,9 +133,7 @@ impl RequestContext {
     /// executed on the UI thread after completion.
     pub fn close_all_connections(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, close_all_connections, {
-            close_all_connections(self.as_ptr(), callback.into_raw());
-
-            Ok(())
+            Ok(close_all_connections(self.as_ptr(), callback.into_raw()))
         })
     }
 
@@ -143,9 +143,11 @@ impl RequestContext {
         try_c!(self, resolve_host, {
             let origin = CefString::new(origin);
 
-            resolve_host(self.as_ptr(), origin.as_ptr(), callback.into_raw());
-
-            Ok(())
+            Ok(resolve_host(
+                self.as_ptr(),
+                origin.as_ptr(),
+                callback.into_raw()
+            ))
         })
     }
 

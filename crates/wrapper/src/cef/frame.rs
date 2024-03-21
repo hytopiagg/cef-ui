@@ -20,85 +20,51 @@ impl Frame {
 
     /// Execute undo in this frame.
     pub fn undo(&self) -> Result<()> {
-        try_c!(self, undo, {
-            undo(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, undo, { Ok(undo(self.as_ptr())) })
     }
 
     /// Execute redo in this frame.
     pub fn redo(&self) -> Result<()> {
-        try_c!(self, redo, {
-            redo(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, redo, { Ok(redo(self.as_ptr())) })
     }
 
     /// Execute cut in this frame.
     pub fn cut(&self) -> Result<()> {
-        try_c!(self, cut, {
-            cut(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, cut, { Ok(cut(self.as_ptr())) })
     }
 
     /// Execute copy in this frame.
     pub fn copy(&self) -> Result<()> {
-        try_c!(self, copy, {
-            copy(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, copy, { Ok(copy(self.as_ptr())) })
     }
 
     /// Execute paste in this frame.
     pub fn paste(&self) -> Result<()> {
-        try_c!(self, paste, {
-            paste(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, paste, { Ok(paste(self.as_ptr())) })
     }
 
     /// Execute delete in this frame.
     pub fn delete(&self) -> Result<()> {
-        try_c!(self, del, {
-            del(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, del, { Ok(del(self.as_ptr())) })
     }
 
     /// Execute select all in this frame.
     pub fn select_all(&self) -> Result<()> {
-        try_c!(self, select_all, {
-            select_all(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, select_all, { Ok(select_all(self.as_ptr())) })
     }
 
     /// Save this frame's HTML source to a temporary file and open it in the
     /// default text viewing application. This function can only be called from
     /// the browser process.
     pub fn view_source(&self) -> Result<()> {
-        try_c!(self, view_source, {
-            view_source(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, view_source, { Ok(view_source(self.as_ptr())) })
     }
 
     /// Retrieve this frame's HTML source as a string sent to the specified
     /// visitor.
     pub fn get_source(&self, visitor: StringVisitor) -> Result<()> {
         try_c!(self, get_source, {
-            get_source(self.as_ptr(), visitor.into_raw());
-
-            Ok(())
+            Ok(get_source(self.as_ptr(), visitor.into_raw()))
         })
     }
 
@@ -106,9 +72,7 @@ impl Frame {
     /// visitor.
     pub fn get_text(&self, visitor: StringVisitor) -> Result<()> {
         try_c!(self, get_text, {
-            get_text(self.as_ptr(), visitor.into_raw());
-
-            Ok(())
+            Ok(get_text(self.as_ptr(), visitor.into_raw()))
         })
     }
 
@@ -119,9 +83,7 @@ impl Frame {
     /// origin using some other mechanism (LoadURL, link click, etc).
     pub fn load_request(&self, request: Request) -> Result<()> {
         try_c!(self, load_request, {
-            load_request(self.as_ptr(), request.into_raw());
-
-            Ok(())
+            Ok(load_request(self.as_ptr(), request.into_raw()))
         })
     }
 
@@ -130,9 +92,7 @@ impl Frame {
         try_c!(self, load_url, {
             let url = CefString::new(url);
 
-            load_url(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(load_url(self.as_ptr(), url.as_ptr()))
         })
     }
 
@@ -146,14 +106,12 @@ impl Frame {
             let code = CefString::new(code);
             let script_url = CefString::new(script_url);
 
-            execute_java_script(
+            Ok(execute_java_script(
                 self.as_ptr(),
                 code.as_ptr(),
                 script_url.as_ptr(),
                 start_line as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -266,9 +224,11 @@ impl Frame {
         message: ProcessMessage
     ) -> Result<()> {
         try_c!(self, send_process_message, {
-            send_process_message(self.as_ptr(), target_process.into(), message.into_raw());
-
-            Ok(())
+            Ok(send_process_message(
+                self.as_ptr(),
+                target_process.into(),
+                message.into_raw()
+            ))
         })
     }
 }

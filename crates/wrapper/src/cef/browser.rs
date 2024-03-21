@@ -308,11 +308,7 @@ impl Browser {
 
     /// Navigate backwards.
     pub fn go_back(&self) -> Result<()> {
-        try_c!(self, go_back, {
-            go_back(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, go_back, { Ok(go_back(self.as_ptr())) })
     }
 
     /// Returns true (1) if the browser can navigate forwards.
@@ -324,11 +320,7 @@ impl Browser {
 
     /// Navigate forwards.
     pub fn go_forward(&self) -> Result<()> {
-        try_c!(self, go_forward, {
-            go_forward(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, go_forward, { Ok(go_forward(self.as_ptr())) })
     }
 
     /// Returns true (1) if the browser is currently loading.
@@ -338,29 +330,19 @@ impl Browser {
 
     /// Reload the current page.
     pub fn reload(&self) -> Result<()> {
-        try_c!(self, reload, {
-            reload(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, reload, { Ok(reload(self.as_ptr())) })
     }
 
     /// Reload the current page ignoring any cached data.
     pub fn reload_ignore_cache(&self) -> Result<()> {
         try_c!(self, reload_ignore_cache, {
-            reload_ignore_cache(self.as_ptr());
-
-            Ok(())
+            Ok(reload_ignore_cache(self.as_ptr()))
         })
     }
 
     /// Stop loading the page.
     pub fn stop_load(&self) -> Result<()> {
-        try_c!(self, stop_load, {
-            stop_load(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, stop_load, { Ok(stop_load(self.as_ptr())) })
     }
 
     /// Returns the globally unique identifier for this browser. This value is
@@ -472,9 +454,7 @@ impl BrowserHost {
     /// documentation for additional usage information.
     pub fn close_browser(&self, force_close: bool) -> Result<()> {
         try_c!(self, close_browser, {
-            close_browser(self.as_ptr(), force_close as c_int);
-
-            Ok(())
+            Ok(close_browser(self.as_ptr(), force_close as c_int))
         })
     }
 
@@ -494,9 +474,7 @@ impl BrowserHost {
     /// Set whether the browser is focused.
     pub fn set_focus(&self, focus: bool) -> Result<()> {
         try_c!(self, set_focus, {
-            set_focus(self.as_ptr(), focus as c_int);
-
-            Ok(())
+            Ok(set_focus(self.as_ptr(), focus as c_int))
         })
     }
 
@@ -553,11 +531,7 @@ impl BrowserHost {
     /// change will be applied immediately. Otherwise, the change will be applied
     /// asynchronously on the UI thread.
     pub fn zoom(&self, command: ZoomCommand) -> Result<()> {
-        try_c!(self, zoom, {
-            zoom(self.as_ptr(), command.into());
-
-            Ok(())
-        })
+        try_c!(self, zoom, { Ok(zoom(self.as_ptr(), command.into())) })
     }
 
     /// Get the default zoom level. This value will be 0.0 by default but can be
@@ -581,9 +555,7 @@ impl BrowserHost {
     /// on the UI thread.
     pub fn set_zoom_level(&self, zoom_level: f64) -> Result<()> {
         try_c!(self, set_zoom_level, {
-            set_zoom_level(self.as_ptr(), zoom_level);
-
-            Ok(())
+            Ok(set_zoom_level(self.as_ptr(), zoom_level))
         })
     }
 
@@ -617,9 +589,7 @@ impl BrowserHost {
         try_c!(self, start_download, {
             let url = CefString::new(url);
 
-            start_download(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(start_download(self.as_ptr(), url.as_ptr()))
         })
     }
 
@@ -648,11 +618,7 @@ impl BrowserHost {
 
     /// Print the current browser contents.
     pub fn print(&self) -> Result<()> {
-        try_c!(self, print, {
-            print(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, print, { Ok(print(self.as_ptr())) })
     }
 
     // TODO: Fix this!
@@ -687,24 +653,20 @@ impl BrowserHost {
         try_c!(self, find, {
             let search_text = CefString::new(search_text);
 
-            find(
+            Ok(find(
                 self.as_ptr(),
                 search_text.as_ptr(),
                 forward as c_int,
                 match_case as c_int,
                 find_next as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
     /// Cancel all searches that are currently going on.
     pub fn stop_finding(&self, clear_selection: bool) -> Result<()> {
         try_c!(self, stop_finding, {
-            stop_finding(self.as_ptr(), clear_selection as c_int);
-
-            Ok(())
+            Ok(stop_finding(self.as_ptr(), clear_selection as c_int))
         })
     }
 
@@ -729,24 +691,20 @@ impl BrowserHost {
                 .as_ref()
                 .map_or(null(), |p| p as *const cef_point_t);
 
-            show_dev_tools(
+            Ok(show_dev_tools(
                 self.as_ptr(),
                 window_info.as_raw(),
                 client.into_raw(),
                 settings.as_raw(),
                 inspect_element_at
-            );
-
-            Ok(())
+            ))
         })
     }
 
     /// Explicitly close the associated DevTools browser, if any.
     pub fn close_dev_tools(&self) -> Result<()> {
         try_c!(self, close_dev_tools, {
-            close_dev_tools(self.as_ptr());
-
-            Ok(())
+            Ok(close_dev_tools(self.as_ptr()))
         })
     }
 
@@ -852,9 +810,11 @@ impl BrowserHost {
         current_only: bool
     ) -> Result<()> {
         try_c!(self, get_navigation_entries, {
-            get_navigation_entries(self.as_ptr(), visitor.into_raw(), current_only as c_int);
-
-            Ok(())
+            Ok(get_navigation_entries(
+                self.as_ptr(),
+                visitor.into_raw(),
+                current_only as c_int
+            ))
         })
     }
 
@@ -864,9 +824,7 @@ impl BrowserHost {
         try_c!(self, replace_misspelling, {
             let word = CefString::new(word);
 
-            replace_misspelling(self.as_ptr(), word.as_ptr());
-
-            Ok(())
+            Ok(replace_misspelling(self.as_ptr(), word.as_ptr()))
         })
     }
 
@@ -875,9 +833,7 @@ impl BrowserHost {
         try_c!(self, add_word_to_dictionary, {
             let word = CefString::new(word);
 
-            add_word_to_dictionary(self.as_ptr(), word.as_ptr());
-
-            Ok(())
+            Ok(add_word_to_dictionary(self.as_ptr(), word.as_ptr()))
         })
     }
 
@@ -893,11 +849,7 @@ impl BrowserHost {
     /// call cef_render_handler_t::OnPaint asynchronously with the updated
     /// regions. This function is only used when window rendering is disabled.
     pub fn was_resized(&self) -> Result<()> {
-        try_c!(self, was_resized, {
-            was_resized(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, was_resized, { Ok(was_resized(self.as_ptr())) })
     }
 
     /// Notify the browser that it has been hidden or shown. Layouting and
@@ -905,9 +857,7 @@ impl BrowserHost {
     /// hidden. This function is only used when window rendering is disabled.
     pub fn was_hidden(&self, hidden: bool) -> Result<()> {
         try_c!(self, was_hidden, {
-            was_hidden(self.as_ptr(), hidden as c_int);
-
-            Ok(())
+            Ok(was_hidden(self.as_ptr(), hidden as c_int))
         })
     }
 
@@ -919,9 +869,7 @@ impl BrowserHost {
     /// disabled.
     pub fn notify_screen_info_changed(&self) -> Result<()> {
         try_c!(self, notify_screen_info_changed, {
-            notify_screen_info_changed(self.as_ptr());
-
-            Ok(())
+            Ok(notify_screen_info_changed(self.as_ptr()))
         })
     }
 
@@ -930,9 +878,7 @@ impl BrowserHost {
     /// disabled.
     pub fn invalidate(&self, element_type: PaintElementType) -> Result<()> {
         try_c!(self, invalidate, {
-            invalidate(self.as_ptr(), element_type.into());
-
-            Ok(())
+            Ok(invalidate(self.as_ptr(), element_type.into()))
         })
     }
 
@@ -940,18 +886,14 @@ impl BrowserHost {
     /// cef_window_tInfo::external_begin_frame_enabled is set to true (1).
     pub fn send_external_begin_frame(&self) -> Result<()> {
         try_c!(self, send_external_begin_frame, {
-            send_external_begin_frame(self.as_ptr());
-
-            Ok(())
+            Ok(send_external_begin_frame(self.as_ptr()))
         })
     }
 
     /// Send a key event to the browser.
     pub fn send_key_event(&self, event: KeyEvent) -> Result<()> {
         try_c!(self, send_key_event, {
-            send_key_event(self.as_ptr(), &event.into());
-
-            Ok(())
+            Ok(send_key_event(self.as_ptr(), &event.into()))
         })
     }
 
@@ -965,15 +907,13 @@ impl BrowserHost {
         click_count: i32
     ) -> Result<()> {
         try_c!(self, send_mouse_click_event, {
-            send_mouse_click_event(
+            Ok(send_mouse_click_event(
                 self.as_ptr(),
                 &event.into(),
                 mouse_button.into(),
                 mouse_up as c_int,
                 click_count as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -981,9 +921,11 @@ impl BrowserHost {
     /// relative to the upper-left corner of the view.
     pub fn send_mouse_move_event(&self, event: &MouseEvent, mouse_leave: bool) -> Result<()> {
         try_c!(self, send_mouse_move_event, {
-            send_mouse_move_event(self.as_ptr(), &event.into(), mouse_leave as c_int);
-
-            Ok(())
+            Ok(send_mouse_move_event(
+                self.as_ptr(),
+                &event.into(),
+                mouse_leave as c_int
+            ))
         })
     }
 
@@ -1000,32 +942,26 @@ impl BrowserHost {
         delta_y: i32
     ) -> Result<()> {
         try_c!(self, send_mouse_wheel_event, {
-            send_mouse_wheel_event(
+            Ok(send_mouse_wheel_event(
                 self.as_ptr(),
                 &event.into(),
                 delta_x as c_int,
                 delta_y as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
     /// Send a touch event to the browser for a windowless browser.
     pub fn send_touch_event(&self, event: &TouchEvent) -> Result<()> {
         try_c!(self, send_touch_event, {
-            send_touch_event(self.as_ptr(), &event.into());
-
-            Ok(())
+            Ok(send_touch_event(self.as_ptr(), &event.into()))
         })
     }
 
     /// Send a capture lost event to the browser.
     pub fn send_capture_lost_event(&self) -> Result<()> {
         try_c!(self, send_capture_lost_event, {
-            send_capture_lost_event(self.as_ptr());
-
-            Ok(())
+            Ok(send_capture_lost_event(self.as_ptr()))
         })
     }
 
@@ -1033,9 +969,7 @@ impl BrowserHost {
     /// resized. This function is only used on Windows and Linux.
     pub fn notify_move_or_resize_started(&self) -> Result<()> {
         try_c!(self, notify_move_or_resize_started, {
-            notify_move_or_resize_started(self.as_ptr());
-
-            Ok(())
+            Ok(notify_move_or_resize_started(self.as_ptr()))
         })
     }
 
@@ -1058,9 +992,10 @@ impl BrowserHost {
     /// cef_browser_tSettings.windowless_frame_rate.
     pub fn set_windowless_frame_rate(&self, frame_rate: i32) -> Result<()> {
         try_c!(self, set_windowless_frame_rate, {
-            set_windowless_frame_rate(self.as_ptr(), frame_rate as c_int);
-
-            Ok(())
+            Ok(set_windowless_frame_rate(
+                self.as_ptr(),
+                frame_rate as c_int
+            ))
         })
     }
 
@@ -1129,16 +1064,14 @@ impl BrowserHost {
                 .map(|r| r as *const cef_range_t)
                 .unwrap_or_else(null);
 
-            ime_set_composition(
+            Ok(ime_set_composition(
                 self.as_ptr(),
                 text,
                 underlines_count,
                 underlines.into(),
                 replacement_range,
                 selection_range
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -1164,14 +1097,12 @@ impl BrowserHost {
                 .map(|r| r as *const cef_range_t)
                 .unwrap_or_else(null);
 
-            ime_commit_text(
+            Ok(ime_commit_text(
                 self.as_ptr(),
                 text.as_ptr(),
                 replacement_range,
                 relative_cursor_pos
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -1181,9 +1112,10 @@ impl BrowserHost {
     /// function is only used when window rendering is disabled.
     pub fn ime_finish_composing_text(&self, keep_selection: bool) -> Result<()> {
         try_c!(self, ime_finish_composing_text, {
-            ime_finish_composing_text(self.as_ptr(), keep_selection as c_int);
-
-            Ok(())
+            Ok(ime_finish_composing_text(
+                self.as_ptr(),
+                keep_selection as c_int
+            ))
         })
     }
 
@@ -1192,9 +1124,7 @@ impl BrowserHost {
     /// usage. This function is only used when window rendering is disabled.
     pub fn ime_cancel_composition(&self) -> Result<()> {
         try_c!(self, ime_cancel_composition, {
-            ime_cancel_composition(self.as_ptr());
-
-            Ok(())
+            Ok(ime_cancel_composition(self.as_ptr()))
         })
     }
 
@@ -1212,14 +1142,12 @@ impl BrowserHost {
         allowed_ops: DragOperations
     ) -> Result<()> {
         try_c!(self, drag_target_drag_enter, {
-            drag_target_drag_enter(
+            Ok(drag_target_drag_enter(
                 self.as_ptr(),
                 drag_data.into_raw(),
                 &event.into(),
                 allowed_ops.into()
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -1233,9 +1161,11 @@ impl BrowserHost {
         allowed_ops: DragOperations
     ) -> Result<()> {
         try_c!(self, drag_target_drag_over, {
-            drag_target_drag_over(self.as_ptr(), &event.into(), allowed_ops.into());
-
-            Ok(())
+            Ok(drag_target_drag_over(
+                self.as_ptr(),
+                &event.into(),
+                allowed_ops.into()
+            ))
         })
     }
 
@@ -1244,9 +1174,7 @@ impl BrowserHost {
     /// window rendering is disabled.
     pub fn drag_target_drag_leave(&self) -> Result<()> {
         try_c!(self, drag_target_drag_leave, {
-            drag_target_drag_leave(self.as_ptr());
-
-            Ok(())
+            Ok(drag_target_drag_leave(self.as_ptr()))
         })
     }
 
@@ -1257,9 +1185,7 @@ impl BrowserHost {
     /// is disabled.
     pub fn drag_target_drop(&self, event: &MouseEvent) -> Result<()> {
         try_c!(self, drag_target_drop, {
-            drag_target_drop(self.as_ptr(), &event.into());
-
-            Ok(())
+            Ok(drag_target_drop(self.as_ptr(), &event.into()))
         })
     }
 
@@ -1272,9 +1198,7 @@ impl BrowserHost {
     /// disabled.
     pub fn drag_source_ended_at(&self, x: i32, y: i32, op: DragOperations) -> Result<()> {
         try_c!(self, drag_source_ended_at, {
-            drag_source_ended_at(self.as_ptr(), x, y, op.into());
-
-            Ok(())
+            Ok(drag_source_ended_at(self.as_ptr(), x, y, op.into()))
         })
     }
 
@@ -1286,9 +1210,7 @@ impl BrowserHost {
     /// methods. This function is only used when window rendering is disabled.
     pub fn drag_source_system_drag_ended(&self) -> Result<()> {
         try_c!(self, drag_source_system_drag_ended, {
-            drag_source_system_drag_ended(self.as_ptr());
-
-            Ok(())
+            Ok(drag_source_system_drag_ended(self.as_ptr()))
         })
     }
 
@@ -1327,9 +1249,10 @@ impl BrowserHost {
     /// accessibility objects using CefAccessibiltyHandler callbacks if desired.
     pub fn set_accessibility_state(&self, accessibility_state: State) -> Result<()> {
         try_c!(self, set_accessibility_state, {
-            set_accessibility_state(self.as_ptr(), accessibility_state.into());
-
-            Ok(())
+            Ok(set_accessibility_state(
+                self.as_ptr(),
+                accessibility_state.into()
+            ))
         })
     }
 
@@ -1343,14 +1266,12 @@ impl BrowserHost {
         max_size: Size
     ) -> Result<()> {
         try_c!(self, set_auto_resize_enabled, {
-            set_auto_resize_enabled(
+            Ok(set_auto_resize_enabled(
                 self.as_ptr(),
                 enabled as c_int,
                 &min_size.into(),
                 &max_size.into()
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -1374,9 +1295,7 @@ impl BrowserHost {
     /// Set whether the browser's audio is muted.
     pub fn set_audio_muted(&self, mute: bool) -> Result<()> {
         try_c!(self, set_audio_muted, {
-            set_audio_muted(self.as_ptr(), mute as c_int);
-
-            Ok(())
+            Ok(set_audio_muted(self.as_ptr(), mute as c_int))
         })
     }
 
@@ -1410,9 +1329,7 @@ impl BrowserHost {
     /// to true (1) if exiting browser fullscreen will cause a view resize.
     pub fn exit_fullscreen(&self, will_cause_resize: bool) -> Result<()> {
         try_c!(self, exit_fullscreen, {
-            exit_fullscreen(self.as_ptr(), will_cause_resize as c_int);
-
-            Ok(())
+            Ok(exit_fullscreen(self.as_ptr(), will_cause_resize as c_int))
         })
     }
 
@@ -1434,9 +1351,11 @@ impl BrowserHost {
         disposition: WindowOpenDisposition
     ) -> Result<()> {
         try_c!(self, execute_chrome_command, {
-            execute_chrome_command(self.as_ptr(), command_id, disposition.into());
-
-            Ok(())
+            Ok(execute_chrome_command(
+                self.as_ptr(),
+                command_id,
+                disposition.into()
+            ))
         })
     }
 

@@ -80,10 +80,6 @@ impl Extension {
     /// loaded. Will result in a call to
     /// cef_extension_handler_t::OnExtensionUnloaded on success.
     pub fn unload(&self) -> Result<()> {
-        try_c!(self, unload, {
-            unload(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, unload, { Ok(unload(self.as_ptr())) })
     }
 }

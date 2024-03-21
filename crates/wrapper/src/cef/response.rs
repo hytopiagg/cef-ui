@@ -27,9 +27,7 @@ impl Response {
     /// return errors during initial request processing.
     pub fn set_error(&self, error: ErrorCode) -> Result<()> {
         try_c!(self, set_error, {
-            set_error(self.as_ptr(), error.into());
-
-            Ok(())
+            Ok(set_error(self.as_ptr(), error.into()))
         })
     }
 
@@ -41,9 +39,7 @@ impl Response {
     /// Set the response status code.
     pub fn set_status(&self, status: i32) -> Result<()> {
         try_c!(self, set_status, {
-            set_status(self.as_ptr(), status as c_int);
-
-            Ok(())
+            Ok(set_status(self.as_ptr(), status as c_int))
         })
     }
 
@@ -61,9 +57,7 @@ impl Response {
         try_c!(self, set_status_text, {
             let status_text = CefString::new(status_text);
 
-            set_status_text(self.as_ptr(), status_text.as_ptr());
-
-            Ok(())
+            Ok(set_status_text(self.as_ptr(), status_text.as_ptr()))
         })
     }
 
@@ -81,9 +75,7 @@ impl Response {
         try_c!(self, set_mime_type, {
             let mime_type = CefString::new(mime_type);
 
-            set_mime_type(self.as_ptr(), mime_type.as_ptr());
-
-            Ok(())
+            Ok(set_mime_type(self.as_ptr(), mime_type.as_ptr()))
         })
     }
 
@@ -101,9 +93,7 @@ impl Response {
         try_c!(self, set_charset, {
             let charset = CefString::new(charset);
 
-            set_charset(self.as_ptr(), charset.as_ptr());
-
-            Ok(())
+            Ok(set_charset(self.as_ptr(), charset.as_ptr()))
         })
     }
 
@@ -125,14 +115,12 @@ impl Response {
             let name = CefString::new(name);
             let value = CefString::new(value);
 
-            set_header_by_name(
+            Ok(set_header_by_name(
                 self.as_ptr(),
                 name.as_ptr(),
                 value.as_ptr(),
                 overwrite as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -152,9 +140,7 @@ impl Response {
         try_c!(self, set_header_map, {
             let mut headers = CefStringMultiMap::from(headers);
 
-            set_header_map(self.as_ptr(), headers.as_mut_ptr());
-
-            Ok(())
+            Ok(set_header_map(self.as_ptr(), headers.as_mut_ptr()))
         })
     }
 
@@ -172,9 +158,7 @@ impl Response {
         try_c!(self, set_url, {
             let url = CefString::new(url);
 
-            set_url(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(set_url(self.as_ptr(), url.as_ptr()))
         })
     }
 }

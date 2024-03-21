@@ -79,19 +79,13 @@ impl AuthCallback {
             let username = CefString::new(username);
             let password = CefString::new(password);
 
-            cont(self.as_ptr(), username.as_ptr(), password.as_ptr());
-
-            Ok(())
+            Ok(cont(self.as_ptr(), username.as_ptr(), password.as_ptr()))
         })
     }
 
     /// Cancel the authentication request.
     pub fn cancel(&self) -> Result<()> {
-        try_c!(self, cancel, {
-            cancel(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, cancel, { Ok(cancel(self.as_ptr())) })
     }
 }
 
@@ -160,9 +154,7 @@ impl SelectClientCertificateCallback {
         try_c!(self, select, {
             let cert = cert.map_or(null_mut(), |cert| cert.into_raw());
 
-            select(self.as_ptr(), cert);
-
-            Ok(())
+            Ok(select(self.as_ptr(), cert))
         })
     }
 }

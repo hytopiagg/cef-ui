@@ -70,11 +70,7 @@ impl PostDataElement {
 
     /// Remove all contents from the post data element.
     pub fn set_to_empty(&self) -> Result<()> {
-        try_c!(self, set_to_empty, {
-            set_to_empty(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, set_to_empty, { Ok(set_to_empty(self.as_ptr())) })
     }
 
     /// The post data element will represent a file.
@@ -82,9 +78,7 @@ impl PostDataElement {
         try_c!(self, set_to_file, {
             let file_name = CefString::new(file_name);
 
-            set_to_file(self.as_ptr(), file_name.as_ptr());
-
-            Ok(())
+            Ok(set_to_file(self.as_ptr(), file_name.as_ptr()))
         })
     }
 
@@ -92,9 +86,11 @@ impl PostDataElement {
     /// copied.
     pub fn set_to_bytes(&self, bytes: &[u8]) -> Result<()> {
         try_c!(self, set_to_bytes, {
-            set_to_bytes(self.as_ptr(), bytes.len(), bytes.as_ptr() as *const c_void);
-
-            Ok(())
+            Ok(set_to_bytes(
+                self.as_ptr(),
+                bytes.len(),
+                bytes.as_ptr() as *const c_void
+            ))
         })
     }
 
@@ -198,9 +194,7 @@ impl PostData {
     /// Remove all existing post data elements.
     pub fn remove_elements(&self) -> Result<()> {
         try_c!(self, remove_elements, {
-            remove_elements(self.as_ptr());
-
-            Ok(())
+            Ok(remove_elements(self.as_ptr()))
         })
     }
 }
@@ -234,9 +228,7 @@ impl Request {
         try_c!(self, set_url, {
             let url = CefString::new(url);
 
-            set_url(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(set_url(self.as_ptr(), url.as_ptr()))
         })
     }
 
@@ -255,9 +247,7 @@ impl Request {
         try_c!(self, set_method, {
             let method = CefString::new(method);
 
-            set_method(self.as_ptr(), method.as_ptr());
-
-            Ok(())
+            Ok(set_method(self.as_ptr(), method.as_ptr()))
         })
     }
 
@@ -268,9 +258,11 @@ impl Request {
         try_c!(self, set_referrer, {
             let referrer_url = CefString::new(referrer_url);
 
-            set_referrer(self.as_ptr(), referrer_url.as_ptr(), policy.into());
-
-            Ok(())
+            Ok(set_referrer(
+                self.as_ptr(),
+                referrer_url.as_ptr(),
+                policy.into()
+            ))
         })
     }
 
@@ -300,9 +292,7 @@ impl Request {
     /// Set the post data.
     pub fn set_post_data(&self, post_data: PostData) -> Result<()> {
         try_c!(self, set_post_data, {
-            set_post_data(self.as_ptr(), post_data.into_raw());
-
-            Ok(())
+            Ok(set_post_data(self.as_ptr(), post_data.into_raw()))
         })
     }
 
@@ -323,9 +313,7 @@ impl Request {
         try_c!(self, set_header_map, {
             let mut headers = CefStringMultiMap::from(headers);
 
-            set_header_map(self.as_ptr(), headers.as_mut_ptr());
-
-            Ok(())
+            Ok(set_header_map(self.as_ptr(), headers.as_mut_ptr()))
         })
     }
 
@@ -350,14 +338,12 @@ impl Request {
             let name = CefString::new(name);
             let value = CefString::new(value);
 
-            set_header_by_name(
+            Ok(set_header_by_name(
                 self.as_ptr(),
                 name.as_ptr(),
                 value.as_ptr(),
                 overwrite as c_int
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -374,15 +360,13 @@ impl Request {
             let method = CefString::new(method);
             let mut headers = CefStringMultiMap::from(headers);
 
-            set(
+            Ok(set(
                 self.as_ptr(),
                 url.as_ptr(),
                 method.as_ptr(),
                 post_data.into_raw(),
                 headers.as_mut_ptr()
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -402,9 +386,7 @@ impl Request {
         try_c!(self, set_flags, {
             let flags = cef_urlrequest_flags_t::from(&flags);
 
-            set_flags(self.as_ptr(), flags as c_int);
-
-            Ok(())
+            Ok(set_flags(self.as_ptr(), flags as c_int))
         })
     }
 
@@ -424,9 +406,7 @@ impl Request {
         try_c!(self, set_first_party_for_cookies, {
             let url = CefString::new(url);
 
-            set_first_party_for_cookies(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(set_first_party_for_cookies(self.as_ptr(), url.as_ptr()))
         })
     }
 

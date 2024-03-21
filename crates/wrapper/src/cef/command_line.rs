@@ -65,13 +65,11 @@ impl CommandLine {
                 .map(|arg| arg.as_ptr())
                 .collect::<Vec<*const c_char>>();
 
-            init_from_argv(
+            Ok(init_from_argv(
                 self.as_ptr(),
                 argv.len() as c_int,
                 argv.as_ptr() as *const *const c_char
-            );
-
-            Ok(())
+            ))
         })
     }
 
@@ -82,20 +80,14 @@ impl CommandLine {
         try_c!(self, init_from_string, {
             let command_line = CefString::new(command_line);
 
-            init_from_string(self.as_ptr(), command_line.as_ptr());
-
-            Ok(())
+            Ok(init_from_string(self.as_ptr(), command_line.as_ptr()))
         })
     }
 
     /// Reset the command-line switches and arguments but leave the program
     /// component unchanged.
     pub fn reset(&self) -> Result<()> {
-        try_c!(self, reset, {
-            reset(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, reset, { Ok(reset(self.as_ptr())) })
     }
 
     /// Retrieve the original command line string as a vector of strings. The argv
@@ -134,9 +126,7 @@ impl CommandLine {
         try_c!(self, set_program, {
             let program = CefString::new(program);
 
-            set_program(self.as_ptr(), program.as_ptr());
-
-            Ok(())
+            Ok(set_program(self.as_ptr(), program.as_ptr()))
         })
     }
 
@@ -202,9 +192,7 @@ impl CommandLine {
         try_c!(self, append_switch, {
             let name = CefString::new(name);
 
-            append_switch(self.as_ptr(), name.as_ptr());
-
-            Ok(())
+            Ok(append_switch(self.as_ptr(), name.as_ptr()))
         })
     }
 
@@ -219,9 +207,11 @@ impl CommandLine {
                 .map(|value| value.as_ptr())
                 .unwrap_or(null_mut());
 
-            append_switch_with_value(self.as_ptr(), name.as_ptr(), value);
-
-            Ok(())
+            Ok(append_switch_with_value(
+                self.as_ptr(),
+                name.as_ptr(),
+                value
+            ))
         })
     }
 
@@ -248,9 +238,7 @@ impl CommandLine {
         try_c!(self, append_argument, {
             let argument = CefString::new(argument);
 
-            append_argument(self.as_ptr(), argument.as_ptr());
-
-            Ok(())
+            Ok(append_argument(self.as_ptr(), argument.as_ptr()))
         })
     }
 
@@ -260,9 +248,7 @@ impl CommandLine {
         try_c!(self, prepend_wrapper, {
             let wrapper = CefString::new(wrapper);
 
-            prepend_wrapper(self.as_ptr(), wrapper.as_ptr());
-
-            Ok(())
+            Ok(prepend_wrapper(self.as_ptr(), wrapper.as_ptr()))
         })
     }
 }
