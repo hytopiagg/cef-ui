@@ -214,12 +214,7 @@ impl<W: Wrappable> Wrapped<W> {
     }
 
     /// Converts a CEF object to a Rust object.
-    pub unsafe fn wrappable<'a>(ptr: *mut W::Cef) -> &'a W {
-        &(&*(ptr as *const Self)).value
-    }
-
-    /// Converts a CEF object to a Rust object.
-    pub unsafe fn wrappable_mut<'a>(ptr: *mut W::Cef) -> &'a mut W {
+    pub unsafe fn wrappable<'a>(ptr: *mut W::Cef) -> &'a mut W {
         &mut (&mut *(ptr as *mut Self)).value
     }
 

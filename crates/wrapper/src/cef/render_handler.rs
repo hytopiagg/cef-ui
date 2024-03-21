@@ -22,26 +22,26 @@ use std::{
 pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// Return the handler for accessibility notifications. If no handler is
     /// provided the default implementation will be used.
-    fn get_accessibility_handler(&self) -> Option<AccessibilityHandler> {
+    fn get_accessibility_handler(&mut self) -> Option<AccessibilityHandler> {
         None
     }
 
     // /// Called to retrieve the root window rectangle in screen DIP coordinates.
     // /// Return true (1) if the rectangle was provided. If this function returns
     // /// false (0) the rectangle from GetViewRect will be used.
-    fn get_root_screen_rect(&self, browser: Browser) -> Option<Rect> {
+    fn get_root_screen_rect(&mut self, browser: Browser) -> Option<Rect> {
         None
     }
 
     /// Called to retrieve the view rectangle in screen DIP coordinates. This
     /// function must always provide a non-NULL rectangle.
-    fn get_view_rect(&self, browser: Browser) -> Rect;
+    fn get_view_rect(&mut self, browser: Browser) -> Rect;
 
     /// Called to retrieve the translation from view DIP coordinates to screen
     /// coordinates. Windows/Linux should provide screen device (pixel)
     /// coordinates and MacOS should provide screen DIP coordinates. Return true
     /// (1) if the requested coordinates were provided.
-    fn get_screen_point(&self, browser: Browser, view: &Point) -> Option<Point>;
+    fn get_screen_point(&mut self, browser: Browser, view: &Point) -> Option<Point>;
 
     /// Called to allow the client to fill in the CefScreenInfo object with
     /// appropriate values. Return true (1) if the |screen_info| structure has
@@ -50,15 +50,15 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// If the screen info rectangle is left NULL the rectangle from GetViewRect
     /// will be used. If the rectangle is still NULL or invalid popups may not be
     /// drawn correctly.
-    fn get_screen_info(&self, browser: Browser) -> Option<ScreenInfo>;
+    fn get_screen_info(&mut self, browser: Browser) -> Option<ScreenInfo>;
 
     /// Called when the browser wants to show or hide the popup widget. The popup
     /// should be shown if |show| is true (1) and hidden if |show| is false (0).
-    fn on_popup_show(&self, browser: Browser, show: bool);
+    fn on_popup_show(&mut self, browser: Browser, show: bool);
 
     /// Called when the browser wants to move or resize the popup widget. |rect|
     /// contains the new location and size in view coordinates.
-    fn on_popup_size(&self, browser: Browser, rect: &Rect);
+    fn on_popup_size(&mut self, browser: Browser, rect: &Rect);
 
     /// Called when an element should be painted. Pixel values passed to this
     /// function are scaled relative to view coordinates based on the value of
@@ -70,7 +70,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// an upper-left origin. This function is only called when
     /// cef_window_tInfo::shared_texture_enabled is set to false (0).
     fn on_paint(
-        &self,
+        &mut self,
         browser: Browser,
         paint_element_type: PaintElementType,
         dirty_rects: &[Rect],
@@ -87,7 +87,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// This function is only called when cef_window_tInfo::shared_texture_enabled
     /// is set to true (1), and is currently only supported on Windows.
     fn on_accelerated_paint(
-        &self,
+        &mut self,
         browser: Browser,
         paint_element_type: PaintElementType,
         dirty_rects: &[Rect],
@@ -96,11 +96,12 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
 
     /// Called to retrieve the size of the touch handle for the specified
     /// |orientation|.
-    fn get_touch_handle_size(&self, browser: Browser, orientation: HorizontalAlignment) -> Size;
+    fn get_touch_handle_size(&mut self, browser: Browser, orientation: HorizontalAlignment)
+    -> Size;
 
     /// Called when touch handle state is updated. The client is responsible for
     /// rendering the touch handles.
-    fn on_touch_handle_state_changed(&self, browser: Browser, state: &TouchHandleState);
+    fn on_touch_handle_state_changed(&mut self, browser: Browser, state: &TouchHandleState);
 
     /// Called when the user starts dragging content in the web view. Contextual
     /// information about the dragged content is supplied by |drag_data|. (|x|,
@@ -115,7 +116,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// synchronously or asynchronously to inform the web view that the drag
     /// operation has ended.
     fn start_dragging(
-        &self,
+        &mut self,
         browser: Browser,
         drag_data: DragData,
         allowed_ops: DragOperations,
@@ -125,16 +126,16 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// Called when the web view wants to update the mouse cursor during a drag &
     /// drop operation. |operation| describes the allowed operation (none, move,
     /// copy, link).
-    fn update_drag_cursor(&self, browser: Browser, operation: DragOperations);
+    fn update_drag_cursor(&mut self, browser: Browser, operation: DragOperations);
 
     /// Called when the scroll offset has changed.
-    fn on_scroll_offset_changed(&self, browser: Browser, x: f64, y: f64) {}
+    fn on_scroll_offset_changed(&mut self, browser: Browser, x: f64, y: f64) {}
 
     /// Called when the IME composition range has changed. |selected_range| is the
     /// range of characters that have been selected. |character_bounds| is the
     /// bounds of each character in view coordinates.
     fn on_ime_composition_range_changed(
-        &self,
+        &mut self,
         browser: Browser,
         selected_range: &Range,
         character_bounds: &[Rect]
@@ -145,7 +146,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// |selected_text| is the currently selected text and |selected_range| is the
     /// character range.
     fn on_text_selection_changed(
-        &self,
+        &mut self,
         browser: Browser,
         selected_text: &str,
         selected_range: &Range
@@ -156,7 +157,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// specified |browser|. |input_mode| specifies what kind of keyboard should
     /// be opened. If |input_mode| is CEF_TEXT_INPUT_MODE_NONE, any existing
     /// keyboard for this browser should be hidden.
-    fn on_virtual_keyboard_requested(&self, browser: Browser, input_mode: TextInputMode) {}
+    fn on_virtual_keyboard_requested(&mut self, browser: Browser, input_mode: TextInputMode) {}
 }
 
 // Implement this structure to handle events when window rendering is disabled.
@@ -182,7 +183,7 @@ impl RenderHandlerWrapper {
     unsafe extern "C" fn c_get_accessibility_handler(
         this: *mut cef_render_handler_t
     ) -> *mut cef_accessibility_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_accessibility_handler()
@@ -198,7 +199,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *mut cef_rect_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let local_rect = this.0.get_root_screen_rect(browser);
 
@@ -216,7 +217,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *mut cef_rect_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         *rect = this.0.get_view_rect(browser).into();
@@ -234,7 +235,7 @@ impl RenderHandlerWrapper {
         screen_x: *mut c_int,
         screen_y: *mut c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let local_screen = this.0.get_screen_point(
             browser,
@@ -264,7 +265,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         screen_info: *mut cef_screen_info_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let local_screen_info = this.0.get_screen_info(browser);
 
@@ -282,7 +283,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         show: c_int
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -296,7 +297,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         rect: *const cef_rect_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -322,7 +323,7 @@ impl RenderHandlerWrapper {
         width: c_int,
         height: c_int
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let dirty_rects = from_raw_parts(dirty_rects as *const Rect, dirty_rects_count);
         let width = width as usize;
@@ -348,7 +349,7 @@ impl RenderHandlerWrapper {
         dirty_rects: *const cef_rect_t,
         shared_handle: *mut c_void
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let dirty_rects = from_raw_parts(dirty_rects as *const Rect, dirty_rects_count);
 
@@ -364,7 +365,7 @@ impl RenderHandlerWrapper {
         orientation: cef_horizontal_alignment_t,
         size: *mut cef_size_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         *size = this
@@ -380,7 +381,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         state: *const cef_touch_handle_state_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -407,7 +408,7 @@ impl RenderHandlerWrapper {
         x: c_int,
         y: c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let drag_data = DragData::from_ptr_unchecked(drag_data);
 
@@ -424,7 +425,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         operation: cef_drag_operations_mask_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -438,7 +439,7 @@ impl RenderHandlerWrapper {
         x: f64,
         y: f64
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -455,7 +456,7 @@ impl RenderHandlerWrapper {
         character_bounds_count: usize,
         character_bounds: *const cef_rect_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let character_bounds =
             from_raw_parts(character_bounds as *const Rect, character_bounds_count);
@@ -473,7 +474,7 @@ impl RenderHandlerWrapper {
         selected_text: *const cef_string_t,
         selected_range: *const cef_range_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let selected_text: String = CefString::from_ptr_unchecked(selected_text).into();
 
@@ -490,7 +491,7 @@ impl RenderHandlerWrapper {
         browser: *mut cef_browser_t,
         input_mode: cef_text_input_mode_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0

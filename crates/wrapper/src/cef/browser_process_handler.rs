@@ -114,7 +114,7 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
     /// Do not keep a reference to the |registrar| object. This function is called
     /// on the browser process UI thread.
     fn on_register_custom_preferences(
-        &self,
+        &mut self,
         preferences_type: PreferencesType,
         registrar: &mut PreferenceRegistrar
     ) {
@@ -122,14 +122,14 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
 
     /// Called on the browser process UI thread immediately after the CEF context
     /// has been initialized.
-    fn on_context_initialized(&self) {}
+    fn on_context_initialized(&mut self) {}
 
     /// Called before a child process is launched. Will be called on the browser
     /// process UI thread when launching a render process and on the browser
     /// process IO thread when launching a GPU process. Provides an opportunity to
     /// modify the child process command line. Do not keep a reference to
     /// |command_line| outside of this function.
-    fn on_before_child_process_launch(&self, command_line: CommandLine) {}
+    fn on_before_child_process_launch(&mut self, command_line: CommandLine) {}
 
     /// Implement this function to provide app-specific behavior when an already
     /// running app is relaunched with the same CefSettings.root_cache_path value.
@@ -148,7 +148,7 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
     ///
     /// This function will be called on the browser process UI thread.
     fn on_already_running_app_relaunch(
-        &self,
+        &mut self,
         command_line: CommandLine,
         current_directory: &str
     ) -> bool {
@@ -166,14 +166,14 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
     /// then the call should happen reasonably soon. If |delay_ms| is > 0 then the
     /// call should be scheduled to happen after the specified delay and any
     /// currently pending scheduled call should be cancelled.
-    fn on_schedule_message_pump_work(&self, delay_ms: i64) {}
+    fn on_schedule_message_pump_work(&mut self, delay_ms: i64) {}
 
     /// Return the default client for use with a newly created browser window. If
     /// null is returned the browser will be unmanaged (no callbacks will be
     /// executed for that browser) and application shutdown will be blocked until
     /// the browser window is closed manually. This function is currently only
     /// used with the chrome runtime.
-    fn get_default_client(&self) -> Option<Client> {
+    fn get_default_client(&mut self) -> Option<Client> {
         None
     }
 }
@@ -222,7 +222,7 @@ impl BrowserProcessHandlerWrapper {
         preferences_type: cef_preferences_type_t,
         registrar: *mut cef_preference_registrar_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let mut registrar = PreferenceRegistrar::from_ptr_unchecked(registrar);
 
         this.0
@@ -232,7 +232,7 @@ impl BrowserProcessHandlerWrapper {
     /// Called on the browser process UI thread immediately after the CEF context
     /// has been initialized.
     unsafe extern "C" fn c_on_context_initialized(this: *mut cef_browser_process_handler_t) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0.on_context_initialized();
     }
@@ -246,7 +246,7 @@ impl BrowserProcessHandlerWrapper {
         this: *mut cef_browser_process_handler_t,
         command_line: *mut cef_command_line_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let command_line = CommandLine::from_ptr_unchecked(command_line);
 
         this.0
@@ -274,7 +274,7 @@ impl BrowserProcessHandlerWrapper {
         command_line: *mut cef_command_line_t,
         current_directory: *const cef_string_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let command_line = CommandLine::from_ptr_unchecked(command_line);
         let current_directory: String = CefString::from_ptr_unchecked(current_directory).into();
 
@@ -297,7 +297,7 @@ impl BrowserProcessHandlerWrapper {
         this: *mut cef_browser_process_handler_t,
         delay_ms: i64
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .on_schedule_message_pump_work(delay_ms);
@@ -311,7 +311,7 @@ impl BrowserProcessHandlerWrapper {
     unsafe extern "C" fn c_get_default_client(
         this: *mut cef_browser_process_handler_t
     ) -> *mut cef_client_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_default_client()

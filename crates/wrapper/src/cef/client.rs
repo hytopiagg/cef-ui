@@ -27,7 +27,7 @@ pub trait ClientCallbacks: Send + Sync + 'static {
 
     /// Return the handler for context menus. If no handler is provided the
     /// default implementation will be used.
-    fn get_context_menu_handler(&self) -> Option<ContextMenuHandler> {
+    fn get_context_menu_handler(&mut self) -> Option<ContextMenuHandler> {
         None
     }
 
@@ -73,12 +73,12 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_client_t* self);
 
     /// Return the handler for keyboard events.
-    fn get_keyboard_handler(&self) -> Option<KeyboardHandler> {
+    fn get_keyboard_handler(&mut self) -> Option<KeyboardHandler> {
         None
     }
 
     /// Return the handler for browser life span events.
-    fn get_life_span_handler(&self) -> Option<LifeSpanHandler> {
+    fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler> {
         None
     }
 
@@ -92,7 +92,7 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_client_t* self);
 
     /// Return the handler for off-screen rendering events.
-    fn get_render_handler(&self) -> Option<RenderHandler> {
+    fn get_render_handler(&mut self) -> Option<RenderHandler> {
         None
     }
 
@@ -146,7 +146,7 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_context_menu_handler(
         this: *mut cef_client_t
     ) -> *mut cef_context_menu_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_context_menu_handler()
@@ -218,7 +218,7 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_keyboard_handler(
         this: *mut cef_client_t
     ) -> *mut cef_keyboard_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_keyboard_handler()
@@ -230,7 +230,7 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_life_span_handler(
         this: *mut cef_client_t
     ) -> *mut cef_life_span_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_life_span_handler()
@@ -253,7 +253,7 @@ impl ClientWrapper {
     unsafe extern "C" fn c_get_render_handler(
         this: *mut cef_client_t
     ) -> *mut cef_render_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_render_handler()

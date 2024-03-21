@@ -27,7 +27,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// link) or false (0) if it navigated automatically (e.g. via the
     /// DomContentLoaded event).
     fn on_before_browse(
-        &self,
+        &mut self,
         browser: Browser,
         frame: Frame,
         request: Request,
@@ -52,7 +52,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// true (1) to cancel the navigation or false (0) to allow the navigation to
     /// proceed in the source browser's top-level frame.
     fn on_open_urlfrom_tab(
-        &self,
+        &mut self,
         browser: Browser,
         frame: Frame,
         target_url: &str,
@@ -77,7 +77,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// same function will be called on the associated
     /// cef_request_context_handler_t, if any.
     fn get_resource_request_handler(
-        &self,
+        &mut self,
         browser: Browser,
         frame: Frame,
         request: Request,
@@ -100,7 +100,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// when the authentication information is available. Return false (0) to
     /// cancel the request immediately.
     fn get_auth_credentials(
-        &self,
+        &mut self,
         browser: Browser,
         origin_url: &str,
         is_proxy: bool,
@@ -120,7 +120,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// cef_settings_t.ignore_certificate_errors is set all invalid certificates
     /// will be accepted without calling this function.
     fn on_certificate_error(
-        &self,
+        &mut self,
         browser: Browser,
         cert_error: ErrorCode,
         request_url: &str,
@@ -142,7 +142,7 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// already been pruned by Chromium so that it only contains certificates from
     /// issuers that the server trusts.
     fn on_select_client_certificate(
-        &self,
+        &mut self,
         browser: Browser,
         is_proxy: bool,
         host: &str,
@@ -156,15 +156,15 @@ pub trait RequestHandlerCallbacks: Send + Sync + 'static {
     /// Called on the browser process UI thread when the render view associated
     /// with |browser| is ready to receive/handle IPC messages in the render
     /// process.
-    fn on_render_view_ready(&self, browser: Browser) {}
+    fn on_render_view_ready(&mut self, browser: Browser) {}
 
     /// Called on the browser process UI thread when the render process terminates
     /// unexpectedly. |status| indicates how the process terminated.
-    fn on_render_process_terminated(&self, browser: Browser, status: TerminationStatus) {}
+    fn on_render_process_terminated(&mut self, browser: Browser, status: TerminationStatus) {}
 
     /// Called on the browser process UI thread when the window.document object of
     /// the main frame has been created.
-    fn on_document_available_in_main_frame(&self, browser: Browser) {}
+    fn on_document_available_in_main_frame(&mut self, browser: Browser) {}
 }
 
 // Implement this structure to handle events related to browser requests. The
@@ -204,7 +204,7 @@ impl RequestHandlerWrapper {
         user_gesture: c_int,
         is_redirect: c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let frame = Frame::from_ptr_unchecked(frame);
         let request = Request::from_ptr_unchecked(request);
@@ -236,7 +236,7 @@ impl RequestHandlerWrapper {
         target_disposition: cef_window_open_disposition_t,
         user_gesture: c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let frame = Frame::from_ptr_unchecked(frame);
         let target_url: String = CefString::from_ptr_unchecked(target_url).into();
@@ -274,7 +274,7 @@ impl RequestHandlerWrapper {
         request_initiator: *const cef_string_t,
         disable_default_handling: *mut c_int
     ) -> *mut cef_resource_request_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let frame = Frame::from_ptr_unchecked(frame);
         let request = Request::from_ptr_unchecked(request);
@@ -319,7 +319,7 @@ impl RequestHandlerWrapper {
         scheme: *const cef_string_t,
         callback: *mut cef_auth_callback_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let origin_url: String = CefString::from_ptr_unchecked(origin_url).into();
         let host: String = CefString::from_ptr_unchecked(host).into();
@@ -355,7 +355,7 @@ impl RequestHandlerWrapper {
         ssl_info: *mut cef_sslinfo_t,
         callback: *mut cef_callback_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let request_url: String = CefString::from_ptr_unchecked(request_url).into();
         let ssl_info = SslInfo::from_ptr_unchecked(ssl_info);
@@ -387,7 +387,7 @@ impl RequestHandlerWrapper {
         certificates: *const *mut cef_x509certificate_t,
         callback: *mut cef_select_client_certificate_callback_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let host: String = CefString::from_ptr_unchecked(host).into();
         let certificates = from_raw_parts(certificates, certificates_count)
@@ -413,7 +413,7 @@ impl RequestHandlerWrapper {
         this: *mut cef_request_handler_t,
         browser: *mut cef_browser_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0.on_render_view_ready(browser)
@@ -426,7 +426,7 @@ impl RequestHandlerWrapper {
         browser: *mut cef_browser_t,
         status: cef_termination_status_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0
@@ -439,7 +439,7 @@ impl RequestHandlerWrapper {
         this: *mut cef_request_handler_t,
         browser: *mut cef_browser_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0

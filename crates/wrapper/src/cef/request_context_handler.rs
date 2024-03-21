@@ -15,7 +15,7 @@ use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
     /// Called on the browser process UI thread immediately after the request
     /// context has been initialized.
-    fn on_request_context_initialized(&self, request_context: RequestContext) {}
+    fn on_request_context_initialized(&mut self, request_context: RequestContext) {}
 
     /// Called on the browser process IO thread before a resource request is
     /// initiated. The |browser| and |frame| values represent the source of the
@@ -35,7 +35,7 @@ pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
     /// cef_request_handler_t::GetResourceRequestHandler for the same request
     /// (identified by cef_request_t::GetIdentifier).
     fn get_resource_request_handler(
-        &self,
+        &mut self,
         browser: Option<Browser>,
         frame: Option<Frame>,
         request: Request,
@@ -73,7 +73,7 @@ impl RequestContextHandlerWrapper {
         this: *mut cef_request_context_handler_t,
         request_context: *mut cef_request_context_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let request_context = RequestContext::from_ptr_unchecked(request_context);
 
         this.0
@@ -107,7 +107,7 @@ impl RequestContextHandlerWrapper {
         request_initiator: *const cef_string_t,
         disable_default_handling: *mut c_int
     ) -> *mut cef_resource_request_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr(browser);
         let frame = Frame::from_ptr(frame);
         let request = Request::from_ptr_unchecked(request);

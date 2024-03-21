@@ -109,7 +109,7 @@ pub trait NavigationEntryVisitorCallbacks: Send + Sync + 'static {
     /// (0) to stop. |current| is true (1) if this entry is the currently loaded
     /// navigation entry. |index| is the 0-based index of this entry and |total|
     /// is the total number of entries.
-    fn visit(&self, entry: NavigationEntry, current: bool, index: usize, total: usize) -> bool;
+    fn visit(&mut self, entry: NavigationEntry, current: bool, index: usize, total: usize) -> bool;
 }
 
 // Callback structure for cef_browser_host_t::GetNavigationEntries. The
@@ -142,7 +142,7 @@ impl NavigationEntryVisitorWrapper {
         index: c_int,
         total: c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let entry = NavigationEntry::from_ptr_unchecked(entry);
 
         this.0
