@@ -3249,15 +3249,16 @@ pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_TRANSLATE:
 pub const cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_EDIT_RICHLY:
     cef_context_menu_edit_state_flags_t = 256;
 pub type cef_context_menu_edit_state_flags_t = ::std::os::raw::c_uint;
-#[repr(u32)]
-#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub enum cef_quick_menu_edit_state_flags_t {
-    QM_EDITFLAG_NONE = 0,
-    QM_EDITFLAG_CAN_ELLIPSIS = 1,
-    QM_EDITFLAG_CAN_CUT = 2,
-    QM_EDITFLAG_CAN_COPY = 4,
-    QM_EDITFLAG_CAN_PASTE = 8
-}
+pub const cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_NONE: cef_quick_menu_edit_state_flags_t = 0;
+pub const cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_ELLIPSIS:
+    cef_quick_menu_edit_state_flags_t = 1;
+pub const cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_CUT: cef_quick_menu_edit_state_flags_t =
+    2;
+pub const cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_COPY:
+    cef_quick_menu_edit_state_flags_t = 4;
+pub const cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_PASTE:
+    cef_quick_menu_edit_state_flags_t = 8;
+pub type cef_quick_menu_edit_state_flags_t = ::std::os::raw::c_uint;
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 pub enum cef_key_event_type_t {
