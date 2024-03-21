@@ -237,11 +237,7 @@ impl UrlRequest {
 
     /// Cancel the request.
     pub fn cancel(&self) -> Result<()> {
-        try_c!(self, cancel, {
-            cancel(self.as_ptr());
-
-            Ok(())
-        })
+        try_c!(self, cancel, { Ok(cancel(self.as_ptr())) })
     }
 }
 

@@ -195,9 +195,7 @@ impl DragData {
         try_c!(self, set_link_url, {
             let url = CefString::new(url);
 
-            set_link_url(self.as_ptr(), url.as_ptr());
-
-            Ok(())
+            Ok(set_link_url(self.as_ptr(), url.as_ptr()))
         })
     }
 
@@ -206,9 +204,7 @@ impl DragData {
         try_c!(self, set_link_title, {
             let title = CefString::new(title);
 
-            set_link_title(self.as_ptr(), title.as_ptr());
-
-            Ok(())
+            Ok(set_link_title(self.as_ptr(), title.as_ptr()))
         })
     }
 
@@ -217,9 +213,7 @@ impl DragData {
         try_c!(self, set_link_metadata, {
             let data = CefString::new(data);
 
-            set_link_metadata(self.as_ptr(), data.as_ptr());
-
-            Ok(())
+            Ok(set_link_metadata(self.as_ptr(), data.as_ptr()))
         })
     }
 
@@ -228,9 +222,7 @@ impl DragData {
         try_c!(self, set_fragment_text, {
             let text = CefString::new(text);
 
-            set_fragment_text(self.as_ptr(), text.as_ptr());
-
-            Ok(())
+            Ok(set_fragment_text(self.as_ptr(), text.as_ptr()))
         })
     }
 
@@ -239,9 +231,7 @@ impl DragData {
         try_c!(self, set_fragment_html, {
             let html = CefString::new(html);
 
-            set_fragment_html(self.as_ptr(), html.as_ptr());
-
-            Ok(())
+            Ok(set_fragment_html(self.as_ptr(), html.as_ptr()))
         })
     }
 
@@ -250,9 +240,7 @@ impl DragData {
         try_c!(self, set_fragment_base_url, {
             let base_url = CefString::new(base_url);
 
-            set_fragment_base_url(self.as_ptr(), base_url.as_ptr());
-
-            Ok(())
+            Ok(set_fragment_base_url(self.as_ptr(), base_url.as_ptr()))
         })
     }
 
@@ -261,9 +249,7 @@ impl DragData {
     /// to drag in this kind of data.
     pub fn reset_file_contents(&self) -> Result<()> {
         try_c!(self, reset_file_contents, {
-            reset_file_contents(self.as_ptr());
-
-            Ok(())
+            Ok(reset_file_contents(self.as_ptr()))
         })
     }
 
@@ -273,18 +259,18 @@ impl DragData {
             let path = CefString::new(path);
             let display_name = CefString::new(display_name);
 
-            add_file(self.as_ptr(), path.as_ptr(), display_name.as_ptr());
-
-            Ok(())
+            Ok(add_file(
+                self.as_ptr(),
+                path.as_ptr(),
+                display_name.as_ptr()
+            ))
         })
     }
 
     /// Clear list of filenames.
     pub fn clear_filenames(&self) -> Result<()> {
         try_c!(self, clear_filenames, {
-            clear_filenames(self.as_ptr());
-
-            Ok(())
+            Ok(clear_filenames(self.as_ptr()))
         })
     }
 
