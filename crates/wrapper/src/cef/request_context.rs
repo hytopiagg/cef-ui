@@ -1,6 +1,6 @@
 use crate::{
-    ref_counted_ptr, try_c, CefString, CefStringList, CompletionCallback, ErrorCode,
-    RequestContextHandler, ResolveCallback
+    ref_counted_ptr, try_c, CefString, CefStringList, CompletionCallback, RequestContextHandler,
+    ResolveCallback
 };
 use anyhow::Result;
 use bindings::cef_request_context_t;
@@ -106,13 +106,8 @@ impl RequestContext {
     /// being prompted again for server certificates if you reconnect quickly. If
     /// |callback| is non-NULL it will be executed on the UI thread after
     /// completion.
-    pub fn clear_certificate_exceptions(
-        &self,
-        callback: impl FnOnce() + Send + 'static
-    ) -> Result<()> {
+    pub fn clear_certificate_exceptions(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, clear_certificate_exceptions, {
-            let callback = CompletionCallback::new(callback);
-
             clear_certificate_exceptions(self.as_ptr(), callback.into_raw());
 
             Ok(())
@@ -122,13 +117,8 @@ impl RequestContext {
     /// Clears all HTTP authentication credentials that were added as part of
     /// handling GetAuthCredentials. If |callback| is non-NULL it will be executed
     /// on the UI thread after completion.
-    pub fn clear_http_auth_credentials(
-        &self,
-        callback: impl FnOnce() + Send + 'static
-    ) -> Result<()> {
+    pub fn clear_http_auth_credentials(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, clear_http_auth_credentials, {
-            let callback = CompletionCallback::new(callback);
-
             clear_http_auth_credentials(self.as_ptr(), callback.into_raw());
 
             Ok(())
@@ -139,10 +129,8 @@ impl RequestContext {
     /// is only recommended if you have released all other CEF objects but don't
     /// yet want to call cef_shutdown(). If |callback| is non-NULL it will be
     /// executed on the UI thread after completion.
-    pub fn close_all_connections(&self, callback: impl FnOnce() + Send + 'static) -> Result<()> {
+    pub fn close_all_connections(&self, callback: CompletionCallback) -> Result<()> {
         try_c!(self, close_all_connections, {
-            let callback = CompletionCallback::new(callback);
-
             close_all_connections(self.as_ptr(), callback.into_raw());
 
             Ok(())
@@ -151,14 +139,9 @@ impl RequestContext {
 
     /// Attempts to resolve |origin| to a list of associated IP addresses.
     /// |callback| will be executed on the UI thread after completion.
-    pub fn resolve_host(
-        &self,
-        origin: &str,
-        callback: impl FnOnce(ErrorCode, Vec<String>) + Send + 'static
-    ) -> Result<()> {
+    pub fn resolve_host(&self, origin: &str, callback: ResolveCallback) -> Result<()> {
         try_c!(self, resolve_host, {
             let origin = CefString::new(origin);
-            let callback = ResolveCallback::new(callback);
 
             resolve_host(self.as_ptr(), origin.as_ptr(), callback.into_raw());
 
