@@ -111,3 +111,5 @@ pub use x509_certificate::*;
 // TODO: Fix issues where we're using command ids.
 
 // TODO: Pass callbacks in not as FnOnce.
+
+// TODO: Always return Option<String>.
