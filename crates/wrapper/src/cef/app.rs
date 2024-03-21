@@ -23,7 +23,7 @@ pub trait AppCallbacks: Send + Sync + 'static {
     /// arguments for non-browser processes as this may result in undefined
     /// behavior including crashes.
     fn on_before_command_line_processing(
-        &self,
+        &mut self,
         process_type: Option<&str>,
         command_line: Option<CommandLine>
     ) {
@@ -35,20 +35,20 @@ pub trait AppCallbacks: Send + Sync + 'static {
     // /// reference to the |registrar| object. This function is called on the main
     // /// thread for each process and the registered schemes should be the same
     // /// across all processes.
-    // fn on_register_custom_schemes(&self, registrar: SchemeRegistrar) {}
+    // fn on_register_custom_schemes(&mut self, registrar: SchemeRegistrar) {}
 
     // /// Return the handler for resource bundle events. If
     // /// cef_settings_t.pack_loading_disabled is true (1) a handler must be
     // /// returned. If no handler is returned resources will be loaded from pack
     // /// files. This function is called by the browser and render processes on
     // /// multiple threads.
-    // fn get_resource_bundle_handler(&self) -> Option<ResourceBundleHandler> {
+    // fn get_resource_bundle_handler(&mut self) -> Option<ResourceBundleHandler> {
     //     None
     // }
 
     /// Return the handler for functionality specific to the browser process. This
     /// function is called on multiple threads in the browser process.
-    fn get_browser_process_handler(&self) -> Option<BrowserProcessHandler> {
+    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
         None
     }
 
@@ -56,7 +56,7 @@ pub trait AppCallbacks: Send + Sync + 'static {
 
     // /// Return the handler for functionality specific to the render process. This
     // /// function is called on the render process main thread.
-    // fn get_render_process_handler(&self) -> Option<RenderProcessHandler> {
+    // fn get_render_process_handler(&mut self) -> Option<RenderProcessHandler> {
     //     None
     // }
 }
@@ -94,7 +94,7 @@ impl AppWrapper {
         process_type: *const cef_string_t,
         command_line: *mut cef_command_line_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let process_type: Option<String> = CefString::from_ptr(process_type).map(|s| s.into());
         let process_type = process_type.as_deref();
         let command_line = CommandLine::from_ptr(command_line);
@@ -132,7 +132,7 @@ impl AppWrapper {
     unsafe extern "C" fn c_get_browser_process_handler(
         this: *mut cef_app_t
     ) -> *mut cef_browser_process_handler_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .get_browser_process_handler()

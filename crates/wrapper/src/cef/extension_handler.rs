@@ -13,14 +13,14 @@ use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 pub trait ExtensionHandlerCallbacks: Send + Sync + 'static {
     /// Called if the cef_request_context_t::LoadExtension request fails. |result|
     /// will be the error code.
-    fn on_extension_load_failed(&self, result: ErrorCode);
+    fn on_extension_load_failed(&mut self, result: ErrorCode);
 
     /// Called if the cef_request_context_t::LoadExtension request succeeds.
     /// |extension| is the loaded extension.
-    fn on_extension_loaded(&self, extension: Extension);
+    fn on_extension_loaded(&mut self, extension: Extension);
 
     /// Called after the cef_extension_t::Unload request has completed.
-    fn on_extension_unloaded(&self, extension: Extension);
+    fn on_extension_unloaded(&mut self, extension: Extension);
 
     // TODO: Fix this!
 
@@ -80,7 +80,7 @@ pub trait ExtensionHandlerCallbacks: Send + Sync + 'static {
     /// should not be considered unless the source extension has incognito access
     /// enabled, in which case |include_incognito| will be true (1).
     fn get_active_browser(
-        &self,
+        &mut self,
         extension: Extension,
         browser: Browser,
         include_incognito: bool
@@ -93,7 +93,7 @@ pub trait ExtensionHandlerCallbacks: Send + Sync + 'static {
     /// should not be allowed unless the source extension has incognito access
     /// enabled, in which case |include_incognito| will be true (1).
     fn can_access_browser(
-        &self,
+        &mut self,
         extension: Extension,
         browser: Browser,
         include_incognito: bool,
@@ -147,7 +147,7 @@ impl ExtensionWrapper {
         this: *mut cef_extension_handler_t,
         result: cef_errorcode_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
 
         this.0
             .on_extension_load_failed(result.into())
@@ -159,7 +159,7 @@ impl ExtensionWrapper {
         this: *mut cef_extension_handler_t,
         extension: *mut cef_extension_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let extension = Extension::from_ptr_unchecked(extension);
 
         this.0
@@ -171,7 +171,7 @@ impl ExtensionWrapper {
         this: *mut cef_extension_handler_t,
         extension: *mut cef_extension_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let extension = Extension::from_ptr_unchecked(extension);
 
         this.0
@@ -242,7 +242,7 @@ impl ExtensionWrapper {
         browser: *mut cef_browser_t,
         include_incognito: c_int
     ) -> *mut cef_browser_t {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let extension = Extension::from_ptr_unchecked(extension);
         let browser = Browser::from_ptr_unchecked(browser);
 
@@ -265,7 +265,7 @@ impl ExtensionWrapper {
         include_incognito: c_int,
         target_browser: *mut cef_browser_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let extension = Extension::from_ptr_unchecked(extension);
         let browser = Browser::from_ptr_unchecked(browser);
         let target_browser = Browser::from_ptr_unchecked(target_browser);

@@ -649,7 +649,7 @@ impl From<&HashMap<String, Vec<String>>> for CefStringMultiMap {
 /// Implement this structure to receive string values asynchronously.
 pub trait StringVisitorCallbacks: Send + Sync + 'static {
     /// Method that will be executed.
-    fn visit(&self, string: &str);
+    fn visit(&mut self, string: &str);
 }
 
 // Implement this structure to receive string values asynchronously.
@@ -671,7 +671,7 @@ impl StringVisitorWrapper {
 
     /// Method that will be executed.
     unsafe extern "C" fn c_visit(this: *mut cef_string_visitor_t, s: *const cef_string_t) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let s: String = CefString::from_ptr_unchecked(s).into();
 
         this.0.lock().visit(s.as_str());

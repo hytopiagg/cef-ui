@@ -111,7 +111,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// information specific to the created popup browser that will be passed to
     /// cef_render_process_handler_t::on_browser_created() in the render process.
     unsafe fn on_before_popup(
-        &self,
+        &mut self,
         browser: Browser,
         frame: Frame,
         target_url: Option<String>,
@@ -146,7 +146,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// blocked by returning true (1) from cef_command_handler_t::OnChromeCommand
     /// for IDC_DEV_TOOLS. Only used with the Chrome runtime.
     fn on_before_dev_tools_popup(
-        &self,
+        &mut self,
         browser: Browser,
         window_info: &mut WindowInfo,
         client: &mut Option<Client>,
@@ -160,7 +160,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// actions with |browser|. cef_frame_handler_t callbacks related to initial
     /// main frame creation will arrive before this callback. See
     /// cef_frame_handler_t documentation for additional usage information.
-    fn on_after_created(&self, browser: Browser) {}
+    fn on_after_created(&mut self, browser: Browser) {}
 
     ///
     /// Called when a browser has received a request to close. This may result
@@ -250,7 +250,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     ///     is destroyed.
     /// 11. Application exits by calling cef_quit_message_loop() if no other
     /// browsers exist.
-    fn do_close(&self, browser: Browser) -> bool {
+    fn do_close(&mut self, browser: Browser) -> bool {
         false
     }
 
@@ -264,7 +264,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// and cef_resource_request_handler_t callbacks related to those requests may
     /// still arrive on the IO thread after this callback. See cef_frame_handler_t
     /// and do_close() documentation for additional usage information.
-    fn on_before_close(&self, browser: Browser) {}
+    fn on_before_close(&mut self, browser: Browser) {}
 }
 
 // Implement this structure to handle events related to browser life span. The
@@ -324,7 +324,7 @@ impl LifeSpanHandlerWrapper {
         extra_info: *mut *mut cef_dictionary_value_t,
         no_javascript_access: *mut c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let frame = Frame::from_ptr_unchecked(frame);
         let target_url: Option<String> = CefString::from_ptr(target_url).map(|s| s.into());
@@ -411,7 +411,7 @@ impl LifeSpanHandlerWrapper {
         extra_info: *mut *mut cef_dictionary_value_t,
         use_default_window: *mut c_int
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let window_info = WindowInfo::from_ptr_mut_unchecked(window_info);
         let local_client_ptr = *client;
@@ -456,7 +456,7 @@ impl LifeSpanHandlerWrapper {
         this: *mut cef_life_span_handler_t,
         browser: *mut cef_browser_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0.on_after_created(browser);
@@ -554,7 +554,7 @@ impl LifeSpanHandlerWrapper {
         this: *mut cef_life_span_handler_t,
         browser: *mut cef_browser_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0.do_close(browser) as c_int
@@ -574,7 +574,7 @@ impl LifeSpanHandlerWrapper {
         this: *mut cef_life_span_handler_t,
         browser: *mut cef_browser_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
 
         this.0.on_before_close(browser);

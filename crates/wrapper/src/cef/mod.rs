@@ -96,9 +96,6 @@ pub use x509_certificate::*;
 
 // TODO: Check all Wrapper registration functions!
 
-// TODO: Make all callback traits take self mutably. Otherwise they
-//  can't use internal fields to do things.
-
 // TODO: Make sure platform-specific types are using the right cef
 //  typedefs instead of the actual values generated in Rust bindgen.
 

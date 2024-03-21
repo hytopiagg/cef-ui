@@ -15,7 +15,7 @@ pub trait KeyboardHandlerCallbacks: Send + Sync + 'static {
     /// keyboard shortcut set |is_keyboard_shortcut| to true (1) and return false
     /// (0).
     fn on_pre_key_event(
-        &self,
+        &mut self,
         browser: Browser,
         event: KeyEvent,
         os_event: Option<NativeEventHandle>,
@@ -29,7 +29,7 @@ pub trait KeyboardHandlerCallbacks: Send + Sync + 'static {
     /// |os_event| is the operating system event message, if any. Return true (1)
     /// if the keyboard event was handled or false (0) otherwise.
     fn on_key_event(
-        &self,
+        &mut self,
         browser: Browser,
         event: KeyEvent,
         os_event: Option<NativeEventHandle>
@@ -69,7 +69,7 @@ impl KeyboardHandlerWrapper {
         os_event: *mut XEvent,
         is_keyboard_shortcut: *mut c_int
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let event = KeyEvent::from_ptr_unchecked(event);
         let os_event = NativeEventHandle::try_from(os_event).ok();
@@ -94,7 +94,7 @@ impl KeyboardHandlerWrapper {
         event: *const cef_key_event_t,
         os_event: *mut XEvent
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
         let event = KeyEvent::from_ptr_unchecked(event);
         let os_event = NativeEventHandle::try_from(os_event).ok();

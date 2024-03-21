@@ -8,11 +8,11 @@ use std::mem::zeroed;
 pub trait AccessibilityHandlerCallbacks: Send + Sync + 'static {
     /// Called after renderer process sends accessibility tree changes to the
     /// browser process.
-    fn on_accessibility_tree_change(&self, value: Value);
+    fn on_accessibility_tree_change(&mut self, value: Value);
 
     /// Called after renderer process sends accessibility location changes to the
     /// browser process.
-    fn on_accessibility_location_change(&self, value: Value);
+    fn on_accessibility_location_change(&mut self, value: Value);
 }
 
 // Implement this structure to receive accessibility notification when
@@ -40,7 +40,7 @@ impl AccessibilityHandlerWrapper {
         this: *mut cef_accessibility_handler_t,
         value: *mut cef_value_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let value = Value::from_ptr_unchecked(value);
 
         this.0
@@ -53,7 +53,7 @@ impl AccessibilityHandlerWrapper {
         this: *mut cef_accessibility_handler_t,
         value: *mut cef_value_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let value = Value::from_ptr_unchecked(value);
 
         this.0

@@ -253,23 +253,23 @@ pub trait UrlRequestClientCallbacks: Send + Sync + 'static {
     /// Notifies the client that the request has completed. Use the
     /// cef_urlrequest_t::GetRequestStatus function to determine if the request
     /// was successful or not.
-    fn on_request_complete(&self, request: UrlRequest) {}
+    fn on_request_complete(&mut self, request: UrlRequest) {}
 
     /// Notifies the client of upload progress. |current| denotes the number of
     /// bytes sent so far and |total| is the total size of uploading data (or -1
     /// if chunked upload is enabled). This function will only be called if the
     /// UR_FLAG_REPORT_UPLOAD_PROGRESS flag is set on the request.
-    fn on_upload_progress(&self, request: UrlRequest, current: i64, total: i64) {}
+    fn on_upload_progress(&mut self, request: UrlRequest, current: i64, total: i64) {}
 
     /// Notifies the client of download progress. |current| denotes the number of
     /// bytes received up to the call and |total| is the expected total size of
     /// the response (or -1 if not determined).
-    fn on_download_progress(&self, request: UrlRequest, current: i64, total: i64) {}
+    fn on_download_progress(&mut self, request: UrlRequest, current: i64, total: i64) {}
 
     /// Called when some part of the response is read. |data| contains the current
     /// bytes received since the last call. This function will not be called if
     /// the UR_FLAG_NO_DOWNLOAD_DATA flag is set on the request.
-    fn on_download_data(&self, request: UrlRequest, data: &[u8]) {}
+    fn on_download_data(&mut self, request: UrlRequest, data: &[u8]) {}
 
     /// Called on the IO thread when the browser needs credentials from the user.
     /// |isProxy| indicates whether the host is a proxy server. |host| contains
@@ -282,7 +282,7 @@ pub trait UrlRequestClientCallbacks: Send + Sync + 'static {
     /// immediately. This function will only be called for requests initiated from
     /// the browser process.
     fn get_auth_credentials(
-        &self,
+        &mut self,
         is_proxy: bool,
         host: &str,
         port: u16,
@@ -320,7 +320,7 @@ impl UrlRequestClientWrapper {
         this: *mut cef_urlrequest_client_t,
         request: *mut cef_urlrequest_t
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let request = UrlRequest::from_ptr_unchecked(request);
 
         this.0.on_request_complete(request);
@@ -336,7 +336,7 @@ impl UrlRequestClientWrapper {
         current: i64,
         total: i64
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let request = UrlRequest::from_ptr_unchecked(request);
 
         this.0
@@ -352,7 +352,7 @@ impl UrlRequestClientWrapper {
         current: i64,
         total: i64
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let request = UrlRequest::from_ptr_unchecked(request);
 
         this.0
@@ -368,7 +368,7 @@ impl UrlRequestClientWrapper {
         data: *const c_void,
         data_length: usize
     ) {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let request = UrlRequest::from_ptr_unchecked(request);
         let data = from_raw_parts(data as *const u8, data_length);
 
@@ -395,7 +395,7 @@ impl UrlRequestClientWrapper {
         scheme: *const cef_string_t,
         callback: *mut cef_auth_callback_t
     ) -> c_int {
-        let this: &Self = Wrapped::wrappable(this);
+        let this: &mut Self = Wrapped::wrappable(this);
         let host: String = CefString::from_ptr_unchecked(host).into();
         let realm: String = CefString::from_ptr_unchecked(realm).into();
         let scheme: String = CefString::from_ptr_unchecked(scheme).into();
