@@ -84,8 +84,6 @@ pub use x509_certificate::*;
 //  be dropped before you used the pointer. This is because you were using the
 //  original value by value instead of by reference.
 
-// TODO: Check that all bitflags are documented as appropriate.
-
 // TODO: Maybe don't provide default implementations for callbacks?
 //  If anything, check all your default implementations to make sure
 //  they return sane defaults per the documentation.
