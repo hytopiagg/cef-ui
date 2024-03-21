@@ -1,7 +1,8 @@
 use crate::{
-    ref_counted_ptr, CefString, CefStringList, CompletionCallback, ErrorCode,
+    ref_counted_ptr, try_c, CefString, CefStringList, CompletionCallback, ErrorCode,
     RequestContextHandler, ResolveCallback
 };
+use anyhow::Result;
 use bindings::cef_request_context_t;
 
 // A request context provides request handling for a set of related browser or
@@ -23,53 +24,42 @@ ref_counted_ptr!(RequestContext, cef_request_context_t);
 impl RequestContext {
     /// Returns true (1) if this object is pointing to the same context as |that|
     /// object.
-    pub fn is_same(&self, other: RequestContext) -> bool {
-        self.0
-            .is_same
-            .map(|is_same| unsafe { is_same(self.as_ptr(), other.into_raw()) != 0 })
-            .unwrap_or(false)
+    pub fn is_same(&self, other: RequestContext) -> Result<bool> {
+        try_c!(self, is_same, {
+            Ok(is_same(self.as_ptr(), other.into_raw()) != 0)
+        })
     }
 
     /// Returns true (1) if this object is sharing the same storage as |that|
     /// object.
-    pub fn is_sharing_with(&self, other: RequestContext) -> bool {
-        self.0
-            .is_sharing_with
-            .map(|is_sharing_with| unsafe { is_sharing_with(self.as_ptr(), other.into_raw()) != 0 })
-            .unwrap_or(false)
+    pub fn is_sharing_with(&self, other: RequestContext) -> Result<bool> {
+        try_c!(self, is_sharing_with, {
+            Ok(is_sharing_with(self.as_ptr(), other.into_raw()) != 0)
+        })
     }
 
     /// Returns true (1) if this object is the global context. The global context
     /// is used by default when creating a browser or URL request with a NULL
     /// context argument.
-    pub fn is_global(&self) -> bool {
-        self.0
-            .is_global
-            .map(|is_global| unsafe { is_global(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_global(&self) -> Result<bool> {
+        try_c!(self, is_global, { Ok(is_global(self.as_ptr()) != 0) })
     }
 
     /// Returns the handler for this context if any.
-    pub fn get_handler(&self) -> Option<RequestContextHandler> {
-        self.0
-            .get_handler
-            .and_then(|get_handler| unsafe {
-                let request_context_handler = get_handler(self.as_ptr());
-
-                RequestContextHandler::from_ptr(request_context_handler)
-            })
+    pub fn get_handler(&self) -> Result<Option<RequestContextHandler>> {
+        try_c!(self, get_handler, {
+            Ok(RequestContextHandler::from_ptr(get_handler(self.as_ptr())))
+        })
     }
 
     /// Returns the cache path for this object. If NULL an "incognito mode" in-
     /// memory cache is being used.
-    pub fn get_cache_path(&self) -> Option<String> {
-        self.0
-            .get_cache_path
-            .map(|get_cache_path| {
-                let s = unsafe { get_cache_path(self.as_ptr()) };
+    pub fn get_cache_path(&self) -> Result<String> {
+        try_c!(self, get_cache_path, {
+            let s = get_cache_path(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     // TODO: Fix this!
@@ -104,13 +94,10 @@ impl RequestContext {
 
     /// Clear all registered scheme handler factories. Returns false (0) on error.
     /// This function may be called on any thread in the browser process.
-    pub fn clear_scheme_handler_factories(&self) -> bool {
-        self.0
-            .clear_scheme_handler_factories
-            .map(|clear_scheme_handler_factories| unsafe {
-                clear_scheme_handler_factories(self.as_ptr()) != 0
-            })
-            .unwrap_or(false)
+    pub fn clear_scheme_handler_factories(&self) -> Result<bool> {
+        try_c!(self, clear_scheme_handler_factories, {
+            Ok(clear_scheme_handler_factories(self.as_ptr()) != 0)
+        })
     }
 
     /// Clears all certificate exceptions that were added as part of handling
@@ -119,41 +106,47 @@ impl RequestContext {
     /// being prompted again for server certificates if you reconnect quickly. If
     /// |callback| is non-NULL it will be executed on the UI thread after
     /// completion.
-    pub fn clear_certificate_exceptions(&self, callback: impl FnOnce() + Send + 'static) {
-        self.0
-            .clear_certificate_exceptions
-            .map(|clear_certificate_exceptions| unsafe {
-                let callback = CompletionCallback::new(callback);
+    pub fn clear_certificate_exceptions(
+        &self,
+        callback: impl FnOnce() + Send + 'static
+    ) -> Result<()> {
+        try_c!(self, clear_certificate_exceptions, {
+            let callback = CompletionCallback::new(callback);
 
-                clear_certificate_exceptions(self.as_ptr(), callback.into_raw())
-            });
+            clear_certificate_exceptions(self.as_ptr(), callback.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Clears all HTTP authentication credentials that were added as part of
     /// handling GetAuthCredentials. If |callback| is non-NULL it will be executed
     /// on the UI thread after completion.
-    pub fn clear_http_auth_credentials(&self, callback: impl FnOnce() + Send + 'static) {
-        self.0
-            .clear_http_auth_credentials
-            .map(|clear_http_auth_credentials| unsafe {
-                let callback = CompletionCallback::new(callback);
+    pub fn clear_http_auth_credentials(
+        &self,
+        callback: impl FnOnce() + Send + 'static
+    ) -> Result<()> {
+        try_c!(self, clear_http_auth_credentials, {
+            let callback = CompletionCallback::new(callback);
 
-                clear_http_auth_credentials(self.as_ptr(), callback.into_raw())
-            });
+            clear_http_auth_credentials(self.as_ptr(), callback.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Clears all active and idle connections that Chromium currently has. This
     /// is only recommended if you have released all other CEF objects but don't
     /// yet want to call cef_shutdown(). If |callback| is non-NULL it will be
     /// executed on the UI thread after completion.
-    pub fn close_all_connections(&self, callback: impl FnOnce() + Send + 'static) {
-        self.0
-            .close_all_connections
-            .map(|close_all_connections| unsafe {
-                let callback = CompletionCallback::new(callback);
+    pub fn close_all_connections(&self, callback: impl FnOnce() + Send + 'static) -> Result<()> {
+        try_c!(self, close_all_connections, {
+            let callback = CompletionCallback::new(callback);
 
-                close_all_connections(self.as_ptr(), callback.into_raw())
-            });
+            close_all_connections(self.as_ptr(), callback.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Attempts to resolve |origin| to a list of associated IP addresses.
@@ -162,15 +155,15 @@ impl RequestContext {
         &self,
         origin: &str,
         callback: impl FnOnce(ErrorCode, Vec<String>) + Send + 'static
-    ) {
-        self.0
-            .resolve_host
-            .map(|resolve_host| {
-                let origin = CefString::new(origin);
-                let callback = ResolveCallback::new(callback);
+    ) -> Result<()> {
+        try_c!(self, resolve_host, {
+            let origin = CefString::new(origin);
+            let callback = ResolveCallback::new(callback);
 
-                unsafe { resolve_host(self.as_ptr(), origin.as_ptr(), callback.into_raw()) }
-            });
+            resolve_host(self.as_ptr(), origin.as_ptr(), callback.into_raw());
+
+            Ok(())
+        })
     }
 
     // TODO: Fix this!
@@ -232,47 +225,41 @@ impl RequestContext {
     /// by |extension_id|. Other contexts sharing the same storage will also have
     /// access to the extension (see HasExtension). This function must be called
     /// on the browser process UI thread.
-    pub fn did_load_extension(&self, extension_id: &str) -> bool {
-        self.0
-            .did_load_extension
-            .map(|did_load_extension| {
-                let extension_id = CefString::new(extension_id);
+    pub fn did_load_extension(&self, extension_id: &str) -> Result<bool> {
+        try_c!(self, did_load_extension, {
+            let extension_id = CefString::new(extension_id);
 
-                unsafe { did_load_extension(self.as_ptr(), extension_id.as_ptr()) != 0 }
-            })
-            .unwrap_or(false)
+            Ok(did_load_extension(self.as_ptr(), extension_id.as_ptr()) != 0)
+        })
     }
 
     /// Returns true (1) if this context has access to the extension identified by
     /// |extension_id|. This may not be the context that was used to load the
     /// extension (see DidLoadExtension). This function must be called on the
     /// browser process UI thread.
-    pub fn has_extension(&self, extension_id: &str) -> bool {
-        self.0
-            .has_extension
-            .map(|has_extension| {
-                let extension_id = CefString::new(extension_id);
+    pub fn has_extension(&self, extension_id: &str) -> Result<bool> {
+        try_c!(self, has_extension, {
+            let extension_id = CefString::new(extension_id);
 
-                unsafe { has_extension(self.as_ptr(), extension_id.as_ptr()) != 0 }
-            })
-            .unwrap_or(false)
+            Ok(has_extension(self.as_ptr(), extension_id.as_ptr()) != 0)
+        })
     }
 
     /// Retrieve the list of all extensions that this context has access to (see
     /// HasExtension). |extension_ids| will be populated with the list of
     /// extension ID values. Returns true (1) on success. This function must be
     /// called on the browser process UI thread.
-    pub fn get_extensions(&self) -> Option<Vec<String>> {
-        self.0
-            .get_extensions
-            .and_then(|get_extensions| {
-                let mut extension_ids = CefStringList::new();
+    pub fn get_extensions(&self) -> Result<Option<Vec<String>>> {
+        try_c!(self, get_extensions, {
+            let mut extension_ids = CefStringList::new();
 
-                match unsafe { get_extensions(self.as_ptr(), extension_ids.as_mut_ptr()) != 0 } {
-                    true => Some(extension_ids.into()),
-                    false => None
-                }
-            })
+            let extension_ids = match get_extensions(self.as_ptr(), extension_ids.as_mut_ptr()) {
+                0 => None,
+                _ => Some(extension_ids.into())
+            };
+
+            Ok(extension_ids)
+        })
     }
 
     // TODO: Fix this!
