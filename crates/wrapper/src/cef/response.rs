@@ -60,7 +60,7 @@ impl Response {
             .map(|get_status_text| {
                 let s = unsafe { get_status_text(self.as_ptr()) };
 
-                crate::CefString::from_userfree_ptr(s).into()
+                crate::CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -82,7 +82,7 @@ impl Response {
             .map(|get_mime_type| {
                 let s = unsafe { get_mime_type(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -104,7 +104,7 @@ impl Response {
             .map(|get_charset| {
                 let s = unsafe { get_charset(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -127,7 +127,7 @@ impl Response {
                 let name = CefString::new(name);
                 let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -178,7 +178,7 @@ impl Response {
         self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 

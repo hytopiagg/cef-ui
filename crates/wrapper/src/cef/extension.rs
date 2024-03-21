@@ -15,7 +15,7 @@ impl Extension {
             .map(|get_identifier| {
                 let s = unsafe { get_identifier(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -26,7 +26,7 @@ impl Extension {
         self.0.get_path.map(|get_path| {
             let s = unsafe { get_path(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 

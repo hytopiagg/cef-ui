@@ -156,7 +156,7 @@ impl Value {
         self.0.get_string.map(|get_string| {
             let s = unsafe { get_string(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -570,7 +570,7 @@ impl DictionaryValue {
             let key = CefString::new(key);
             let s = unsafe { get_string(self.as_ptr(), key.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -891,7 +891,7 @@ impl ListValue {
         self.0.get_string.map(|get_string| {
             let s = unsafe { get_string(self.as_ptr(), index) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 

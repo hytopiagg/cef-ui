@@ -184,7 +184,7 @@ impl Frame {
         self.0.get_name.map(|get_name| {
             let s = unsafe { get_name(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -210,7 +210,7 @@ impl Frame {
         self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 

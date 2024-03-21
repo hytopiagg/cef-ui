@@ -23,7 +23,7 @@ impl NavigationEntry {
         self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -34,7 +34,7 @@ impl NavigationEntry {
             .map(|get_display_url| {
                 let s = unsafe { get_display_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -46,7 +46,7 @@ impl NavigationEntry {
             .map(|get_original_url| {
                 let s = unsafe { get_original_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -55,7 +55,7 @@ impl NavigationEntry {
         self.0.get_title.map(|get_title| {
             let s = unsafe { get_title(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
