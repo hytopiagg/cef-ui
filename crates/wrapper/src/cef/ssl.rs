@@ -1,4 +1,5 @@
-use crate::{ref_counted_ptr, X509Certificate};
+use crate::{ref_counted_ptr, try_c, X509Certificate};
+use anyhow::Result;
 use bindings::{
     cef_cert_status_t, cef_cert_status_t_CERT_STATUS_AUTHORITY_INVALID,
     cef_cert_status_t_CERT_STATUS_COMMON_NAME_INVALID,
@@ -188,19 +189,19 @@ ref_counted_ptr!(SslInfo, cef_sslinfo_t);
 impl SslInfo {
     /// Returns a bitmask containing any and all problems verifying the server
     /// certificate.
-    pub fn get_cert_status(&self) -> Option<CertStatus> {
-        self.0
-            .get_cert_status
-            .map(|get_cert_status| unsafe { get_cert_status(self.as_ptr()).into() })
+    pub fn get_cert_status(&self) -> Result<CertStatus> {
+        try_c!(self, get_cert_status, {
+            Ok(get_cert_status(self.as_ptr()).into())
+        })
     }
 
     /// Returns the X.509 certificate.
-    pub fn get_x509certificate(&self) -> Option<X509Certificate> {
-        self.0
-            .get_x509certificate
-            .map(|get_x509certificate| unsafe {
-                X509Certificate::from_ptr_unchecked(get_x509certificate(self.as_ptr()))
-            })
+    pub fn get_x509certificate(&self) -> Result<X509Certificate> {
+        try_c!(self, get_x509certificate, {
+            Ok(X509Certificate::from_ptr_unchecked(get_x509certificate(
+                self.as_ptr()
+            )))
+        })
     }
 }
 
@@ -209,41 +210,40 @@ ref_counted_ptr!(SslStatus, cef_sslstatus_t);
 
 impl SslStatus {
     /// Returns true (1) if the status is related to a secure SSL/TLS connection.
-    pub fn is_secure_connection(&self) -> bool {
-        self.0
-            .is_secure_connection
-            .map(|is_secure_connection| unsafe { is_secure_connection(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_secure_connection(&self) -> Result<bool> {
+        try_c!(self, is_secure_connection, {
+            Ok(is_secure_connection(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns a bitmask containing any and all problems verifying the server
     /// certificate.
-    pub fn get_cert_status(&self) -> Option<CertStatus> {
-        self.0
-            .get_cert_status
-            .map(|get_cert_status| unsafe { get_cert_status(self.as_ptr()).into() })
+    pub fn get_cert_status(&self) -> Result<CertStatus> {
+        try_c!(self, get_cert_status, {
+            Ok(get_cert_status(self.as_ptr()).into())
+        })
     }
 
     /// Returns the SSL version used for the SSL connection.
-    pub fn get_ssl_version(&self) -> Option<SslVersion> {
-        self.0
-            .get_sslversion
-            .map(|get_sslversion| unsafe { get_sslversion(self.as_ptr()).into() })
+    pub fn get_ssl_version(&self) -> Result<SslVersion> {
+        try_c!(self, get_sslversion, {
+            Ok(get_sslversion(self.as_ptr()).into())
+        })
     }
 
     /// Returns a bitmask containing the page security content status.
-    pub fn get_content_status(&self) -> Option<SslContentStatus> {
-        self.0
-            .get_content_status
-            .map(|get_content_status| unsafe { get_content_status(self.as_ptr()).into() })
+    pub fn get_content_status(&self) -> Result<SslContentStatus> {
+        try_c!(self, get_content_status, {
+            Ok(get_content_status(self.as_ptr()).into())
+        })
     }
 
     /// Returns the X.509 certificate.
-    pub fn get_x509certificate(&self) -> Option<X509Certificate> {
-        self.0
-            .get_x509certificate
-            .map(|get_x509certificate| unsafe {
-                X509Certificate::from_ptr_unchecked(get_x509certificate(self.as_ptr()))
-            })
+    pub fn get_x509certificate(&self) -> Result<X509Certificate> {
+        try_c!(self, get_x509certificate, {
+            Ok(X509Certificate::from_ptr_unchecked(get_x509certificate(
+                self.as_ptr()
+            )))
+        })
     }
 }
