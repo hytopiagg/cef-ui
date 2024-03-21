@@ -53,6 +53,7 @@ bindgen "$EVERYTHING_HEADER" \
     --constified-enum=cef_context_menu_type_flags_t \
     --constified-enum=cef_context_menu_media_state_flags_t \
     --constified-enum=cef_context_menu_edit_state_flags_t \
+    --constified-enum=cef_quick_menu_edit_state_flags_t \
     --output "$BINDINGS" -- \
     -I "$INCLUDE/capi" \
     -I "$INCLUDE" \

@@ -1,4 +1,7 @@
-use crate::{ref_counted_ptr, try_c, CefString, CefStringList, Color, RefCountedPtr, Wrappable};
+use crate::{
+    ref_counted_ptr, try_c, Browser, CefString, CefStringList, Color, EventFlags, Frame, Point,
+    RefCountedPtr, Size, Wrappable, Wrapped
+};
 use anyhow::Result;
 use bindings::{
     cef_browser_t, cef_color_t, cef_context_menu_edit_state_flags_t,
@@ -35,7 +38,11 @@ use bindings::{
     cef_context_menu_type_flags_t_CM_TYPEFLAG_NONE, cef_context_menu_type_flags_t_CM_TYPEFLAG_PAGE,
     cef_context_menu_type_flags_t_CM_TYPEFLAG_SELECTION, cef_event_flags_t, cef_frame_t,
     cef_menu_color_type_t, cef_menu_id_t, cef_menu_item_type_t, cef_menu_model_t, cef_point_t,
-    cef_quick_menu_edit_state_flags_t, cef_run_context_menu_callback_t,
+    cef_quick_menu_edit_state_flags_t, cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_COPY,
+    cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_CUT,
+    cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_ELLIPSIS,
+    cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_PASTE,
+    cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_NONE, cef_run_context_menu_callback_t,
     cef_run_quick_menu_callback_t, cef_size_t
 };
 use bitflags::bitflags;
@@ -89,6 +96,43 @@ impl From<ContextMenuTypeFlags> for cef_context_menu_type_flags_t {
 
 impl From<&ContextMenuTypeFlags> for cef_context_menu_type_flags_t {
     fn from(value: &ContextMenuTypeFlags) -> Self {
+        value.bits()
+    }
+}
+
+bitflags! {
+    /// Supported quick menu state bit flags.
+    #[allow(non_upper_case_globals)]
+    #[derive(Default, Clone, Copy)]
+    pub struct QuickMenuEditStateFlags: cef_quick_menu_edit_state_flags_t {
+        const None = cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_NONE;
+        const CanEllipsis = cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_ELLIPSIS;
+        const CanCut = cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_CUT;
+        const CanCopy = cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_COPY;
+        const CanPaste = cef_quick_menu_edit_state_flags_t_QM_EDITFLAG_CAN_PASTE;
+    }
+}
+
+impl From<cef_quick_menu_edit_state_flags_t> for QuickMenuEditStateFlags {
+    fn from(value: cef_quick_menu_edit_state_flags_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_quick_menu_edit_state_flags_t> for QuickMenuEditStateFlags {
+    fn from(value: &cef_quick_menu_edit_state_flags_t) -> Self {
+        Self::from_bits_truncate(*value)
+    }
+}
+
+impl From<QuickMenuEditStateFlags> for cef_quick_menu_edit_state_flags_t {
+    fn from(value: QuickMenuEditStateFlags) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&QuickMenuEditStateFlags> for cef_quick_menu_edit_state_flags_t {
+    fn from(value: &QuickMenuEditStateFlags) -> Self {
         value.bits()
     }
 }
@@ -1316,104 +1360,125 @@ impl MenuModel {
     }
 }
 
+// Callback structure used for continuation of custom context menu display.
+ref_counted_ptr!(RunContextMenuCallback, cef_run_context_menu_callback_t);
+
+impl RunContextMenuCallback {
+    /// Complete context menu display by selecting the specified |command_id| and
+    /// |event_flags|.
+    pub fn cont(&self, command_id: MenuCommandId, event_flags: EventFlags) -> Result<()> {
+        try_c!(self, cont, {
+            Ok(cont(self.as_ptr(), command_id.into(), event_flags.into()))
+        })
+    }
+
+    /// Cancel context menu display.
+    pub fn cancel(&self) -> Result<()> {
+        try_c!(self, cancel, { Ok(cancel(self.as_ptr())) })
+    }
+}
+
+// Callback structure used for continuation of custom quick menu display.
+ref_counted_ptr!(RunQuickMenuCallback, cef_run_quick_menu_callback_t);
+
+impl RunQuickMenuCallback {
+    /// Complete quick menu display by selecting the specified |command_id| and
+    /// |event_flags|.
+    pub fn cont(&self, command_id: MenuCommandId, event_flags: EventFlags) -> Result<()> {
+        try_c!(self, cont, {
+            Ok(cont(self.as_ptr(), command_id.into(), event_flags.into()))
+        })
+    }
+
+    /// Cancel quick menu display.
+    pub fn cancel(&self) -> Result<()> {
+        try_c!(self, cancel, { Ok(cancel(self.as_ptr())) })
+    }
+}
+
 /// Implement this structure to handle context menu events. The functions of
 /// this structure will be called on the UI thread.
 pub trait ContextMenuHandlerCallbacks: Send + Sync + 'static {
-    //     ///
-    //     /// Called before a context menu is displayed. |params| provides information
-    //     /// about the context menu state. |model| initially contains the default
-    //     /// context menu. The |model| can be cleared to show no context menu or
-    //     /// modified to show a custom menu. Do not keep references to |params| or
-    //     /// |model| outside of this callback.
-    //     ///
-    //     void(CEF_CALLBACK* on_before_context_menu)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     struct _cef_context_menu_params_t* params,
-    //     struct _cef_menu_model_t* model);
-    //
-    //     ///
-    //     /// Called to allow custom display of the context menu. |params| provides
-    //     /// information about the context menu state. |model| contains the context
-    //     /// menu model resulting from OnBeforeContextMenu. For custom display return
-    //     /// true (1) and execute |callback| either synchronously or asynchronously
-    //     /// with the selected command ID. For default display return false (0). Do not
-    //     /// keep references to |params| or |model| outside of this callback.
-    //     ///
-    //     int(CEF_CALLBACK* run_context_menu)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     struct _cef_context_menu_params_t* params,
-    //     struct _cef_menu_model_t* model,
-    //     struct _cef_run_context_menu_callback_t* callback);
-    //
-    //     ///
-    //     /// Called to execute a command selected from the context menu. Return true
-    //     /// (1) if the command was handled or false (0) for the default
-    //     /// implementation. See cef_menu_id_t for the command ids that have default
-    //     /// implementations. All user-defined command ids should be between
-    //     /// MENU_ID_USER_FIRST and MENU_ID_USER_LAST. |params| will have the same
-    //     /// values as what was passed to on_before_context_menu(). Do not keep a
-    //     /// reference to |params| outside of this callback.
-    //     ///
-    //     int(CEF_CALLBACK* on_context_menu_command)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     struct _cef_context_menu_params_t* params,
-    //     int command_id,
-    //     cef_event_flags_t event_flags);
-    //
-    //     ///
-    //     /// Called when the context menu is dismissed irregardless of whether the menu
-    //     /// was canceled or a command was selected.
-    //     ///
-    //     void(CEF_CALLBACK* on_context_menu_dismissed)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame);
-    //
-    //     ///
-    //     /// Called to allow custom display of the quick menu for a windowless browser.
-    //     /// |location| is the top left corner of the selected region. |size| is the
-    //     /// size of the selected region. |edit_state_flags| is a combination of flags
-    //     /// that represent the state of the quick menu. Return true (1) if the menu
-    //     /// will be handled and execute |callback| either synchronously or
-    //     /// asynchronously with the selected command ID. Return false (0) to cancel
-    //     /// the menu.
-    //     ///
-    //     int(CEF_CALLBACK* run_quick_menu)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     const cef_point_t* location,
-    //     const cef_size_t* size,
-    //     cef_quick_menu_edit_state_flags_t edit_state_flags,
-    //     struct _cef_run_quick_menu_callback_t* callback);
-    //
-    //     ///
-    //     /// Called to execute a command selected from the quick menu for a windowless
-    //     /// browser. Return true (1) if the command was handled or false (0) for the
-    //     /// default implementation. See cef_menu_id_t for command IDs that have
-    //     /// default implementations.
-    //     ///
-    //     int(CEF_CALLBACK* on_quick_menu_command)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame,
-    //     int command_id,
-    //     cef_event_flags_t event_flags);
-    //
-    //     ///
-    //     /// Called when the quick menu for a windowless browser is dismissed
-    //     /// irregardless of whether the menu was canceled or a command was selected.
-    //     ///
-    //     void(CEF_CALLBACK* on_quick_menu_dismissed)(
-    //     struct _cef_context_menu_handler_t* self,
-    //     struct _cef_browser_t* browser,
-    //     struct _cef_frame_t* frame);
+    /// Called before a context menu is displayed. |params| provides information
+    /// about the context menu state. |model| initially contains the default
+    /// context menu. The |model| can be cleared to show no context menu or
+    /// modified to show a custom menu. Do not keep references to |params| or
+    /// |model| outside of this callback.
+    fn on_before_context_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        model: MenuModel
+    );
+
+    /// Called to allow custom display of the context menu. |params| provides
+    /// information about the context menu state. |model| contains the context
+    /// menu model resulting from OnBeforeContextMenu. For custom display return
+    /// true (1) and execute |callback| either synchronously or asynchronously
+    /// with the selected command ID. For default display return false (0). Do not
+    /// keep references to |params| or |model| outside of this callback.
+    fn run_context_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        model: MenuModel,
+        callback: RunContextMenuCallback
+    ) -> bool;
+
+    /// Called to execute a command selected from the context menu. Return true
+    /// (1) if the command was handled or false (0) for the default
+    /// implementation. See cef_menu_id_t for the command ids that have default
+    /// implementations. All user-defined command ids should be between
+    /// MENU_ID_USER_FIRST and MENU_ID_USER_LAST. |params| will have the same
+    /// values as what was passed to on_before_context_menu(). Do not keep a
+    /// reference to |params| outside of this callback.
+    fn on_context_menu_command(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        command_id: MenuCommandId,
+        event_flags: EventFlags
+    ) -> bool;
+
+    /// Called when the context menu is dismissed irregardless of whether the menu
+    /// was canceled or a command was selected.
+    fn on_context_menu_dismissed(&mut self, browser: Browser, frame: Frame);
+
+    /// Called to allow custom display of the quick menu for a windowless browser.
+    /// |location| is the top left corner of the selected region. |size| is the
+    /// size of the selected region. |edit_state_flags| is a combination of flags
+    /// that represent the state of the quick menu. Return true (1) if the menu
+    /// will be handled and execute |callback| either synchronously or
+    /// asynchronously with the selected command ID. Return false (0) to cancel
+    /// the menu.
+    fn run_quick_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        location: &Point,
+        size: &Size,
+        edit_state_flags: QuickMenuEditStateFlags,
+        callback: RunQuickMenuCallback
+    ) -> bool;
+
+    /// Called to execute a command selected from the quick menu for a windowless
+    /// browser. Return true (1) if the command was handled or false (0) for the
+    /// default implementation. See cef_menu_id_t for command IDs that have
+    /// default implementations.
+    fn on_quick_menu_command(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        command_id: MenuCommandId,
+        event_flags: EventFlags
+    ) -> bool;
+
+    /// Called when the quick menu for a windowless browser is dismissed
+    /// irregardless of whether the menu was canceled or a command was selected.
+    fn on_quick_menu_dismissed(&mut self, browser: Browser, frame: Frame);
 }
 
 // Implement this structure to handle context menu events. The functions of
@@ -1446,7 +1511,14 @@ impl ContextMenuHandlerWrapper {
         params: *mut cef_context_menu_params_t,
         model: *mut cef_menu_model_t
     ) {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+        let params = ContextMenuParams::from_ptr_unchecked(params);
+        let model = MenuModel::from_ptr_unchecked(model);
+
+        this.0
+            .on_before_context_menu(browser, frame, params, model);
     }
 
     /// Called to allow custom display of the context menu. |params| provides
@@ -1463,7 +1535,15 @@ impl ContextMenuHandlerWrapper {
         model: *mut cef_menu_model_t,
         callback: *mut cef_run_context_menu_callback_t
     ) -> c_int {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+        let params = ContextMenuParams::from_ptr_unchecked(params);
+        let model = MenuModel::from_ptr_unchecked(model);
+        let callback = RunContextMenuCallback::from_ptr_unchecked(callback);
+
+        this.0
+            .run_context_menu(browser, frame, params, model, callback) as c_int
     }
 
     /// Called to execute a command selected from the context menu. Return true
@@ -1481,7 +1561,16 @@ impl ContextMenuHandlerWrapper {
         command_id: c_int,
         event_flags: cef_event_flags_t
     ) -> c_int {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+        let params = ContextMenuParams::from_ptr_unchecked(params);
+        let command_id = MenuCommandId::new(command_id);
+        let event_flags = event_flags.into();
+
+        this.0
+            .on_context_menu_command(browser, frame, params, command_id, event_flags)
+            as c_int
     }
 
     /// Called when the context menu is dismissed irregardless of whether the menu
@@ -1491,7 +1580,12 @@ impl ContextMenuHandlerWrapper {
         browser: *mut cef_browser_t,
         frame: *mut cef_frame_t
     ) {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+
+        this.0
+            .on_context_menu_dismissed(browser, frame)
     }
 
     /// Called to allow custom display of the quick menu for a windowless browser.
@@ -1510,7 +1604,17 @@ impl ContextMenuHandlerWrapper {
         edit_state_flags: cef_quick_menu_edit_state_flags_t,
         callback: *mut cef_run_quick_menu_callback_t
     ) -> c_int {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+        let location = (*location).into();
+        let size = (*size).into();
+        let edit_state_flags = edit_state_flags.into();
+        let callback = RunQuickMenuCallback::from_ptr_unchecked(callback);
+
+        this.0
+            .run_quick_menu(browser, frame, &location, &size, edit_state_flags, callback)
+            as c_int
     }
 
     /// Called to execute a command selected from the quick menu for a windowless
@@ -1524,7 +1628,14 @@ impl ContextMenuHandlerWrapper {
         command_id: c_int,
         event_flags: cef_event_flags_t
     ) -> c_int {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+        let command_id = MenuCommandId::new(command_id);
+        let event_flags = event_flags.into();
+
+        this.0
+            .on_quick_menu_command(browser, frame, command_id, event_flags) as c_int
     }
 
     /// Called when the quick menu for a windowless browser is dismissed
@@ -1534,7 +1645,12 @@ impl ContextMenuHandlerWrapper {
         browser: *mut cef_browser_t,
         frame: *mut cef_frame_t
     ) {
-        todo!()
+        let this: &mut Self = Wrapped::wrappable(this);
+        let browser = Browser::from_ptr_unchecked(browser);
+        let frame = Frame::from_ptr_unchecked(frame);
+
+        this.0
+            .on_quick_menu_dismissed(browser, frame)
     }
 }
 
@@ -1545,16 +1661,14 @@ impl Wrappable for ContextMenuHandlerWrapper {
     fn wrap(self) -> RefCountedPtr<cef_context_menu_handler_t> {
         RefCountedPtr::wrap(
             cef_context_menu_handler_t {
-                base: unsafe { zeroed() },
-
-                // TODO: Fix this!
-                on_before_context_menu:    None,
-                run_context_menu:          None,
-                on_context_menu_command:   None,
-                on_context_menu_dismissed: None,
-                run_quick_menu:            None,
-                on_quick_menu_command:     None,
-                on_quick_menu_dismissed:   None
+                base:                      unsafe { zeroed() },
+                on_before_context_menu:    Some(Self::c_on_before_context_menu),
+                run_context_menu:          Some(Self::c_run_context_menu),
+                on_context_menu_command:   Some(Self::c_on_context_menu_command),
+                on_context_menu_dismissed: Some(Self::c_on_context_menu_dismissed),
+                run_quick_menu:            Some(Self::c_run_quick_menu),
+                on_quick_menu_command:     Some(Self::c_on_quick_menu_command),
+                on_quick_menu_dismissed:   Some(Self::c_on_quick_menu_dismissed)
             },
             self
         )

@@ -98,3 +98,7 @@ pub use x509_certificate::*;
 // TODO: Always return Option<String>.
 
 // TODO: Fix places where we're doing if blah 1 else 0.
+
+// TODO: Move callbacks to their correct modules.
+
+// TODO: Remove Ok(()) and wrap the regular value instead.
