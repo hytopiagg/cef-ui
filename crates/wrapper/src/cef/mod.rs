@@ -94,8 +94,6 @@ pub use x509_certificate::*;
 // TODO: Return Option<T> for all getters on types. Otherwise you may
 //  be returning invalid default values.
 
-// TODO: Check all Wrapper registration functions!
-
 // TODO: Make sure platform-specific types are using the right cef
 //  typedefs instead of the actual values generated in Rust bindgen.
 
