@@ -1,7 +1,8 @@
 use crate::{
-    ref_counted_ptr, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor,
+    ref_counted_ptr, try_c, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor,
     UrlRequest, UrlRequestClient
 };
+use anyhow::Result;
 use bindings::cef_frame_t;
 use std::ffi::c_int;
 
@@ -13,105 +14,102 @@ ref_counted_ptr!(Frame, cef_frame_t);
 
 impl Frame {
     /// True if this object is currently attached to a valid frame.
-    pub fn is_valid(&self) -> bool {
-        self.0
-            .is_valid
-            .map(|is_valid| unsafe { is_valid(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_valid(&self) -> Result<bool> {
+        try_c!(self, is_valid, { Ok(is_valid(self.as_ptr()) != 0) })
     }
 
     /// Execute undo in this frame.
-    pub fn undo(&self) {
-        if let Some(undo) = self.0.undo {
-            unsafe {
-                undo(self.as_ptr());
-            }
-        }
+    pub fn undo(&self) -> Result<()> {
+        try_c!(self, undo, {
+            undo(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute redo in this frame.
-    pub fn redo(&self) {
-        if let Some(redo) = self.0.redo {
-            unsafe {
-                redo(self.as_ptr());
-            }
-        }
+    pub fn redo(&self) -> Result<()> {
+        try_c!(self, redo, {
+            redo(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute cut in this frame.
-    pub fn cut(&self) {
-        if let Some(cut) = self.0.cut {
-            unsafe {
-                cut(self.as_ptr());
-            }
-        }
+    pub fn cut(&self) -> Result<()> {
+        try_c!(self, cut, {
+            cut(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute copy in this frame.
-    pub fn copy(&self) {
-        if let Some(copy) = self.0.copy {
-            unsafe {
-                copy(self.as_ptr());
-            }
-        }
+    pub fn copy(&self) -> Result<()> {
+        try_c!(self, copy, {
+            copy(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute paste in this frame.
-    pub fn paste(&self) {
-        if let Some(paste) = self.0.paste {
-            unsafe {
-                paste(self.as_ptr());
-            }
-        }
+    pub fn paste(&self) -> Result<()> {
+        try_c!(self, paste, {
+            paste(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute delete in this frame.
-    pub fn delete(&self) {
-        if let Some(delete) = self.0.del {
-            unsafe {
-                delete(self.as_ptr());
-            }
-        }
+    pub fn delete(&self) -> Result<()> {
+        try_c!(self, del, {
+            del(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute select all in this frame.
-    pub fn select_all(&self) {
-        if let Some(select_all) = self.0.select_all {
-            unsafe {
-                select_all(self.as_ptr());
-            }
-        }
+    pub fn select_all(&self) -> Result<()> {
+        try_c!(self, select_all, {
+            select_all(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Save this frame's HTML source to a temporary file and open it in the
     /// default text viewing application. This function can only be called from
     /// the browser process.
-    pub fn view_source(&self) {
-        if let Some(view_source) = self.0.view_source {
-            unsafe {
-                view_source(self.as_ptr());
-            }
-        }
+    pub fn view_source(&self) -> Result<()> {
+        try_c!(self, view_source, {
+            view_source(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Retrieve this frame's HTML source as a string sent to the specified
     /// visitor.
-    pub fn get_source(&self, visitor: StringVisitor) {
-        if let Some(get_source) = self.0.get_source {
-            unsafe {
-                get_source(self.as_ptr(), visitor.into_raw());
-            }
-        }
+    pub fn get_source(&self, visitor: StringVisitor) -> Result<()> {
+        try_c!(self, get_source, {
+            get_source(self.as_ptr(), visitor.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Retrieve this frame's display text as a string sent to the specified
     /// visitor.
-    pub fn get_text(&self, visitor: StringVisitor) {
-        if let Some(get_text) = self.0.get_text {
-            unsafe {
-                get_text(self.as_ptr(), visitor.into_raw());
-            }
-        }
+    pub fn get_text(&self, visitor: StringVisitor) -> Result<()> {
+        try_c!(self, get_text, {
+            get_text(self.as_ptr(), visitor.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Load the request represented by the |request| object.
@@ -119,23 +117,23 @@ impl Frame {
     /// WARNING: This function will fail with "bad IPC message" reason
     /// INVALID_INITIATOR_ORIGIN (213) unless you first navigate to the request
     /// origin using some other mechanism (LoadURL, link click, etc).
-    pub fn load_request(&self, request: Request) {
-        if let Some(load_request) = self.0.load_request {
-            unsafe {
-                load_request(self.as_ptr(), request.into_raw());
-            }
-        }
+    pub fn load_request(&self, request: Request) -> Result<()> {
+        try_c!(self, load_request, {
+            load_request(self.as_ptr(), request.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Load the specified |url|.
-    pub fn load_url(&self, url: &str) {
-        if let Some(load_url) = self.0.load_url {
-            unsafe {
-                let url = CefString::new(url);
+    pub fn load_url(&self, url: &str) -> Result<()> {
+        try_c!(self, load_url, {
+            let url = CefString::new(url);
 
-                load_url(self.as_ptr(), url.as_ptr());
-            }
-        }
+            load_url(self.as_ptr(), url.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Execute a string of JavaScript code in this frame. The |script_url|
@@ -143,36 +141,30 @@ impl Frame {
     /// The renderer may request this URL to show the developer the source of the
     /// error.  The |start_line| parameter is the base line number to use for
     /// error reporting.
-    pub fn execute_java_script(&self, code: &str, script_url: &str, start_line: i32) {
-        if let Some(execute_java_script) = self.0.execute_java_script {
-            unsafe {
-                let code = CefString::new(code);
-                let script_url = CefString::new(script_url);
+    pub fn execute_java_script(&self, code: &str, script_url: &str, start_line: i32) -> Result<()> {
+        try_c!(self, execute_java_script, {
+            let code = CefString::new(code);
+            let script_url = CefString::new(script_url);
 
-                execute_java_script(
-                    self.as_ptr(),
-                    code.as_ptr(),
-                    script_url.as_ptr(),
-                    start_line as c_int
-                );
-            }
-        }
+            execute_java_script(
+                self.as_ptr(),
+                code.as_ptr(),
+                script_url.as_ptr(),
+                start_line as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if this is the main (top-level) frame.
-    pub fn is_main(&self) -> bool {
-        self.0
-            .is_main
-            .map(|is_main| unsafe { is_main(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_main(&self) -> Result<bool> {
+        try_c!(self, is_main, { Ok(is_main(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if this is the focused frame.
-    pub fn is_focused(&self) -> bool {
-        self.0
-            .is_focused
-            .map(|is_focused| unsafe { is_focused(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_focused(&self) -> Result<bool> {
+        try_c!(self, is_focused, { Ok(is_focused(self.as_ptr()) != 0) })
     }
 
     /// Returns the name for this frame. If the frame has an assigned name (for
@@ -180,45 +172,42 @@ impl Frame {
     /// returned. Otherwise a unique name will be constructed based on the frame
     /// parent hierarchy. The main (top-level) frame will always have an NULL name
     /// value.
-    pub fn get_name(&self) -> Option<String> {
-        self.0.get_name.map(|get_name| {
-            let s = unsafe { get_name(self.as_ptr()) };
+    pub fn get_name(&self) -> Result<Option<String>> {
+        try_c!(self, get_name, {
+            let s = get_name(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr(s).map(|s| s.into()))
         })
     }
 
     /// Returns the globally unique identifier for this frame or < 0 if the
     /// underlying frame does not yet exist.
-    pub fn get_identifier(&self) -> i64 {
-        self.0
-            .get_identifier
-            .map(|get_identifier| unsafe { get_identifier(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_identifier(&self) -> Result<i64> {
+        try_c!(self, get_identifier, { Ok(get_identifier(self.as_ptr())) })
     }
 
     /// Returns the parent of this frame or NULL if this is the main (top-level)
     /// frame.
-    pub fn get_parent(&self) -> Option<Frame> {
-        self.0
-            .get_parent
-            .and_then(|get_parent| unsafe { Frame::from_ptr(get_parent(self.as_ptr())) })
+    pub fn get_parent(&self) -> Result<Option<Frame>> {
+        try_c!(self, get_parent, {
+            Ok(Frame::from_ptr(get_parent(self.as_ptr())))
+        })
     }
 
     /// Returns the URL currently loaded in this frame.
-    pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.map(|get_url| {
-            let s = unsafe { get_url(self.as_ptr()) };
+    pub fn get_url(&self) -> Result<String> {
+        try_c!(self, get_url, {
+            let s = get_url(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Returns the browser that this frame belongs to.
-    pub fn get_browser(&self) -> Option<Browser> {
-        self.0
-            .get_browser
-            .and_then(|get_browser| unsafe { Browser::from_ptr(get_browser(self.as_ptr())) })
+    pub fn get_browser(&self) -> Result<Browser> {
+        try_c!(self, get_browser, {
+            Ok(Browser::from_ptr_unchecked(get_browser(self.as_ptr())))
+        })
     }
 
     // TODO: Fix this!
@@ -253,16 +242,16 @@ impl Frame {
         &self,
         request: Request,
         client: UrlRequestClient
-    ) -> Option<UrlRequest> {
-        self.0
-            .create_urlrequest
-            .map(|create_urlrequest| unsafe {
-                UrlRequest::from_ptr_unchecked(create_urlrequest(
-                    self.as_ptr(),
-                    request.into_raw(),
-                    client.into_raw()
-                ))
-            })
+    ) -> Result<UrlRequest> {
+        try_c!(self, create_urlrequest, {
+            let url_request = UrlRequest::from_ptr_unchecked(create_urlrequest(
+                self.as_ptr(),
+                request.into_raw(),
+                client.into_raw()
+            ));
+
+            Ok(url_request)
+        })
     }
 
     /// Send a message to the specified |target_process|. Ownership of the message
@@ -271,11 +260,15 @@ impl Frame {
     /// if the browser is closing, navigating, or if the target process crashes).
     /// Send an ACK message back from the target process if confirmation is
     /// required.
-    pub fn send_process_message(&self, target_process: ProcessId, message: ProcessMessage) {
-        if let Some(send_process_message) = self.0.send_process_message {
-            unsafe {
-                send_process_message(self.as_ptr(), target_process.into(), message.into_raw());
-            }
-        }
+    pub fn send_process_message(
+        &self,
+        target_process: ProcessId,
+        message: ProcessMessage
+    ) -> Result<()> {
+        try_c!(self, send_process_message, {
+            send_process_message(self.as_ptr(), target_process.into(), message.into_raw());
+
+            Ok(())
+        })
     }
 }
