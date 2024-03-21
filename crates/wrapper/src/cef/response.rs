@@ -1,4 +1,5 @@
-use crate::{ref_counted_ptr, CefString, CefStringMultiMap, ErrorCode};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringMultiMap, ErrorCode};
+use anyhow::Result;
 use bindings::{cef_response_create, cef_response_t};
 use std::{collections::HashMap, ffi::c_int};
 
@@ -13,183 +14,167 @@ impl Response {
     }
 
     /// Returns true (1) if this object is read-only.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) != 0 })
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Get the response error code. Returns ERR_NONE if there was no error.
-    pub fn get_error(&self) -> Option<ErrorCode> {
-        self.0
-            .get_error
-            .map(|get_error| unsafe { get_error(self.as_ptr()).into() })
+    pub fn get_error(&self) -> Result<ErrorCode> {
+        try_c!(self, get_error, { Ok(get_error(self.as_ptr()).into()) })
     }
 
     /// Set the response error code. This can be used by custom scheme handlers to
     /// return errors during initial request processing.
-    pub fn set_error(&self, error: ErrorCode) {
-        if let Some(set_error) = self.0.set_error {
-            unsafe {
-                set_error(self.as_ptr(), error.into());
-            }
-        }
+    pub fn set_error(&self, error: ErrorCode) -> Result<()> {
+        try_c!(self, set_error, {
+            set_error(self.as_ptr(), error.into());
+
+            Ok(())
+        })
     }
 
     /// Get the response status code.
-    pub fn get_status(&self) -> Option<i32> {
-        self.0
-            .get_status
-            .map(|get_status| unsafe { get_status(self.as_ptr()) as i32 })
+    pub fn get_status(&self) -> Result<i32> {
+        try_c!(self, get_status, { Ok(get_status(self.as_ptr()) as i32) })
     }
 
     /// Set the response status code.
-    pub fn set_status(&self, status: i32) {
-        if let Some(set_status) = self.0.set_status {
-            unsafe {
-                set_status(self.as_ptr(), status as c_int);
-            }
-        }
+    pub fn set_status(&self, status: i32) -> Result<()> {
+        try_c!(self, set_status, {
+            set_status(self.as_ptr(), status as c_int);
+
+            Ok(())
+        })
     }
 
     /// Get the response status text.
-    pub fn get_status_text(&self) -> Option<String> {
-        self.0
-            .get_status_text
-            .map(|get_status_text| {
-                let s = unsafe { get_status_text(self.as_ptr()) };
+    pub fn get_status_text(&self) -> Result<String> {
+        try_c!(self, get_status_text, {
+            let s = get_status_text(self.as_ptr());
 
-                crate::CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Set the response status text.
-    pub fn set_status_text(&self, status_text: &str) {
-        if let Some(set_status_text) = self.0.set_status_text {
-            unsafe {
-                let status_text = CefString::new(status_text);
+    pub fn set_status_text(&self, status_text: &str) -> Result<()> {
+        try_c!(self, set_status_text, {
+            let status_text = CefString::new(status_text);
 
-                set_status_text(self.as_ptr(), status_text.as_ptr());
-            }
-        }
+            set_status_text(self.as_ptr(), status_text.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the response mime type.
-    pub fn get_mime_type(&self) -> Option<String> {
-        self.0
-            .get_mime_type
-            .map(|get_mime_type| {
-                let s = unsafe { get_mime_type(self.as_ptr()) };
+    pub fn get_mime_type(&self) -> Result<String> {
+        try_c!(self, get_mime_type, {
+            let s = get_mime_type(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Set the response mime type.
-    pub fn set_mime_type(&self, mime_type: &str) {
-        if let Some(set_mime_type) = self.0.set_mime_type {
-            unsafe {
-                let mime_type = CefString::new(mime_type);
+    pub fn set_mime_type(&self, mime_type: &str) -> Result<()> {
+        try_c!(self, set_mime_type, {
+            let mime_type = CefString::new(mime_type);
 
-                set_mime_type(self.as_ptr(), mime_type.as_ptr());
-            }
-        }
+            set_mime_type(self.as_ptr(), mime_type.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the response charset.
-    pub fn get_charset(&self) -> Option<String> {
-        self.0
-            .get_charset
-            .map(|get_charset| {
-                let s = unsafe { get_charset(self.as_ptr()) };
+    pub fn get_charset(&self) -> Result<String> {
+        try_c!(self, get_charset, {
+            let s = get_charset(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Set the response charset.
-    pub fn set_charset(&self, charset: &str) {
-        if let Some(set_charset) = self.0.set_charset {
-            unsafe {
-                let charset = CefString::new(charset);
+    pub fn set_charset(&self, charset: &str) -> Result<()> {
+        try_c!(self, set_charset, {
+            let charset = CefString::new(charset);
 
-                set_charset(self.as_ptr(), charset.as_ptr());
-            }
-        }
+            set_charset(self.as_ptr(), charset.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the value for the specified response header field.
-    pub fn get_header_by_name(&self, name: &str) -> Option<String> {
-        self.0
-            .get_header_by_name
-            .map(|get_header_by_name| {
-                let name = CefString::new(name);
-                let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
+    pub fn get_header_by_name(&self, name: &str) -> Result<String> {
+        try_c!(self, get_header_by_name, {
+            let name = CefString::new(name);
+            let s = get_header_by_name(self.as_ptr(), name.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Set the header |name| to |value|. If |overwrite| is true (1) any existing
     /// values will be replaced with the new value. If |overwrite| is false (0)
     /// any existing values will not be overwritten.
-    pub fn set_header_by_name(&self, name: &str, value: &str, overwrite: bool) {
-        if let Some(set_header_by_name) = self.0.set_header_by_name {
+    pub fn set_header_by_name(&self, name: &str, value: &str, overwrite: bool) -> Result<()> {
+        try_c!(self, set_header_by_name, {
             let name = CefString::new(name);
             let value = CefString::new(value);
 
-            unsafe {
-                set_header_by_name(
-                    self.as_ptr(),
-                    name.as_ptr(),
-                    value.as_ptr(),
-                    overwrite as c_int
-                )
-            }
-        }
+            set_header_by_name(
+                self.as_ptr(),
+                name.as_ptr(),
+                value.as_ptr(),
+                overwrite as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Get all response header fields.
-    pub fn get_header_map(&self) -> HashMap<String, Vec<String>> {
-        self.0
-            .get_header_map
-            .map(|get_header_map| {
-                let mut headers = CefStringMultiMap::new();
+    pub fn get_header_map(&self) -> Result<HashMap<String, Vec<String>>> {
+        try_c!(self, get_header_map, {
+            let mut headers = CefStringMultiMap::new();
 
-                unsafe { get_header_map(self.as_ptr(), headers.as_mut_ptr()) };
+            get_header_map(self.as_ptr(), headers.as_mut_ptr());
 
-                headers.into()
-            })
-            .unwrap_or_default()
+            Ok(headers.into())
+        })
     }
 
     /// Set all response header fields.
-    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) {
-        if let Some(set_header_map) = self.0.set_header_map {
+    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) -> Result<()> {
+        try_c!(self, set_header_map, {
             let mut headers = CefStringMultiMap::from(headers);
 
-            unsafe { set_header_map(self.as_ptr(), headers.as_mut_ptr()) }
-        }
+            set_header_map(self.as_ptr(), headers.as_mut_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the resolved URL after redirects or changed as a result of HSTS.
-    pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.map(|get_url| {
-            let s = unsafe { get_url(self.as_ptr()) };
+    pub fn get_url(&self) -> Result<String> {
+        try_c!(self, get_url, {
+            let s = get_url(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Set the resolved URL after redirects or changed as a result of HSTS.
-    pub fn set_url(&self, url: &str) {
-        if let Some(set_url) = self.0.set_url {
-            unsafe {
-                let url = CefString::new(url);
+    pub fn set_url(&self, url: &str) -> Result<()> {
+        try_c!(self, set_url, {
+            let url = CefString::new(url);
 
-                set_url(self.as_ptr(), url.as_ptr());
-            }
-        }
+            set_url(self.as_ptr(), url.as_ptr());
+
+            Ok(())
+        })
     }
 }
