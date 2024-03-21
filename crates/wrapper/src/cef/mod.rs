@@ -104,10 +104,6 @@ pub use x509_certificate::*;
 
 // TODO: Make a macro for all the pointer conversion functions.
 
-// TODO: Return Result<..> everywhere you can when calling into C.
-
 // TODO: Fix issues where we're using command ids.
-
-// TODO: Pass callbacks in not as FnOnce.
 
 // TODO: Always return Option<String>.
