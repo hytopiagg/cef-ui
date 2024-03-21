@@ -1,7 +1,8 @@
 use crate::{
-    ref_counted_ptr, AuthCallback, CefString, ErrorCode, RefCountedPtr, Request, RequestContext,
-    Response, Wrappable, Wrapped
+    ref_counted_ptr, try_c, AuthCallback, CefString, ErrorCode, RefCountedPtr, Request,
+    RequestContext, Response, Wrappable, Wrapped
 };
+use anyhow::Result;
 use bindings::{
     cef_auth_callback_t, cef_string_t, cef_urlrequest_client_t, cef_urlrequest_create,
     cef_urlrequest_flags_t, cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS,
@@ -187,59 +188,60 @@ impl UrlRequest {
 
     /// Returns the request object used to create this URL request. The returned
     /// object is read-only and should not be modified.
-    pub fn get_request(&self) -> Option<Request> {
-        self.0
-            .get_request
-            .map(|get_request| unsafe { Request::from_ptr_unchecked(get_request(self.as_ptr())) })
+    pub fn get_request(&self) -> Result<Request> {
+        try_c!(self, get_request, {
+            Ok(Request::from_ptr_unchecked(get_request(self.as_ptr())))
+        })
     }
 
     /// Returns the client.
-    pub fn get_client(&self) -> Option<UrlRequestClient> {
-        self.0
-            .get_client
-            .map(|get_client| unsafe {
-                UrlRequestClient::from_ptr_unchecked(get_client(self.as_ptr()))
-            })
+    pub fn get_client(&self) -> Result<UrlRequestClient> {
+        try_c!(self, get_client, {
+            Ok(UrlRequestClient::from_ptr_unchecked(get_client(
+                self.as_ptr()
+            )))
+        })
     }
 
     /// Returns the request status.
-    pub fn get_request_status(&self) -> Option<UrlRequestStatus> {
-        self.0
-            .get_request_status
-            .map(|get_request_status| unsafe { get_request_status(self.as_ptr()).into() })
+    pub fn get_request_status(&self) -> Result<UrlRequestStatus> {
+        try_c!(self, get_request_status, {
+            Ok(get_request_status(self.as_ptr()).into())
+        })
     }
 
     /// Returns the request error if status is UR_CANCELED or UR_FAILED, or 0
     /// otherwise.
-    pub fn get_request_error(&self) -> Option<ErrorCode> {
-        self.0
-            .get_request_error
-            .map(|get_request_error| unsafe { get_request_error(self.as_ptr()).into() })
+    pub fn get_request_error(&self) -> Result<ErrorCode> {
+        try_c!(self, get_request_error, {
+            Ok(get_request_error(self.as_ptr()).into())
+        })
     }
 
     /// Returns the response, or NULL if no response information is available.
     /// Response information will only be available after the upload has
     /// completed. The returned object is read-only and should not be modified.
-    pub fn get_response(&self) -> Option<Response> {
-        self.0
-            .get_response
-            .and_then(|get_response| unsafe { Response::from_ptr(get_response(self.as_ptr())) })
+    pub fn get_response(&self) -> Result<Option<Response>> {
+        try_c!(self, get_response, {
+            Ok(Response::from_ptr(get_response(self.as_ptr())))
+        })
     }
 
     /// Returns true (1) if the response body was served from the cache. This
     /// includes responses for which revalidation was required.
-    pub fn response_was_cached(&self) -> bool {
-        self.0
-            .response_was_cached
-            .map(|response_was_cached| unsafe { response_was_cached(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn response_was_cached(&self) -> Result<bool> {
+        try_c!(self, response_was_cached, {
+            Ok(response_was_cached(self.as_ptr()) != 0)
+        })
     }
 
     /// Cancel the request.
-    pub fn cancel(&self) {
-        self.0
-            .cancel
-            .map(|cancel| unsafe { cancel(self.as_ptr()) });
+    pub fn cancel(&self) -> Result<()> {
+        try_c!(self, cancel, {
+            cancel(self.as_ptr());
+
+            Ok(())
+        })
     }
 }
 
