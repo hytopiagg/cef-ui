@@ -96,3 +96,5 @@ pub use x509_certificate::*;
 // TODO: Fix issues where we're using command ids.
 
 // TODO: Always return Option<String>.
+
+// TODO: Fix places where we're doing if blah 1 else 0.
