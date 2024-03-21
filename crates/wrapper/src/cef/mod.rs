@@ -94,9 +94,6 @@ pub use x509_certificate::*;
 // TODO: Return Option<T> for all getters on types. Otherwise you may
 //  be returning invalid default values.
 
-// TODO: Make sure platform-specific types are using the right cef
-//  typedefs instead of the actual values generated in Rust bindgen.
-
 // TODO: Make a macro for all the pointer conversion functions.
 
 // TODO: Fix issues where we're using command ids.

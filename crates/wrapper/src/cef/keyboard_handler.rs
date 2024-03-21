@@ -1,7 +1,7 @@
 use crate::{
     ref_counted_ptr, Browser, KeyEvent, NativeEventHandle, RefCountedPtr, Wrappable, Wrapped
 };
-use bindings::{cef_browser_t, cef_key_event_t, cef_keyboard_handler_t, XEvent};
+use bindings::{cef_browser_t, cef_event_handle_t, cef_key_event_t, cef_keyboard_handler_t};
 use std::{ffi::c_int, mem::zeroed};
 
 /// Implement this structure to handle events related to keyboard input. The
@@ -66,7 +66,7 @@ impl KeyboardHandlerWrapper {
         this: *mut cef_keyboard_handler_t,
         browser: *mut cef_browser_t,
         event: *const cef_key_event_t,
-        os_event: *mut XEvent,
+        os_event: cef_event_handle_t,
         is_keyboard_shortcut: *mut c_int
     ) -> c_int {
         let this: &mut Self = Wrapped::wrappable(this);
@@ -92,7 +92,7 @@ impl KeyboardHandlerWrapper {
         this: *mut cef_keyboard_handler_t,
         browser: *mut cef_browser_t,
         event: *const cef_key_event_t,
-        os_event: *mut XEvent
+        os_event: cef_event_handle_t
     ) -> c_int {
         let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
