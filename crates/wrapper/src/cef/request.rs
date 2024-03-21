@@ -1,6 +1,8 @@
 use crate::{
-    ref_counted_ptr, CefString, CefStringMultiMap, ReferrerPolicy, ResourceType, UrlRequestFlags
+    ref_counted_ptr, try_c, CefString, CefStringMultiMap, ReferrerPolicy, ResourceType,
+    UrlRequestFlags
 };
+use anyhow::Result;
 use bindings::{
     cef_post_data_create, cef_post_data_element_create, cef_post_data_element_t, cef_post_data_t,
     cef_postdataelement_type_t, cef_request_create, cef_request_t, cef_urlrequest_flags_t
@@ -62,74 +64,71 @@ impl PostDataElement {
     }
 
     /// Returns true (1) if this object is read-only.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) != 0 })
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Remove all contents from the post data element.
-    pub fn set_to_empty(&self) {
-        if let Some(set_to_empty) = self.0.set_to_empty {
-            unsafe { set_to_empty(self.as_ptr()) }
-        }
+    pub fn set_to_empty(&self) -> Result<()> {
+        try_c!(self, set_to_empty, {
+            set_to_empty(self.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// The post data element will represent a file.
-    pub fn set_to_file(&self, file_name: &str) {
-        if let Some(set_to_file) = self.0.set_to_file {
+    pub fn set_to_file(&self, file_name: &str) -> Result<()> {
+        try_c!(self, set_to_file, {
             let file_name = CefString::new(file_name);
 
-            unsafe { set_to_file(self.as_ptr(), file_name.as_ptr()) }
-        }
+            set_to_file(self.as_ptr(), file_name.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// The post data element will represent bytes.  The bytes passed in will be
     /// copied.
-    pub fn set_to_bytes(&self, bytes: &[u8]) {
-        if let Some(set_to_bytes) = self.0.set_to_bytes {
-            unsafe { set_to_bytes(self.as_ptr(), bytes.len(), bytes.as_ptr() as *const c_void) }
-        }
+    pub fn set_to_bytes(&self, bytes: &[u8]) -> Result<()> {
+        try_c!(self, set_to_bytes, {
+            set_to_bytes(self.as_ptr(), bytes.len(), bytes.as_ptr() as *const c_void);
+
+            Ok(())
+        })
     }
 
     /// Return the type of this post data element.
-    pub fn get_type(&self) -> Option<PostDataElementType> {
-        self.0
-            .get_type
-            .map(|get_type| unsafe { get_type(self.as_ptr()).into() })
+    pub fn get_type(&self) -> Result<PostDataElementType> {
+        try_c!(self, get_type, { Ok(get_type(self.as_ptr()).into()) })
     }
 
     /// Return the file name.
-    pub fn get_file(&self) -> Option<String> {
-        self.0.get_file.map(|get_file| {
-            let s = unsafe { get_file(self.as_ptr()) };
+    pub fn get_file(&self) -> Result<String> {
+        try_c!(self, get_file, {
+            let s = get_file(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Return the number of bytes.
-    pub fn get_bytes_count(&self) -> usize {
-        self.0
-            .get_bytes_count
-            .map(|get_bytes_count| unsafe { get_bytes_count(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_bytes_count(&self) -> Result<usize> {
+        try_c!(self, get_bytes_count, {
+            Ok(get_bytes_count(self.as_ptr()))
+        })
     }
 
     /// Read up to |size| bytes into |bytes| and return the number of bytes
     /// actually read.
-    pub fn get_bytes(&self, bytes: &mut [u8]) -> usize {
-        self.0
-            .get_bytes
-            .map(|get_bytes| unsafe {
-                get_bytes(
-                    self.as_ptr(),
-                    bytes.len(),
-                    bytes.as_mut_ptr() as *mut c_void
-                )
-            })
-            .unwrap_or(0)
+    pub fn get_bytes(&self, bytes: &mut [u8]) -> Result<usize> {
+        try_c!(self, get_bytes, {
+            Ok(get_bytes(
+                self.as_ptr(),
+                bytes.len(),
+                bytes.as_mut_ptr() as *mut c_void
+            ))
+        })
     }
 }
 
@@ -144,79 +143,65 @@ impl PostData {
     }
 
     /// Returns true (1) if this object is read-only.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) != 0 })
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if the underlying POST data includes elements that are
     /// not represented by this cef_post_data_t object (for example, multi-part
     /// file upload data). Modifying cef_post_data_t objects with excluded
     /// elements may result in the request failing.
-    pub fn has_excluded_elements(&self) -> bool {
-        self.0
-            .has_excluded_elements
-            .map(|has_excluded_elements| unsafe { has_excluded_elements(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_excluded_elements(&self) -> Result<bool> {
+        try_c!(self, has_excluded_elements, {
+            Ok(has_excluded_elements(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns the number of existing post data elements.
-    pub fn get_element_count(&self) -> usize {
-        self.0
-            .get_element_count
-            .map(|get_element_count| unsafe { get_element_count(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_element_count(&self) -> Result<usize> {
+        try_c!(self, get_element_count, {
+            Ok(get_element_count(self.as_ptr()))
+        })
     }
 
     /// Retrieve the post data elements.
-    pub fn get_elements(&self) -> Vec<PostDataElement> {
-        self.0
-            .get_elements
-            .map(|get_elements| {
-                let mut count = self.get_element_count();
-                let mut elements = vec![null_mut(); count];
+    pub fn get_elements(&self) -> Result<Vec<PostDataElement>> {
+        try_c!(self, get_elements, {
+            let mut count = self.get_element_count()?;
+            let mut elements = vec![null_mut(); count];
 
-                unsafe {
-                    get_elements(self.as_ptr(), &mut count, elements.as_mut_ptr());
+            get_elements(self.as_ptr(), &mut count, elements.as_mut_ptr());
 
-                    elements
-                        .into_iter()
-                        .map(|ptr| PostDataElement::from_ptr_unchecked(ptr))
-                        .collect()
-                }
-            })
-            .unwrap_or_default()
+            Ok(elements
+                .into_iter()
+                .map(|ptr| PostDataElement::from_ptr_unchecked(ptr))
+                .collect())
+        })
     }
-
-    //     void(CEF_CALLBACK* get_elements)(struct _cef_post_data_t* self,
-    //     size_t* elementsCount,
-    //     struct _cef_post_data_element_t** elements);
 
     /// Remove the specified post data element.  Returns true (1) if the removal
     /// succeeds.
-    pub fn remove_element(&self, element: PostDataElement) -> bool {
-        self.0
-            .remove_element
-            .map(|remove_element| unsafe { remove_element(self.as_ptr(), element.into_raw()) != 0 })
-            .unwrap_or(false)
+    pub fn remove_element(&self, element: PostDataElement) -> Result<bool> {
+        try_c!(self, remove_element, {
+            Ok(remove_element(self.as_ptr(), element.into_raw()) != 0)
+        })
     }
 
     /// Add the specified post data element.  Returns true (1) if the add
     /// succeeds.
-    pub fn add_element(&self, element: PostDataElement) -> bool {
-        self.0
-            .add_element
-            .map(|add_element| unsafe { add_element(self.as_ptr(), element.into_raw()) != 0 })
-            .unwrap_or(false)
+    pub fn add_element(&self, element: PostDataElement) -> Result<bool> {
+        try_c!(self, add_element, {
+            Ok(add_element(self.as_ptr(), element.into_raw()) != 0)
+        })
     }
 
     /// Remove all existing post data elements.
-    pub fn remove_elements(&self) {
-        if let Some(remove_elements) = self.0.remove_elements {
-            unsafe { remove_elements(self.as_ptr()) }
-        }
+    pub fn remove_elements(&self) -> Result<()> {
+        try_c!(self, remove_elements, {
+            remove_elements(self.as_ptr());
+
+            Ok(())
+        })
     }
 }
 
@@ -231,151 +216,149 @@ impl Request {
     }
 
     /// Returns true (1) if this object is read-only.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) != 0 })
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Get the fully qualified URL.
-    pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.map(|get_url| {
-            let s = unsafe { get_url(self.as_ptr()) };
+    pub fn get_url(&self) -> Result<String> {
+        try_c!(self, get_url, {
+            let s = get_url(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Set the fully qualified URL.
-    pub fn set_url(&self, url: &str) {
-        if let Some(set_url) = self.0.set_url {
+    pub fn set_url(&self, url: &str) -> Result<()> {
+        try_c!(self, set_url, {
             let url = CefString::new(url);
 
-            unsafe { set_url(self.as_ptr(), url.as_ptr()) }
-        }
+            set_url(self.as_ptr(), url.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the request function type. The value will default to POST if post data
     /// is provided and GET otherwise.
-    pub fn get_method(&self) -> Option<String> {
-        self.0.get_method.map(|get_method| {
-            let s = unsafe { get_method(self.as_ptr()) };
+    pub fn get_method(&self) -> Result<String> {
+        try_c!(self, get_method, {
+            let s = get_method(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Set the request function type.
-    pub fn set_method(&self, method: &str) {
-        if let Some(set_method) = self.0.set_method {
+    pub fn set_method(&self, method: &str) -> Result<()> {
+        try_c!(self, set_method, {
             let method = CefString::new(method);
 
-            unsafe { set_method(self.as_ptr(), method.as_ptr()) }
-        }
+            set_method(self.as_ptr(), method.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Set the referrer URL and policy. If non-NULL the referrer URL must be
     /// fully qualified with an HTTP or HTTPS scheme component. Any username,
     /// password or ref component will be removed.
-    pub fn set_referrer(&self, referrer_url: &str, policy: ReferrerPolicy) {
-        if let Some(set_referrer) = self.0.set_referrer {
+    pub fn set_referrer(&self, referrer_url: &str, policy: ReferrerPolicy) -> Result<()> {
+        try_c!(self, set_referrer, {
             let referrer_url = CefString::new(referrer_url);
 
-            unsafe { set_referrer(self.as_ptr(), referrer_url.as_ptr(), policy.into()) }
-        }
+            set_referrer(self.as_ptr(), referrer_url.as_ptr(), policy.into());
+
+            Ok(())
+        })
     }
 
     /// Get the referrer URL.
-    pub fn get_referrer_url(&self) -> Option<String> {
-        self.0
-            .get_referrer_url
-            .map(|get_referrer_url| {
-                let s = unsafe { get_referrer_url(self.as_ptr()) };
+    pub fn get_referrer_url(&self) -> Result<String> {
+        try_c!(self, get_referrer_url, {
+            let s = get_referrer_url(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Get the referrer policy.
-    pub fn get_referrer_policy(&self) -> Option<ReferrerPolicy> {
-        self.0
-            .get_referrer_policy
-            .map(|get_referrer_policy| unsafe { get_referrer_policy(self.as_ptr()).into() })
+    pub fn get_referrer_policy(&self) -> Result<ReferrerPolicy> {
+        try_c!(self, get_referrer_policy, {
+            Ok(get_referrer_policy(self.as_ptr()).into())
+        })
     }
 
     /// Get the post data.
-    pub fn get_post_data(&self) -> Option<PostData> {
-        self.0
-            .get_post_data
-            .map(|get_post_data| unsafe {
-                PostData::from_ptr_unchecked(get_post_data(self.as_ptr()))
-            })
+    pub fn get_post_data(&self) -> Result<PostData> {
+        try_c!(self, get_post_data, {
+            Ok(PostData::from_ptr_unchecked(get_post_data(self.as_ptr())))
+        })
     }
 
     /// Set the post data.
-    pub fn set_post_data(&self, post_data: PostData) {
-        if let Some(set_post_data) = self.0.set_post_data {
-            unsafe { set_post_data(self.as_ptr(), post_data.into_raw()) }
-        }
+    pub fn set_post_data(&self, post_data: PostData) -> Result<()> {
+        try_c!(self, set_post_data, {
+            set_post_data(self.as_ptr(), post_data.into_raw());
+
+            Ok(())
+        })
     }
 
     /// Get the header values. Will not include the Referer value if any.
-    pub fn get_header_map(&self) -> HashMap<String, Vec<String>> {
-        self.0
-            .get_header_map
-            .map(|get_header_map| {
-                let mut headers = CefStringMultiMap::new();
+    pub fn get_header_map(&self) -> Result<HashMap<String, Vec<String>>> {
+        try_c!(self, get_header_map, {
+            let mut headers = CefStringMultiMap::new();
 
-                unsafe { get_header_map(self.as_ptr(), headers.as_mut_ptr()) };
+            get_header_map(self.as_ptr(), headers.as_mut_ptr());
 
-                headers.into()
-            })
-            .unwrap_or_default()
+            Ok(headers.into())
+        })
     }
 
     /// Set the header values. If a Referer value exists in the header map it will
     /// be removed and ignored.
-    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) {
-        if let Some(set_header_map) = self.0.set_header_map {
+    pub fn set_header_map(&self, headers: &HashMap<String, Vec<String>>) -> Result<()> {
+        try_c!(self, set_header_map, {
             let mut headers = CefStringMultiMap::from(headers);
 
-            unsafe { set_header_map(self.as_ptr(), headers.as_mut_ptr()) }
-        }
+            set_header_map(self.as_ptr(), headers.as_mut_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns the first header value for |name| or an NULL string if not found.
     /// Will not return the Referer value if any. Use GetHeaderMap instead if
     /// |name| might have multiple values.
-    pub fn get_header_by_name(&self, name: &str) -> Option<String> {
-        self.0
-            .get_header_by_name
-            .map(|get_header_by_name| {
-                let name = CefString::new(name);
-                let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
+    pub fn get_header_by_name(&self, name: &str) -> Result<Option<String>> {
+        try_c!(self, get_header_by_name, {
+            let name = CefString::new(name);
+            let s = get_header_by_name(self.as_ptr(), name.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr(s).map(|s| s.into()))
+        })
     }
 
     /// Set the header |name| to |value|. If |overwrite| is true (1) any existing
     /// values will be replaced with the new value. If |overwrite| is false (0)
     /// any existing values will not be overwritten. The Referer value cannot be
     /// set using this function.
-    pub fn set_header_by_name(&self, name: &str, value: &str, overwrite: bool) {
-        if let Some(set_header_by_name) = self.0.set_header_by_name {
+    pub fn set_header_by_name(&self, name: &str, value: &str, overwrite: bool) -> Result<()> {
+        try_c!(self, set_header_by_name, {
             let name = CefString::new(name);
             let value = CefString::new(value);
 
-            unsafe {
-                set_header_by_name(
-                    self.as_ptr(),
-                    name.as_ptr(),
-                    value.as_ptr(),
-                    overwrite as c_int
-                )
-            }
-        }
+            set_header_by_name(
+                self.as_ptr(),
+                name.as_ptr(),
+                value.as_ptr(),
+                overwrite as c_int
+            );
+
+            Ok(())
+        })
     }
 
     /// Set all values at one time.
@@ -385,74 +368,74 @@ impl Request {
         method: &str,
         post_data: PostData,
         headers: &HashMap<String, Vec<String>>
-    ) {
-        if let Some(set) = self.0.set {
+    ) -> Result<()> {
+        try_c!(self, set, {
             let url = CefString::new(url);
             let method = CefString::new(method);
             let mut headers = CefStringMultiMap::from(headers);
 
-            unsafe {
-                set(
-                    self.as_ptr(),
-                    url.as_ptr(),
-                    method.as_ptr(),
-                    post_data.into_raw(),
-                    headers.as_mut_ptr()
-                )
-            }
-        }
+            set(
+                self.as_ptr(),
+                url.as_ptr(),
+                method.as_ptr(),
+                post_data.into_raw(),
+                headers.as_mut_ptr()
+            );
+
+            Ok(())
+        })
     }
 
     /// Get the flags used in combination with cef_urlrequest_t. See
     /// cef_urlrequest_flags_t for supported values.
-    pub fn get_flags(&self) -> Option<UrlRequestFlags> {
-        self.0
-            .get_flags
-            .map(|get_flags| unsafe {
-                let flags = get_flags(self.as_ptr());
+    pub fn get_flags(&self) -> Result<UrlRequestFlags> {
+        try_c!(self, get_flags, {
+            let flags = get_flags(self.as_ptr());
 
-                (flags as cef_urlrequest_flags_t).into()
-            })
+            Ok((flags as cef_urlrequest_flags_t).into())
+        })
     }
 
     /// Set the flags used in combination with cef_urlrequest_t.  See
     /// cef_urlrequest_flags_t for supported values.
-    pub fn set_flags(&self, flags: UrlRequestFlags) {
-        if let Some(set_flags) = self.0.set_flags {
+    pub fn set_flags(&self, flags: UrlRequestFlags) -> Result<()> {
+        try_c!(self, set_flags, {
             let flags = cef_urlrequest_flags_t::from(&flags);
 
-            unsafe { set_flags(self.as_ptr(), flags as c_int) }
-        }
+            set_flags(self.as_ptr(), flags as c_int);
+
+            Ok(())
+        })
     }
 
     /// Get the URL to the first party for cookies used in combination with
     /// cef_urlrequest_t.
-    pub fn get_first_party_for_cookies(&self) -> Option<String> {
-        self.0
-            .get_first_party_for_cookies
-            .map(|get_first_party_for_cookies| {
-                let s = unsafe { get_first_party_for_cookies(self.as_ptr()) };
+    pub fn get_first_party_for_cookies(&self) -> Result<String> {
+        try_c!(self, get_first_party_for_cookies, {
+            let s = get_first_party_for_cookies(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Set the URL to the first party for cookies used in combination with
     /// cef_urlrequest_t.
-    pub fn set_first_party_for_cookies(&self, url: &str) {
-        if let Some(set_first_party_for_cookies) = self.0.set_first_party_for_cookies {
+    pub fn set_first_party_for_cookies(&self, url: &str) -> Result<()> {
+        try_c!(self, set_first_party_for_cookies, {
             let url = CefString::new(url);
 
-            unsafe { set_first_party_for_cookies(self.as_ptr(), url.as_ptr()) }
-        }
+            set_first_party_for_cookies(self.as_ptr(), url.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Get the resource type for this request. Only available in the browser
     /// process.
-    pub fn get_resource_type(&self) -> Option<ResourceType> {
-        self.0
-            .get_resource_type
-            .map(|get_resource_type| unsafe { get_resource_type(self.as_ptr()).into() })
+    pub fn get_resource_type(&self) -> Result<ResourceType> {
+        try_c!(self, get_resource_type, {
+            Ok(get_resource_type(self.as_ptr()).into())
+        })
     }
 
     // TODO: Fix this!
@@ -469,10 +452,7 @@ impl Request {
     /// specified. Can be used by cef_resource_request_handler_t implementations
     /// in the browser process to track a single request across multiple
     /// callbacks.
-    pub fn get_identifier(&self) -> u64 {
-        self.0
-            .get_identifier
-            .map(|get_identifier| unsafe { get_identifier(self.as_ptr()) })
-            .unwrap_or(0)
+    pub fn get_identifier(&self) -> Result<u64> {
+        try_c!(self, get_identifier, { Ok(get_identifier(self.as_ptr())) })
     }
 }
