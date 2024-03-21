@@ -1,7 +1,7 @@
-use crate::{ref_counted_ptr, try_c, CefString, CefStringList, RefCountedPtr, Wrappable};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList, Color, RefCountedPtr, Wrappable};
 use anyhow::Result;
 use bindings::{
-    cef_browser_t, cef_context_menu_edit_state_flags_t,
+    cef_browser_t, cef_color_t, cef_context_menu_edit_state_flags_t,
     cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_COPY,
     cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_CUT,
     cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_DELETE,
@@ -34,12 +34,12 @@ use bindings::{
     cef_context_menu_type_flags_t_CM_TYPEFLAG_MEDIA,
     cef_context_menu_type_flags_t_CM_TYPEFLAG_NONE, cef_context_menu_type_flags_t_CM_TYPEFLAG_PAGE,
     cef_context_menu_type_flags_t_CM_TYPEFLAG_SELECTION, cef_event_flags_t, cef_frame_t,
-    cef_menu_color_type_t, cef_menu_item_type_t, cef_menu_model_t, cef_point_t,
+    cef_menu_color_type_t, cef_menu_id_t, cef_menu_item_type_t, cef_menu_model_t, cef_point_t,
     cef_quick_menu_edit_state_flags_t, cef_run_context_menu_callback_t,
     cef_run_quick_menu_callback_t, cef_size_t
 };
 use bitflags::bitflags;
-use std::{ffi::c_int, mem::zeroed};
+use std::{ffi::c_int, mem::zeroed, ptr::null};
 
 bitflags! {
     /// Supported context menu type flags.
@@ -542,6 +542,176 @@ impl From<&MenuColorType> for cef_menu_color_type_t {
     }
 }
 
+/// Supported menu IDs. Non-English translations can be provided for the
+/// IDS_MENU_* strings in CefResourceBundleHandler::GetLocalizedString().
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum MenuId {
+    /// Navigation.
+    Back,
+    Forward,
+    Reload,
+    ReloadNoCache,
+    StopLoad,
+
+    /// Editing.
+    Undo,
+    Redo,
+    Cut,
+    Copy,
+    Paste,
+    Delete,
+    SelectAll,
+
+    /// Miscellaneous.
+    Find,
+    Print,
+    ViewSource,
+
+    /// Spell checking word correction suggestions.
+    SpellCheckSuggestion0,
+    SpellCheckSuggestion1,
+    SpellCheckSuggestion2,
+    SpellCheckSuggestion3,
+    SpellCheckSuggestion4,
+    NoSpellingSuggestions,
+    AddToDictionary,
+
+    /// Custom menu items originating from the renderer process.
+    CustomFirst,
+    CustomLast,
+
+    /// All user-defined menu IDs should come between MENU_ID_USER_FIRST and
+    /// MENU_ID_USER_LAST to avoid overlapping the Chromium and CEF ID ranges
+    /// defined in the tools/gritsettings/resource_ids file.
+    UserFirst,
+    UserLast
+}
+
+impl From<cef_menu_id_t> for MenuId {
+    fn from(value: cef_menu_id_t) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&cef_menu_id_t> for MenuId {
+    fn from(value: &cef_menu_id_t) -> Self {
+        match value {
+            cef_menu_id_t::MENU_ID_BACK => Self::Back,
+            cef_menu_id_t::MENU_ID_FORWARD => Self::Forward,
+            cef_menu_id_t::MENU_ID_RELOAD => Self::Reload,
+            cef_menu_id_t::MENU_ID_RELOAD_NOCACHE => Self::ReloadNoCache,
+            cef_menu_id_t::MENU_ID_STOPLOAD => Self::StopLoad,
+            cef_menu_id_t::MENU_ID_UNDO => Self::Undo,
+            cef_menu_id_t::MENU_ID_REDO => Self::Redo,
+            cef_menu_id_t::MENU_ID_CUT => Self::Cut,
+            cef_menu_id_t::MENU_ID_COPY => Self::Copy,
+            cef_menu_id_t::MENU_ID_PASTE => Self::Paste,
+            cef_menu_id_t::MENU_ID_DELETE => Self::Delete,
+            cef_menu_id_t::MENU_ID_SELECT_ALL => Self::SelectAll,
+            cef_menu_id_t::MENU_ID_FIND => Self::Find,
+            cef_menu_id_t::MENU_ID_PRINT => Self::Print,
+            cef_menu_id_t::MENU_ID_VIEW_SOURCE => Self::ViewSource,
+            cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_0 => Self::SpellCheckSuggestion0,
+            cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_1 => Self::SpellCheckSuggestion1,
+            cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_2 => Self::SpellCheckSuggestion2,
+            cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_3 => Self::SpellCheckSuggestion3,
+            cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_4 => Self::SpellCheckSuggestion4,
+            cef_menu_id_t::MENU_ID_NO_SPELLING_SUGGESTIONS => Self::NoSpellingSuggestions,
+            cef_menu_id_t::MENU_ID_ADD_TO_DICTIONARY => Self::AddToDictionary,
+            cef_menu_id_t::MENU_ID_CUSTOM_FIRST => Self::CustomFirst,
+            cef_menu_id_t::MENU_ID_CUSTOM_LAST => Self::CustomLast,
+            cef_menu_id_t::MENU_ID_USER_FIRST => Self::UserFirst,
+            cef_menu_id_t::MENU_ID_USER_LAST => Self::UserLast
+        }
+    }
+}
+
+impl From<MenuId> for cef_menu_id_t {
+    fn from(value: MenuId) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&MenuId> for cef_menu_id_t {
+    fn from(value: &MenuId) -> Self {
+        match value {
+            MenuId::Back => cef_menu_id_t::MENU_ID_BACK,
+            MenuId::Forward => cef_menu_id_t::MENU_ID_FORWARD,
+            MenuId::Reload => cef_menu_id_t::MENU_ID_RELOAD,
+            MenuId::ReloadNoCache => cef_menu_id_t::MENU_ID_RELOAD_NOCACHE,
+            MenuId::StopLoad => cef_menu_id_t::MENU_ID_STOPLOAD,
+            MenuId::Undo => cef_menu_id_t::MENU_ID_UNDO,
+            MenuId::Redo => cef_menu_id_t::MENU_ID_REDO,
+            MenuId::Cut => cef_menu_id_t::MENU_ID_CUT,
+            MenuId::Copy => cef_menu_id_t::MENU_ID_COPY,
+            MenuId::Paste => cef_menu_id_t::MENU_ID_PASTE,
+            MenuId::Delete => cef_menu_id_t::MENU_ID_DELETE,
+            MenuId::SelectAll => cef_menu_id_t::MENU_ID_SELECT_ALL,
+            MenuId::Find => cef_menu_id_t::MENU_ID_FIND,
+            MenuId::Print => cef_menu_id_t::MENU_ID_PRINT,
+            MenuId::ViewSource => cef_menu_id_t::MENU_ID_VIEW_SOURCE,
+            MenuId::SpellCheckSuggestion0 => cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_0,
+            MenuId::SpellCheckSuggestion1 => cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_1,
+            MenuId::SpellCheckSuggestion2 => cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_2,
+            MenuId::SpellCheckSuggestion3 => cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_3,
+            MenuId::SpellCheckSuggestion4 => cef_menu_id_t::MENU_ID_SPELLCHECK_SUGGESTION_4,
+            MenuId::NoSpellingSuggestions => cef_menu_id_t::MENU_ID_NO_SPELLING_SUGGESTIONS,
+            MenuId::AddToDictionary => cef_menu_id_t::MENU_ID_ADD_TO_DICTIONARY,
+            MenuId::CustomFirst => cef_menu_id_t::MENU_ID_CUSTOM_FIRST,
+            MenuId::CustomLast => cef_menu_id_t::MENU_ID_CUSTOM_LAST,
+            MenuId::UserFirst => cef_menu_id_t::MENU_ID_USER_FIRST,
+            MenuId::UserLast => cef_menu_id_t::MENU_ID_USER_LAST
+        }
+    }
+}
+
+/// Represents a menu item command id. Some ids correspond to
+/// default implementations as listed in MenuId. User-defined
+/// command ids must reside between MENU_ID_USER_FIRST and
+/// MENU_ID_USER_LAST.
+pub struct MenuCommandId(i32);
+
+impl MenuCommandId {
+    pub fn new(id: i32) -> Self {
+        Self(id)
+    }
+
+    /// This function creates a new user-defined command id.
+    /// The id is ADDED to the MENU_ID_USER_FIRST constant
+    /// and then checked to make sure it is within the range
+    /// of [MENU_ID_USER_FIRST, MENU_ID_USER_LAST]!
+    pub fn new_user_id(offset: u32) -> Option<Self> {
+        let min = cef_menu_id_t::MENU_ID_USER_FIRST as i32;
+        let max = cef_menu_id_t::MENU_ID_USER_LAST as i32;
+        let id = min + offset as i32;
+
+        match id >= min && id <= max {
+            true => Some(Self(id)),
+            false => None
+        }
+    }
+}
+
+impl From<MenuCommandId> for i32 {
+    fn from(value: MenuCommandId) -> Self {
+        value.0
+    }
+}
+
+impl From<MenuId> for MenuCommandId {
+    fn from(value: MenuId) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&MenuId> for MenuCommandId {
+    fn from(value: &MenuId) -> Self {
+        let raw: cef_menu_id_t = value.into();
+
+        Self(raw as i32)
+    }
+}
+
 // Supports creation and modification of menus. See cef_menu_id_t for the
 // command ids that have default implementations. All user-defined command ids
 // should be between MENU_ID_USER_FIRST and MENU_ID_USER_LAST. The functions of
@@ -571,38 +741,51 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
+    /// Add an item to the menu. Returns true (1) on success.
+    pub fn add_item(&self, command_id: MenuCommandId, label: &str) -> Result<bool> {
+        try_c!(self, add_item, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Add an item to the menu. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* add_item)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* label);
+            Ok(add_item(self.as_ptr(), command_id.into(), label.as_ptr()) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Add a check item to the menu. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* add_check_item)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* label);
+    /// Add a check item to the menu. Returns true (1) on success.
+    pub fn add_check_item(&self, command_id: MenuCommandId, label: &str) -> Result<bool> {
+        try_c!(self, add_check_item, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Add a radio item to the menu. Only a single item with the specified
-    //     /// |group_id| can be checked at a time. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* add_radio_item)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* label,
-    //     int group_id);
+            Ok(add_check_item(self.as_ptr(), command_id.into(), label.as_ptr()) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Add a sub-menu to the menu. The new sub-menu is returned.
-    //     ///
-    //     struct _cef_menu_model_t*(CEF_CALLBACK* add_sub_menu)(
-    //     struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* label);
+    /// Add a radio item to the menu. Only a single item with the specified
+    /// |group_id| can be checked at a time. Returns true (1) on success.
+    pub fn add_radio_item(
+        &self,
+        command_id: MenuCommandId,
+        label: &str,
+        group_id: i32
+    ) -> Result<bool> {
+        try_c!(self, add_radio_item, {
+            let label = CefString::new(label);
+
+            Ok(add_radio_item(self.as_ptr(), command_id.into(), label.as_ptr(), group_id) != 0)
+        })
+    }
+
+    /// Add a sub-menu to the menu. The new sub-menu is returned.
+    pub fn add_sub_menu(&self, command_id: MenuCommandId, label: &str) -> Result<MenuModel> {
+        try_c!(self, add_sub_menu, {
+            let label = CefString::new(label);
+
+            Ok(MenuModel::from_ptr_unchecked(add_sub_menu(
+                self.as_ptr(),
+                command_id.into(),
+                label.as_ptr()
+            )))
+        })
+    }
 
     /// Insert a separator in the menu at the specified |index|. Returns true (1)
     /// on success.
@@ -612,52 +795,86 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
+    /// Insert an item in the menu at the specified |index|. Returns true (1) on
+    /// success.
+    pub fn insert_item_at(
+        &self,
+        index: usize,
+        command_id: MenuCommandId,
+        label: &str
+    ) -> Result<bool> {
+        try_c!(self, insert_item_at, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Insert an item in the menu at the specified |index|. Returns true (1) on
-    //     /// success.
-    //     ///
-    //     int(CEF_CALLBACK* insert_item_at)(struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int command_id,
-    //     const cef_string_t* label);
+            Ok(insert_item_at(self.as_ptr(), index, command_id.into(), label.as_ptr()) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Insert a check item in the menu at the specified |index|. Returns true (1)
-    //     /// on success.
-    //     ///
-    //     int(CEF_CALLBACK* insert_check_item_at)(struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int command_id,
-    //     const cef_string_t* label);
+    /// Insert a check item in the menu at the specified |index|. Returns true (1)
+    /// on success.
+    pub fn insert_check_item_at(
+        &self,
+        index: usize,
+        command_id: MenuCommandId,
+        label: &str
+    ) -> Result<bool> {
+        try_c!(self, insert_check_item_at, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Insert a radio item in the menu at the specified |index|. Only a single
-    //     /// item with the specified |group_id| can be checked at a time. Returns true
-    //     /// (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* insert_radio_item_at)(struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int command_id,
-    //     const cef_string_t* label,
-    //     int group_id);
+            Ok(insert_check_item_at(self.as_ptr(), index, command_id.into(), label.as_ptr()) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Insert a sub-menu in the menu at the specified |index|. The new sub-menu
-    //     /// is returned.
-    //     ///
-    //     struct _cef_menu_model_t*(CEF_CALLBACK* insert_sub_menu_at)(
-    //     struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int command_id,
-    //     const cef_string_t* label);
+    /// Insert a radio item in the menu at the specified |index|. Only a single
+    /// item with the specified |group_id| can be checked at a time. Returns true
+    /// (1) on success.
+    pub fn insert_radio_item_at(
+        &self,
+        index: usize,
+        command_id: MenuCommandId,
+        label: &str,
+        group_id: i32
+    ) -> Result<bool> {
+        try_c!(self, insert_radio_item_at, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Removes the item with the specified |command_id|. Returns true (1) on
-    //     /// success.
-    //     ///
-    //     int(CEF_CALLBACK* remove)(struct _cef_menu_model_t* self, int command_id);
+            Ok(insert_radio_item_at(
+                self.as_ptr(),
+                index,
+                command_id.into(),
+                label.as_ptr(),
+                group_id
+            ) != 0)
+        })
+    }
+
+    /// Insert a sub-menu in the menu at the specified |index|. The new sub-menu
+    /// is returned.
+    pub fn insert_sub_menu_at(
+        &self,
+        index: usize,
+        command_id: MenuCommandId,
+        label: &str
+    ) -> Result<MenuModel> {
+        try_c!(self, insert_sub_menu_at, {
+            let label = CefString::new(label);
+
+            Ok(MenuModel::from_ptr_unchecked(insert_sub_menu_at(
+                self.as_ptr(),
+                index,
+                command_id.into(),
+                label.as_ptr()
+            )))
+        })
+    }
+
+    /// Removes the item with the specified |command_id|. Returns true (1) on
+    /// success.
+    pub fn remove(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, remove, {
+            Ok(remove(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Removes the item at the specified |index|. Returns true (1) on success.
     pub fn remove_at(&self, index: usize) -> Result<bool> {
@@ -666,35 +883,43 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
+    /// Returns the index associated with the specified |command_id| or -1 if not
+    /// found due to the command id not existing in the menu.
+    pub fn get_index_of(&self, command_id: MenuCommandId) -> Result<Option<i32>> {
+        try_c!(self, get_index_of, {
+            Ok(match get_index_of(self.as_ptr(), command_id.into()) {
+                -1 => None,
+                index => Some(index)
+            })
+        })
+    }
 
-    //     ///
-    //     /// Returns the index associated with the specified |command_id| or -1 if not
-    //     /// found due to the command id not existing in the menu.
-    //     ///
-    //     int(CEF_CALLBACK* get_index_of)(struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Returns the command id at the specified |index| or -1 if not found due to
+    /// invalid range or the index being a separator.
+    pub fn get_command_id_at(&self, index: usize) -> Result<Option<MenuCommandId>> {
+        try_c!(self, get_command_id_at, {
+            Ok(match get_command_id_at(self.as_ptr(), index) {
+                -1 => None,
+                id => Some(MenuCommandId::new(id))
+            })
+        })
+    }
 
-    //     ///
-    //     /// Returns the command id at the specified |index| or -1 if not found due to
-    //     /// invalid range or the index being a separator.
-    //     ///
-    //     int(CEF_CALLBACK* get_command_id_at)(struct _cef_menu_model_t* self,
-    //     size_t index);
+    /// Sets the command id at the specified |index|. Returns true (1) on success.
+    pub fn set_command_id_at(&self, index: usize, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, set_command_id_at, {
+            Ok(set_command_id_at(self.as_ptr(), index, command_id.into()) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Sets the command id at the specified |index|. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_command_id_at)(struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int command_id);
+    /// Returns the label for the specified |command_id| or NULL if not found.
+    pub fn get_label(&self, command_id: MenuCommandId) -> Result<Option<String>> {
+        try_c!(self, get_label, {
+            let s = get_label(self.as_ptr(), command_id.into());
 
-    //     ///
-    //     /// Returns the label for the specified |command_id| or NULL if not found.
-    //     ///
-    //     // The resulting string must be freed by calling cef_string_userfree_free().
-    //     cef_string_userfree_t(CEF_CALLBACK* get_label)(struct _cef_menu_model_t* self,
-    //     int command_id);
+            Ok(CefString::from_userfree_ptr(s).map(|s| s.into()))
+        })
+    }
 
     /// Returns the label at the specified |index| or NULL if not found due to
     /// invalid range or the index being a separator.
@@ -706,15 +931,15 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
+    /// Sets the label for the specified |command_id|. Returns true (1) on
+    /// success.
+    pub fn set_label(&self, command_id: MenuCommandId, label: &str) -> Result<bool> {
+        try_c!(self, set_label, {
+            let label = CefString::new(label);
 
-    //     ///
-    //     /// Sets the label for the specified |command_id|. Returns true (1) on
-    //     /// success.
-    //     ///
-    //     int(CEF_CALLBACK* set_label)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* label);
+            Ok(set_label(self.as_ptr(), command_id.into(), label.as_ptr()) != 0)
+        })
+    }
 
     /// Set the label at the specified |index|. Returns true (1) on success.
     pub fn set_label_at(&self, index: usize, label: &str) -> Result<bool> {
@@ -725,13 +950,12 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Returns the item type for the specified |command_id|.
-    //     ///
-    //     cef_menu_item_type_t(CEF_CALLBACK* get_type)(struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Returns the item type for the specified |command_id|.
+    pub fn get_type(&self, command_id: MenuCommandId) -> Result<MenuItemType> {
+        try_c!(self, get_type, {
+            Ok(get_type(self.as_ptr(), command_id.into()).into())
+        })
+    }
 
     /// Returns the item type at the specified |index|.
     pub fn get_type_at(&self, index: usize) -> Result<MenuItemType> {
@@ -740,41 +964,50 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
+    /// Returns the group id for the specified |command_id| or -1 if invalid.
+    pub fn get_group_id(&self, command_id: MenuCommandId) -> Result<Option<i32>> {
+        try_c!(self, get_group_id, {
+            Ok(match get_group_id(self.as_ptr(), command_id.into()) {
+                -1 => None,
+                group_id => Some(group_id)
+            })
+        })
+    }
 
-    //     ///
-    //     /// Returns the group id for the specified |command_id| or -1 if invalid.
-    //     ///
-    //     int(CEF_CALLBACK* get_group_id)(struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Returns the group id at the specified |index| or -1 if invalid.
+    pub fn get_group_id_at(&self, index: usize) -> Result<Option<i32>> {
+        try_c!(self, get_group_id_at, {
+            Ok(match get_group_id_at(self.as_ptr(), index) {
+                -1 => None,
+                group_id => Some(group_id)
+            })
+        })
+    }
 
-    //     ///
-    //     /// Returns the group id at the specified |index| or -1 if invalid.
-    //     ///
-    //     int(CEF_CALLBACK* get_group_id_at)(struct _cef_menu_model_t* self,
-    //     size_t index);
+    /// Sets the group id for the specified |command_id|. Returns true (1) on
+    /// success.
+    pub fn set_group_id(&self, command_id: MenuCommandId, group_id: i32) -> Result<bool> {
+        try_c!(self, set_group_id, {
+            Ok(set_group_id(self.as_ptr(), command_id.into(), group_id) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Sets the group id for the specified |command_id|. Returns true (1) on
-    //     /// success.
-    //     ///
-    //     int(CEF_CALLBACK* set_group_id)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     int group_id);
+    /// Sets the group id at the specified |index|. Returns true (1) on success.
+    pub fn set_group_id_at(&self, index: usize, group_id: i32) -> Result<bool> {
+        try_c!(self, set_group_id_at, {
+            Ok(set_group_id_at(self.as_ptr(), index, group_id) != 0)
+        })
+    }
 
-    //     ///
-    //     /// Sets the group id at the specified |index|. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_group_id_at)(struct _cef_menu_model_t* self,
-    //     size_t index,
-    //     int group_id);
-
-    //     ///
-    //     /// Returns the submenu for the specified |command_id| or NULL if invalid.
-    //     ///
-    //     struct _cef_menu_model_t*(CEF_CALLBACK* get_sub_menu)(
-    //     struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Returns the submenu for the specified |command_id| or NULL if invalid.
+    pub fn get_sub_menu(&self, command_id: MenuCommandId) -> Result<Option<MenuModel>> {
+        try_c!(self, get_sub_menu, {
+            Ok(MenuModel::from_ptr(get_sub_menu(
+                self.as_ptr(),
+                command_id.into()
+            )))
+        })
+    }
 
     /// Returns the submenu at the specified |index| or NULL if invalid.
     pub fn get_sub_menu_at(&self, index: usize) -> Result<Option<MenuModel>> {
@@ -783,12 +1016,12 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Returns true (1) if the specified |command_id| is visible.
-    //     ///
-    //     int(CEF_CALLBACK* is_visible)(struct _cef_menu_model_t* self, int command_id);
+    /// Returns true (1) if the specified |command_id| is visible.
+    pub fn is_visible(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, is_visible, {
+            Ok(is_visible(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Returns true (1) if the specified |index| is visible.
     pub fn is_visible_at(&self, index: usize) -> Result<bool> {
@@ -797,15 +1030,13 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Change the visibility of the specified |command_id|. Returns true (1) on
-    //     /// success.
-    //     ///
-    //     int(CEF_CALLBACK* set_visible)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     int visible);
+    /// Change the visibility of the specified |command_id|. Returns true (1) on
+    /// success.
+    pub fn set_visible(&self, command_id: MenuCommandId, visible: bool) -> Result<bool> {
+        try_c!(self, set_visible, {
+            Ok(set_visible(self.as_ptr(), command_id.into(), visible as c_int) != 0)
+        })
+    }
 
     /// Change the visibility at the specified |index|. Returns true (1) on
     /// success.
@@ -815,12 +1046,12 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Returns true (1) if the specified |command_id| is enabled.
-    //     ///
-    //     int(CEF_CALLBACK* is_enabled)(struct _cef_menu_model_t* self, int command_id);
+    /// Returns true (1) if the specified |command_id| is enabled.
+    pub fn is_enabled(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, is_enabled, {
+            Ok(is_enabled(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Returns true (1) if the specified |index| is enabled.
     pub fn is_enabled_at(&self, index: usize) -> Result<bool> {
@@ -829,15 +1060,13 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Change the enabled status of the specified |command_id|. Returns true (1)
-    //     /// on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_enabled)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     int enabled);
+    /// Change the enabled status of the specified |command_id|. Returns true (1)
+    /// on success.
+    pub fn set_enabled(&self, command_id: MenuCommandId, enabled: bool) -> Result<bool> {
+        try_c!(self, set_enabled, {
+            Ok(set_enabled(self.as_ptr(), command_id.into(), enabled as c_int) != 0)
+        })
+    }
 
     /// Change the enabled status at the specified |index|. Returns true (1) on
     /// success.
@@ -847,13 +1076,13 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Returns true (1) if the specified |command_id| is checked. Only applies to
-    //     /// check and radio items.
-    //     ///
-    //     int(CEF_CALLBACK* is_checked)(struct _cef_menu_model_t* self, int command_id);
+    /// Returns true (1) if the specified |command_id| is checked. Only applies to
+    /// check and radio items.
+    pub fn is_checked(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, is_checked, {
+            Ok(is_checked(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Returns true (1) if the specified |index| is checked. Only applies to
     /// check and radio items.
@@ -863,15 +1092,13 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Check the specified |command_id|. Only applies to check and radio items.
-    //     /// Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_checked)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     int checked);
+    /// Check the specified |command_id|. Only applies to check and radio items.
+    /// Returns true (1) on success.
+    pub fn set_checked(&self, command_id: MenuCommandId, checked: bool) -> Result<bool> {
+        try_c!(self, set_checked, {
+            Ok(set_checked(self.as_ptr(), command_id.into(), checked as c_int) != 0)
+        })
+    }
 
     /// Check the specified |index|. Only applies to check and radio items.
     /// Returns true (1) on success.
@@ -881,14 +1108,13 @@ impl MenuModel {
         })
     }
 
-    // TODO: Fix this!
-
-    //     ///
-    //     /// Returns true (1) if the specified |command_id| has a keyboard accelerator
-    //     /// assigned.
-    //     ///
-    //     int(CEF_CALLBACK* has_accelerator)(struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Returns true (1) if the specified |command_id| has a keyboard accelerator
+    /// assigned.
+    pub fn has_accelerator(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, has_accelerator, {
+            Ok(has_accelerator(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Returns true (1) if the specified |index| has a keyboard accelerator
     /// assigned.
@@ -922,12 +1148,13 @@ impl MenuModel {
     //     int ctrl_pressed,
     //     int alt_pressed);
 
-    //     ///
-    //     /// Remove the keyboard accelerator for the specified |command_id|. Returns
-    //     /// true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* remove_accelerator)(struct _cef_menu_model_t* self,
-    //     int command_id);
+    /// Remove the keyboard accelerator for the specified |command_id|. Returns
+    /// true (1) on success.
+    pub fn remove_accelerator(&self, command_id: MenuCommandId) -> Result<bool> {
+        try_c!(self, remove_accelerator, {
+            Ok(remove_accelerator(self.as_ptr(), command_id.into()) != 0)
+        })
+    }
 
     /// Remove the keyboard accelerator at the specified |index|. Returns true (1)
     /// on success.
@@ -961,80 +1188,132 @@ impl MenuModel {
     //     int* ctrl_pressed,
     //     int* alt_pressed);
 
-    //     ///
-    //     /// Set the explicit color for |command_id| and |color_type| to |color|.
-    //     /// Specify a |color| value of 0 to remove the explicit color. If no explicit
-    //     /// color or default color is set for |color_type| then the system color will
-    //     /// be used. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_color)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     cef_menu_color_type_t color_type,
-    //     cef_color_t color);
+    /// Set the explicit color for |command_id| and |color_type| to |color|.
+    /// Specify a |color| value of 0 to remove the explicit color. If no explicit
+    /// color or default color is set for |color_type| then the system color will
+    /// be used. Returns true (1) on success.
+    pub fn set_color(
+        &self,
+        command_id: MenuCommandId,
+        color_type: MenuColorType,
+        color: Color
+    ) -> Result<bool> {
+        try_c!(self, set_color, {
+            Ok(set_color(
+                self.as_ptr(),
+                command_id.into(),
+                color_type.into(),
+                color.into()
+            ) != 0)
+        })
+    }
 
-    //     /// Set the explicit color for |command_id| and |index| to |color|. Specify a
-    //     /// |color| value of 0 to remove the explicit color. Specify an |index| value
-    //     /// of -1 to set the default color for items that do not have an explicit
-    //     /// color set. If no explicit color or default color is set for |color_type|
-    //     /// then the system color will be used. Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* set_color_at)(struct _cef_menu_model_t* self,
-    //     int index,
-    //     cef_menu_color_type_t color_type,
-    //     cef_color_t color);
-    //
-    //     ///
-    //     /// Returns in |color| the color that was explicitly set for |command_id| and
-    //     /// |color_type|. If a color was not set then 0 will be returned in |color|.
-    //     /// Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* get_color)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     cef_menu_color_type_t color_type,
-    //     cef_color_t* color);
+    /// Set the explicit color for |command_id| and |index| to |color|. Specify a
+    /// |color| value of 0 to remove the explicit color. Specify an |index| value
+    /// of -1 to set the default color for items that do not have an explicit
+    /// color set. If no explicit color or default color is set for |color_type|
+    /// then the system color will be used. Returns true (1) on success.
+    pub fn set_color_at(
+        &self,
+        index: i32,
+        color_type: MenuColorType,
+        color: Color
+    ) -> Result<bool> {
+        try_c!(self, set_color_at, {
+            Ok(set_color_at(
+                self.as_ptr(),
+                index as c_int,
+                color_type.into(),
+                color.into()
+            ) != 0)
+        })
+    }
 
-    //     /// Returns in |color| the color that was explicitly set for |command_id| and
-    //     /// |color_type|. Specify an |index| value of -1 to return the default color
-    //     /// in |color|. If a color was not set then 0 will be returned in |color|.
-    //     /// Returns true (1) on success.
-    //     ///
-    //     int(CEF_CALLBACK* get_color_at)(struct _cef_menu_model_t* self,
-    //     int index,
-    //     cef_menu_color_type_t color_type,
-    //     cef_color_t* color);
+    /// Returns in |color| the color that was explicitly set for |command_id| and
+    /// |color_type|. If a color was not set then 0 will be returned in |color|.
+    /// Returns true (1) on success.
+    pub fn get_color(&self, command_id: MenuCommandId, color_type: MenuColorType) -> Result<Color> {
+        try_c!(self, get_color, {
+            let mut color = cef_color_t::default();
 
-    //     ///
-    //     /// Sets the font list for the specified |command_id|. If |font_list| is NULL
-    //     /// the system font will be used. Returns true (1) on success. The format is
-    //     /// "<FONT_FAMILY_LIST>,[STYLES] <SIZE>", where:
-    //     /// - FONT_FAMILY_LIST is a comma-separated list of font family names,
-    //     /// - STYLES is an optional space-separated list of style names (case-
-    //     ///   sensitive "Bold" and "Italic" are supported), and
-    //     /// - SIZE is an integer font size in pixels with the suffix "px".
-    //     ///
-    //     /// Here are examples of valid font description strings:
-    //     /// - "Arial, Helvetica, Bold Italic 14px"
-    //     /// - "Arial, 14px"
-    //     ///
-    //     int(CEF_CALLBACK* set_font_list)(struct _cef_menu_model_t* self,
-    //     int command_id,
-    //     const cef_string_t* font_list);
+            get_color(
+                self.as_ptr(),
+                command_id.into(),
+                color_type.into(),
+                &mut color as *mut cef_color_t
+            );
 
-    //     ///
-    //     /// Sets the font list for the specified |index|. Specify an |index| value of
-    //     /// - 1 to set the default font. If |font_list| is NULL the system font will
-    //     /// - FONT_FAMILY_LIST is a comma-separated list of font family names,
-    //     /// - STYLES is an optional space-separated list of style names (case-
-    //     ///   sensitive "Bold" and "Italic" are supported), and
-    //     /// - SIZE is an integer font size in pixels with the suffix "px".
-    //     ///
-    //     /// Here are examples of valid font description strings:
-    //     /// - "Arial, Helvetica, Bold Italic 14px"
-    //     /// - "Arial, 14px"
-    //     ///
-    //     int(CEF_CALLBACK* set_font_list_at)(struct _cef_menu_model_t* self,
-    //     int index,
-    //     const cef_string_t* font_list);
+            Ok(color.into())
+        })
+    }
+
+    /// Returns in |color| the color that was explicitly set for |command_id| and
+    /// |color_type|. Specify an |index| value of -1 to return the default color
+    /// in |color|. If a color was not set then 0 will be returned in |color|.
+    /// Returns true (1) on success.
+    pub fn get_color_at(&self, index: i32, color_type: MenuColorType) -> Result<Color> {
+        try_c!(self, get_color_at, {
+            let mut color = cef_color_t::default();
+
+            get_color_at(
+                self.as_ptr(),
+                index as c_int,
+                color_type.into(),
+                &mut color as *mut cef_color_t
+            );
+
+            Ok(color.into())
+        })
+    }
+
+    /// Sets the font list for the specified |command_id|. If |font_list| is NULL
+    /// the system font will be used. Returns true (1) on success. The format is
+    /// "<FONT_FAMILY_LIST>,[STYLES] <SIZE>", where:
+    /// - FONT_FAMILY_LIST is a comma-separated list of font family names,
+    /// - STYLES is an optional space-separated list of style names (case-
+    ///   sensitive "Bold" and "Italic" are supported), and
+    /// - SIZE is an integer font size in pixels with the suffix "px".
+    ///
+    /// Here are examples of valid font description strings:
+    /// - "Arial, Helvetica, Bold Italic 14px"
+    /// - "Arial, 14px"
+    pub fn set_font_list(
+        &self,
+        command_id: MenuCommandId,
+        font_list: Option<&str>
+    ) -> Result<bool> {
+        try_c!(self, set_font_list, {
+            let font_list = font_list.map(CefString::new);
+            let font_list = font_list
+                .as_ref()
+                .map(|s| s.as_ptr())
+                .unwrap_or_else(null);
+
+            Ok(set_font_list(self.as_ptr(), command_id.into(), font_list) != 0)
+        })
+    }
+
+    /// Sets the font list for the specified |index|. Specify an |index| value of
+    /// - 1 to set the default font. If |font_list| is NULL the system font will
+    /// - FONT_FAMILY_LIST is a comma-separated list of font family names,
+    /// - STYLES is an optional space-separated list of style names (case-
+    ///   sensitive "Bold" and "Italic" are supported), and
+    /// - SIZE is an integer font size in pixels with the suffix "px".
+    ///
+    /// Here are examples of valid font description strings:
+    /// - "Arial, Helvetica, Bold Italic 14px"
+    /// - "Arial, 14px"
+    pub fn set_font_list_at(&self, index: i32, font_list: Option<&str>) -> Result<bool> {
+        try_c!(self, set_font_list_at, {
+            let font_list = font_list.map(CefString::new);
+            let font_list = font_list
+                .as_ref()
+                .map(|s| s.as_ptr())
+                .unwrap_or_else(null);
+
+            Ok(set_font_list_at(self.as_ptr(), index as c_int, font_list) != 0)
+        })
+    }
 }
 
 /// Implement this structure to handle context menu events. The functions of
