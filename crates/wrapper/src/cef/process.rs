@@ -1,4 +1,5 @@
-use crate::{ref_counted_ptr, CefString, ListValue, SharedMemoryRegion};
+use crate::{ref_counted_ptr, try_c, CefString, ListValue, SharedMemoryRegion};
+use anyhow::Result;
 use bindings::{cef_process_id_t, cef_process_message_create, cef_process_message_t};
 
 /// Existing process IDs.
@@ -56,56 +57,48 @@ impl ProcessMessage {
 
     /// Returns true (1) if this object is valid. Do not call any other functions
     /// if this function returns false (0).
-    pub fn is_valid(&self) -> bool {
-        self.0
-            .is_valid
-            .map(|is_valid| unsafe { is_valid(self.as_ptr()) } != 0)
-            .unwrap_or(false)
+    pub fn is_valid(&self) -> Result<bool> {
+        try_c!(self, is_valid, { Ok(is_valid(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if the values of this object are read-only. Some APIs may
     /// expose read-only objects.
-    pub fn is_read_only(&self) -> bool {
-        self.0
-            .is_read_only
-            .map(|is_read_only| unsafe { is_read_only(self.as_ptr()) } != 0)
-            .unwrap_or(true)
+    pub fn is_read_only(&self) -> Result<bool> {
+        try_c!(self, is_read_only, { Ok(is_read_only(self.as_ptr()) != 0) })
     }
 
     /// Returns a writable copy of this object. Returns nullptr when message
     /// contains a shared memory region.
-    pub fn copy(&self) -> Option<ProcessMessage> {
-        self.0
-            .copy
-            .map(|copy| unsafe { ProcessMessage::from_ptr_unchecked(copy(self.as_ptr())) })
+    pub fn copy(&self) -> Result<Option<ProcessMessage>> {
+        try_c!(self, copy, {
+            Ok(ProcessMessage::from_ptr(copy(self.as_ptr())))
+        })
     }
 
     /// Returns the message name.
-    pub fn get_name(&self) -> Option<String> {
-        self.0.get_name.map(|get_name| {
-            let s = unsafe { get_name(self.as_ptr()) };
+    pub fn get_name(&self) -> Result<String> {
+        try_c!(self, get_name, {
+            let s = get_name(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Returns the list of arguments. Returns nullptr when message contains a
     /// shared memory region.
-    pub fn get_argument_list(&self) -> Option<ListValue> {
-        self.0
-            .get_argument_list
-            .and_then(|get_argument_list| unsafe {
-                ListValue::from_ptr(get_argument_list(self.as_ptr()))
-            })
+    pub fn get_argument_list(&self) -> Result<Option<ListValue>> {
+        try_c!(self, get_argument_list, {
+            Ok(ListValue::from_ptr(get_argument_list(self.as_ptr())))
+        })
     }
 
     /// Returns the shared memory region. Returns nullptr when message contains an
     /// argument list.
-    pub fn get_shared_memory_region(&self) -> Option<SharedMemoryRegion> {
-        self.0
-            .get_shared_memory_region
-            .and_then(|get_shared_memory_region| unsafe {
-                SharedMemoryRegion::from_ptr(get_shared_memory_region(self.as_ptr()))
-            })
+    pub fn get_shared_memory_region(&self) -> Result<Option<SharedMemoryRegion>> {
+        try_c!(self, get_shared_memory_region, {
+            Ok(SharedMemoryRegion::from_ptr(get_shared_memory_region(
+                self.as_ptr()
+            )))
+        })
     }
 }
