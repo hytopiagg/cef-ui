@@ -112,120 +112,106 @@ impl CommandLine {
 
     /// Constructs and returns the represented command line string. Use this
     /// function cautiously because quoting behavior is unclear.
-    pub fn get_command_line_string(&self) -> Option<String> {
-        self.0
-            .get_command_line_string
-            .map(|get_command_line_string| {
-                let s = unsafe { get_command_line_string(self.as_ptr()) };
+    pub fn get_command_line_string(&self) -> Result<String> {
+        try_c!(self, get_command_line_string, {
+            let s = get_command_line_string(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr(s).into())
+        })
     }
 
     /// Get the program part of the command line string (the first item).
-    pub fn get_program(&self) -> Option<String> {
-        self.0
-            .get_program
-            .map(|get_program| {
-                let s = unsafe { get_program(self.as_ptr()) };
+    pub fn get_program(&self) -> Result<String> {
+        try_c!(self, get_program, {
+            let s = get_program(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr(s).into())
+        })
     }
 
     /// Set the program part of the command line string (the first item).
-    pub fn set_program(&self, program: &str) {
-        if let Some(set_program) = self.0.set_program {
+    pub fn set_program(&self, program: &str) -> Result<()> {
+        try_c!(self, set_program, {
             let program = CefString::new(program);
 
-            unsafe {
-                set_program(self.as_ptr(), program.as_ptr());
-            }
-        }
+            set_program(self.as_ptr(), program.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Returns true (1) if the command line has switches.
-    pub fn has_switches(&self) -> bool {
-        self.0
-            .has_switches
-            .map(|has_switches| unsafe { has_switches(self.as_ptr()) } != 0)
-            .unwrap_or(false)
+    pub fn has_switches(&self) -> Result<bool> {
+        try_c!(self, has_switches, { Ok(has_switches(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if the command line contains the given switch.
-    pub fn has_switch(&self, name: &str) -> bool {
-        self.0
-            .has_switch
-            .map(|has_switch| unsafe {
-                let name = CefString::new(name);
+    pub fn has_switch(&self, name: &str) -> Result<bool> {
+        try_c!(self, has_switch, {
+            let name = CefString::new(name);
 
-                has_switch(self.as_ptr(), name.as_ptr()) != 0
-            })
-            .unwrap_or(false)
+            Ok(has_switch(self.as_ptr(), name.as_ptr()) != 0)
+        })
     }
 
     /// Returns the value associated with the given switch. If the switch has no
     /// value or isn't present this function returns the NULL string.
-    pub fn get_switch_value(&self, name: &str) -> Option<String> {
-        self.0
-            .get_switch_value
-            .and_then(|get_switch_value| {
-                let name = CefString::new(name);
+    pub fn get_switch_value(&self, name: &str) -> Result<Option<String>> {
+        try_c!(self, get_switch_value, {
+            let name = CefString::new(name);
+            let s = match get_switch_value(self.as_ptr(), name.as_ptr()) {
+                s if s.is_null() => None,
+                s => Some(CefString::from_userfree_ptr(s).into())
+            };
 
-                match unsafe { get_switch_value(self.as_ptr(), name.as_ptr()) } {
-                    s if s.is_null() => None,
-                    s => Some(CefString::from_userfree_ptr(s).into())
-                }
-            })
+            Ok(s)
+        })
     }
 
     /// Returns the map of switch names and values. If a switch has no value an
     /// NULL string is returned.
-    pub fn get_switches(&self) -> HashMap<String, Option<String>> {
-        self.0
-            .get_switches
-            .map(|get_switches| {
-                let mut switches = CefStringMap::new();
+    pub fn get_switches(&self) -> Result<HashMap<String, Option<String>>> {
+        try_c!(self, get_switches, {
+            let mut switches = CefStringMap::new();
 
-                unsafe {
-                    get_switches(self.as_ptr(), switches.as_mut_ptr());
-                }
+            get_switches(self.as_ptr(), switches.as_mut_ptr());
 
-                // This is so silly, the docs say that a map can contain null values,
-                // but this isn't actually true. It will still emit a valid CefString,
-                // but it will contain an empty string (a null internal pointer). So
-                // we have to check for that and convert it to None.
-                switches
-                    .iter()
-                    .map(|(k, v)| {
-                        (
-                            k.into(),
-                            match v.is_empty() {
-                                true => None,
-                                false => Some(v.into())
-                            }
-                        )
-                    })
-                    .collect()
-            })
-            .unwrap_or_default()
+            // This is so silly, the docs say that a map can contain null values,
+            // but this isn't actually true. It will still emit a valid CefString,
+            // but it will contain an empty string (a null internal pointer). So
+            // we have to check for that and convert it to None.
+            let switches = switches
+                .iter()
+                .map(|(k, v)| {
+                    (
+                        k.into(),
+                        match v.is_empty() {
+                            true => None,
+                            false => Some(v.into())
+                        }
+                    )
+                })
+                .collect();
+
+            Ok(switches)
+        })
     }
 
     /// Add a switch to the end of the command line.
-    pub fn append_switch(&self, name: &str) {
-        if let Some(append_switch) = self.0.append_switch {
+    pub fn append_switch(&self, name: &str) -> Result<()> {
+        try_c!(self, append_switch, {
             let name = CefString::new(name);
 
-            unsafe {
-                append_switch(self.as_ptr(), name.as_ptr());
-            }
-        }
+            append_switch(self.as_ptr(), name.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Add a switch with the specified value to the end of the command line. If
     /// the switch has no value pass an NULL value string.
-    pub fn append_switch_with_value(&self, name: &str, value: Option<&str>) {
-        if let Some(append_switch_with_value) = self.0.append_switch_with_value {
+    pub fn append_switch_with_value(&self, name: &str, value: Option<&str>) -> Result<()> {
+        try_c!(self, append_switch_with_value, {
             let name = CefString::new(name);
             let value = value.map(CefString::new);
             let value = value
@@ -233,56 +219,50 @@ impl CommandLine {
                 .map(|value| value.as_ptr())
                 .unwrap_or(null_mut());
 
-            unsafe {
-                append_switch_with_value(self.as_ptr(), name.as_ptr(), value);
-            }
-        }
+            append_switch_with_value(self.as_ptr(), name.as_ptr(), value);
+
+            Ok(())
+        })
     }
 
     /// True if there are remaining command line arguments.
-    pub fn has_arguments(&self) -> bool {
-        self.0
-            .has_arguments
-            .map(|has_arguments| unsafe { has_arguments(self.as_ptr()) } != 0)
-            .unwrap_or(false)
+    pub fn has_arguments(&self) -> Result<bool> {
+        try_c!(self, has_arguments, {
+            Ok(has_arguments(self.as_ptr()) != 0)
+        })
     }
 
     /// Get the remaining command line arguments.
-    pub fn get_arguments(&self) -> Vec<String> {
-        self.0
-            .get_arguments
-            .map(|get_arguments| {
-                let mut list = CefStringList::new();
+    pub fn get_arguments(&self) -> Result<Vec<String>> {
+        try_c!(self, get_arguments, {
+            let mut list = CefStringList::new();
 
-                unsafe {
-                    get_arguments(self.as_ptr(), list.as_mut_ptr());
-                }
+            get_arguments(self.as_ptr(), list.as_mut_ptr());
 
-                list.into()
-            })
-            .unwrap_or_default()
+            Ok(list.into())
+        })
     }
 
     /// Add an argument to the end of the command line.
-    pub fn append_argument(&self, argument: &str) {
-        if let Some(append_argument) = self.0.append_argument {
+    pub fn append_argument(&self, argument: &str) -> Result<()> {
+        try_c!(self, append_argument, {
             let argument = CefString::new(argument);
 
-            unsafe {
-                append_argument(self.as_ptr(), argument.as_ptr());
-            }
-        }
+            append_argument(self.as_ptr(), argument.as_ptr());
+
+            Ok(())
+        })
     }
 
     /// Insert a command before the current command. Common for debuggers, like
     /// "valgrind" or "gdb --args".
-    pub fn prepend_wrapper(&self, wrapper: &str) {
-        if let Some(prepend_wrapper) = self.0.prepend_wrapper {
+    pub fn prepend_wrapper(&self, wrapper: &str) -> Result<()> {
+        try_c!(self, prepend_wrapper, {
             let wrapper = CefString::new(wrapper);
 
-            unsafe {
-                prepend_wrapper(self.as_ptr(), wrapper.as_ptr());
-            }
-        }
+            prepend_wrapper(self.as_ptr(), wrapper.as_ptr());
+
+            Ok(())
+        })
     }
 }
