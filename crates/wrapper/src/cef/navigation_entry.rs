@@ -1,4 +1,7 @@
-use crate::{ref_counted_ptr, CefString, CefTime, RefCountedPtr, SslStatus, Wrappable, Wrapped};
+use crate::{
+    ref_counted_ptr, try_c, CefString, CefTime, RefCountedPtr, SslStatus, Wrappable, Wrapped
+};
+use anyhow::Result;
 use bindings::{cef_navigation_entry_t, cef_navigation_entry_visitor_t};
 use chrono::{DateTime, Utc};
 use parking_lot::Mutex;
@@ -10,52 +13,45 @@ ref_counted_ptr!(NavigationEntry, cef_navigation_entry_t);
 impl NavigationEntry {
     /// Returns true (1) if this object is valid. Do not call any other functions
     /// if this function returns false (0).
-    pub fn is_valid(&self) -> bool {
-        self.0
-            .is_valid
-            .map(|is_valid| unsafe { is_valid(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_valid(&self) -> Result<bool> {
+        try_c!(self, is_valid, { Ok(is_valid(self.as_ptr()) != 0) })
     }
 
     /// Returns the actual URL of the page. For some pages this may be data: URL
     /// or similar. Use get_display_url() to return a display-friendly version.
-    pub fn get_url(&self) -> Option<String> {
-        self.0.get_url.map(|get_url| {
-            let s = unsafe { get_url(self.as_ptr()) };
+    pub fn get_url(&self) -> Result<String> {
+        try_c!(self, get_url, {
+            let s = get_url(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
     /// Returns a display-friendly version of the URL.
-    pub fn get_display_url(&self) -> Option<String> {
-        self.0
-            .get_display_url
-            .map(|get_display_url| {
-                let s = unsafe { get_display_url(self.as_ptr()) };
+    pub fn get_display_url(&self) -> Result<String> {
+        try_c!(self, get_display_url, {
+            let s = get_display_url(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the original URL that was entered by the user before any
     /// redirects.
-    pub fn get_original_url(&self) -> Option<String> {
-        self.0
-            .get_original_url
-            .map(|get_original_url| {
-                let s = unsafe { get_original_url(self.as_ptr()) };
+    pub fn get_original_url(&self) -> Result<String> {
+        try_c!(self, get_original_url, {
+            let s = get_original_url(self.as_ptr());
 
-                CefString::from_userfree_ptr_unchecked(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the title set by the page. This value may be NULL.
-    pub fn get_title(&self) -> Option<String> {
-        self.0.get_title.map(|get_title| {
-            let s = unsafe { get_title(self.as_ptr()) };
+    pub fn get_title(&self) -> Result<Option<String>> {
+        try_c!(self, get_title, {
+            let s = get_title(self.as_ptr());
 
-            CefString::from_userfree_ptr_unchecked(s).into()
+            Ok(CefString::from_userfree_ptr(s).map(|s| s.into()))
         })
     }
 
@@ -69,44 +65,39 @@ impl NavigationEntry {
     //     struct _cef_navigation_entry_t* self);
 
     /// Returns true (1) if this navigation includes post data.
-    pub fn has_post_data(&self) -> bool {
-        self.0
-            .has_post_data
-            .map(|has_post_data| unsafe { has_post_data(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_post_data(&self) -> Result<bool> {
+        try_c!(self, has_post_data, {
+            Ok(has_post_data(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns the time for the last known successful navigation completion. A
     /// navigation may be completed more than once if the page is reloaded. May be
     /// 0 if the navigation has not yet completed.
-    pub fn get_completion_time(&self) -> Option<DateTime<Utc>> {
-        self.0
-            .get_completion_time
-            .and_then(|get_completion_time| {
-                let base_time = unsafe { get_completion_time(self.as_ptr()) };
+    pub fn get_completion_time(&self) -> Result<Option<DateTime<Utc>>> {
+        try_c!(self, get_completion_time, {
+            let base_time = get_completion_time(self.as_ptr());
 
-                CefTime::try_from(base_time)
-                    .ok()
-                    .map(CefTime::into)
-            })
+            Ok(CefTime::try_from(base_time)
+                .ok()
+                .map(CefTime::into))
+        })
     }
 
     /// Returns the HTTP status code for the last known successful navigation
     /// response. May be 0 if the response has not yet been received or if the
     /// navigation has not yet completed.
-    pub fn get_http_status_code(&self) -> Option<u16> {
-        self.0
-            .get_http_status_code
-            .map(|get_http_status_code| unsafe { get_http_status_code(self.as_ptr()) as u16 })
+    pub fn get_http_status_code(&self) -> Result<u16> {
+        try_c!(self, get_http_status_code, {
+            Ok(get_http_status_code(self.as_ptr()) as u16)
+        })
     }
 
     /// Returns the SSL information for this navigation entry.
-    pub fn get_ssl_status(&self) -> Option<SslStatus> {
-        self.0
-            .get_sslstatus
-            .map(|get_sslstatus| unsafe {
-                SslStatus::from_ptr_unchecked(get_sslstatus(self.as_ptr()))
-            })
+    pub fn get_ssl_status(&self) -> Result<SslStatus> {
+        try_c!(self, get_sslstatus, {
+            Ok(SslStatus::from_ptr_unchecked(get_sslstatus(self.as_ptr())))
+        })
     }
 }
 
@@ -174,23 +165,3 @@ impl Wrappable for NavigationEntryVisitorWrapper {
         )
     }
 }
-
-// typedef struct _cef_navigation_entry_visitor_t {
-//     ///
-//     /// Base structure.
-//     ///
-//     cef_base_ref_counted_t base;
-//
-//     ///
-//     /// Method that will be executed. Do not keep a reference to |entry| outside
-//     /// of this callback. Return true (1) to continue visiting entries or false
-//     /// (0) to stop. |current| is true (1) if this entry is the currently loaded
-//     /// navigation entry. |index| is the 0-based index of this entry and |total|
-//     /// is the total number of entries.
-//     ///
-//     int(CEF_CALLBACK* visit)(struct _cef_navigation_entry_visitor_t* self,
-//     struct _cef_navigation_entry_t* entry,
-//     int current,
-//     int index,
-//     int total);
-// } cef_navigation_entry_visitor_t;
