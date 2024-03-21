@@ -1,4 +1,5 @@
-use crate::{ref_counted_ptr, CefString, CefStringList, RefCountedPtr, Wrappable};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList, RefCountedPtr, Wrappable};
+use anyhow::Result;
 use bindings::{
     cef_browser_t, cef_context_menu_edit_state_flags_t,
     cef_context_menu_edit_state_flags_t_CM_EDITFLAG_CAN_COPY,
@@ -257,208 +258,178 @@ ref_counted_ptr!(ContextMenuParams, cef_context_menu_params_t);
 impl ContextMenuParams {
     /// Returns the X coordinate of the mouse where the context menu was invoked.
     /// Coords are relative to the associated RenderView's origin.
-    pub fn get_xcoord(&self) -> Option<i32> {
-        self.0
-            .get_xcoord
-            .map(|get_xcoord| unsafe { get_xcoord(self.as_ptr()) as i32 })
+    pub fn get_xcoord(&self) -> Result<i32> {
+        try_c!(self, get_xcoord, { Ok(get_xcoord(self.as_ptr()) as i32) })
     }
 
     /// Returns the Y coordinate of the mouse where the context menu was invoked.
     /// Coords are relative to the associated RenderView's origin.
-    pub fn get_ycoord(&self) -> Option<i32> {
-        self.0
-            .get_ycoord
-            .map(|get_ycoord| unsafe { get_ycoord(self.as_ptr()) as i32 })
+    pub fn get_ycoord(&self) -> Result<i32> {
+        try_c!(self, get_ycoord, { Ok(get_ycoord(self.as_ptr()) as i32) })
     }
 
     /// Returns flags representing the type of node that the context menu was
     /// invoked on.
-    pub fn get_type_flags(&self) -> Option<ContextMenuTypeFlags> {
-        self.0
-            .get_type_flags
-            .map(|get_type_flags| unsafe { get_type_flags(self.as_ptr()).into() })
+    pub fn get_type_flags(&self) -> Result<ContextMenuTypeFlags> {
+        try_c!(self, get_type_flags, {
+            Ok(get_type_flags(self.as_ptr()).into())
+        })
     }
 
     /// Returns the URL of the link, if any, that encloses the node that the
     /// context menu was invoked on.
-    pub fn get_link_url(&self) -> Option<String> {
-        self.0
-            .get_link_url
-            .map(|get_link_url| {
-                let s = unsafe { get_link_url(self.as_ptr()) };
+    pub fn get_link_url(&self) -> Result<String> {
+        try_c!(self, get_link_url, {
+            let s = get_link_url(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the link URL, if any, to be used ONLY for "copy link address". We
     /// don't validate this field in the frontend process.
-    pub fn get_unfiltered_link_url(&self) -> Option<String> {
-        self.0
-            .get_unfiltered_link_url
-            .map(|get_unfiltered_link_url| {
-                let s = unsafe { get_unfiltered_link_url(self.as_ptr()) };
+    pub fn get_unfiltered_link_url(&self) -> Result<String> {
+        try_c!(self, get_unfiltered_link_url, {
+            let s = get_unfiltered_link_url(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the source URL, if any, for the element that the context menu was
     /// invoked on. Example of elements with source URLs are img, audio, and
     /// video.
-    pub fn get_source_url(&self) -> Option<String> {
-        self.0
-            .get_source_url
-            .map(|get_source_url| {
-                let s = unsafe { get_source_url(self.as_ptr()) };
+    pub fn get_source_url(&self) -> Result<String> {
+        try_c!(self, get_source_url, {
+            let s = get_source_url(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns true (1) if the context menu was invoked on an image which has
     /// non-NULL contents.
-    pub fn has_image_contents(&self) -> bool {
-        self.0
-            .has_image_contents
-            .map(|has_image_contents| unsafe { has_image_contents(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn has_image_contents(&self) -> Result<bool> {
+        try_c!(self, has_image_contents, {
+            Ok(has_image_contents(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns the title text or the alt text if the context menu was invoked on
     /// an image.
-    pub fn get_title_text(&self) -> Option<String> {
-        self.0
-            .get_title_text
-            .map(|get_title_text| {
-                let s = unsafe { get_title_text(self.as_ptr()) };
+    pub fn get_title_text(&self) -> Result<String> {
+        try_c!(self, get_title_text, {
+            let s = get_title_text(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the URL of the top level page that the context menu was invoked
     /// on.
-    pub fn get_page_url(&self) -> Option<String> {
-        self.0
-            .get_page_url
-            .map(|get_page_url| {
-                let s = unsafe { get_page_url(self.as_ptr()) };
+    pub fn get_page_url(&self) -> Result<String> {
+        try_c!(self, get_page_url, {
+            let s = get_page_url(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the URL of the subframe that the context menu was invoked on.
-    pub fn get_frame_url(&self) -> Option<String> {
-        self.0
-            .get_frame_url
-            .map(|get_frame_url| {
-                let s = unsafe { get_frame_url(self.as_ptr()) };
+    pub fn get_frame_url(&self) -> Result<String> {
+        try_c!(self, get_frame_url, {
+            let s = get_frame_url(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the character encoding of the subframe that the context menu was
     /// invoked on.
-    pub fn get_frame_charset(&self) -> Option<String> {
-        self.0
-            .get_frame_charset
-            .map(|get_frame_charset| {
-                let s = unsafe { get_frame_charset(self.as_ptr()) };
+    pub fn get_frame_charset(&self) -> Result<String> {
+        try_c!(self, get_frame_charset, {
+            let s = get_frame_charset(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the type of context node that the context menu was invoked on.
-    pub fn get_media_type(&self) -> Option<ContextMenuMediaType> {
-        self.0
-            .get_media_type
-            .map(|get_media_type| unsafe { get_media_type(self.as_ptr()).into() })
+    pub fn get_media_type(&self) -> Result<ContextMenuMediaType> {
+        try_c!(self, get_media_type, {
+            Ok(get_media_type(self.as_ptr()).into())
+        })
     }
 
     /// Returns flags representing the actions supported by the media element, if
     /// any, that the context menu was invoked on.
-    pub fn get_media_state_flags(&self) -> Option<ContextMenuMediaStateFlags> {
-        self.0
-            .get_media_state_flags
-            .map(|get_media_state_flags| unsafe { get_media_state_flags(self.as_ptr()).into() })
+    pub fn get_media_state_flags(&self) -> Result<ContextMenuMediaStateFlags> {
+        try_c!(self, get_media_state_flags, {
+            Ok(get_media_state_flags(self.as_ptr()).into())
+        })
     }
 
     /// Returns the text of the selection, if any, that the context menu was
     /// invoked on.
-    pub fn get_selection_text(&self) -> Option<String> {
-        self.0
-            .get_selection_text
-            .map(|get_selection_text| {
-                let s = unsafe { get_selection_text(self.as_ptr()) };
+    pub fn get_selection_text(&self) -> Result<String> {
+        try_c!(self, get_selection_text, {
+            let s = get_selection_text(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns the text of the misspelled word, if any, that the context menu was
     /// invoked on.
-    pub fn get_misspelled_word(&self) -> Option<String> {
-        self.0
-            .get_misspelled_word
-            .map(|get_misspelled_word| {
-                let s = unsafe { get_misspelled_word(self.as_ptr()) };
+    pub fn get_misspelled_word(&self) -> Result<String> {
+        try_c!(self, get_misspelled_word, {
+            let s = get_misspelled_word(self.as_ptr());
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
+        })
     }
 
     /// Returns true (1) if suggestions exist, false (0) otherwise. Fills in
     /// |suggestions| from the spell check service for the misspelled word if
     /// there is one.
-    pub fn get_dictionary_suggestions(&self) -> Option<Vec<String>> {
-        self.0
-            .get_dictionary_suggestions
-            .and_then(|get_dictionary_suggestions| {
-                let mut values = CefStringList::new();
+    pub fn get_dictionary_suggestions(&self) -> Result<Option<Vec<String>>> {
+        try_c!(self, get_dictionary_suggestions, {
+            let mut values = CefStringList::new();
 
-                match unsafe { get_dictionary_suggestions(self.as_ptr(), values.as_mut_ptr()) } {
-                    0 => return None,
-                    _ => Some(values.into())
-                }
-            })
+            match get_dictionary_suggestions(self.as_ptr(), values.as_mut_ptr()) {
+                0 => Ok(None),
+                _ => Ok(Some(values.into()))
+            }
+        })
     }
 
     /// Returns true (1) if the context menu was invoked on an editable node.
-    pub fn is_editable(&self) -> bool {
-        self.0
-            .is_editable
-            .map(|is_editable| unsafe { is_editable(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_editable(&self) -> Result<bool> {
+        try_c!(self, is_editable, { Ok(is_editable(self.as_ptr()) != 0) })
     }
 
     /// Returns true (1) if the context menu was invoked on an editable node where
     /// spell-check is enabled.
-    pub fn is_spell_check_enabled(&self) -> bool {
-        self.0
-            .is_spell_check_enabled
-            .map(|is_spell_check_enabled| unsafe { is_spell_check_enabled(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_spell_check_enabled(&self) -> Result<bool> {
+        try_c!(self, is_spell_check_enabled, {
+            Ok(is_spell_check_enabled(self.as_ptr()) != 0)
+        })
     }
 
     /// Returns flags representing the actions supported by the editable node, if
     /// any, that the context menu was invoked on.
-    pub fn get_edit_state_flags(&self) -> Option<ContextMenuEditStateFlags> {
-        self.0
-            .get_edit_state_flags
-            .map(|get_edit_state_flags| unsafe { get_edit_state_flags(self.as_ptr()).into() })
+    pub fn get_edit_state_flags(&self) -> Result<ContextMenuEditStateFlags> {
+        try_c!(self, get_edit_state_flags, {
+            Ok(get_edit_state_flags(self.as_ptr()).into())
+        })
     }
 
     /// Returns true (1) if the context menu contains items specified by the
     /// renderer process.
-    pub fn is_custom_menu(&self) -> bool {
-        self.0
-            .is_custom_menu
-            .map(|is_custom_menu| unsafe { is_custom_menu(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_custom_menu(&self) -> Result<bool> {
+        try_c!(self, is_custom_menu, {
+            Ok(is_custom_menu(self.as_ptr()) != 0)
+        })
     }
 }
 
@@ -579,35 +550,25 @@ ref_counted_ptr!(MenuModel, cef_menu_model_t);
 
 impl MenuModel {
     /// Returns true (1) if this menu is a submenu.
-    pub fn is_sub_menu(&self) -> bool {
-        self.0
-            .is_sub_menu
-            .map(|is_sub_menu| unsafe { is_sub_menu(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn is_sub_menu(&self) -> Result<bool> {
+        try_c!(self, is_sub_menu, { Ok(is_sub_menu(self.as_ptr()) != 0) })
     }
 
     /// Clears the menu. Returns true (1) on success.
-    pub fn clear(&self) -> bool {
-        self.0
-            .clear
-            .map(|clear| unsafe { clear(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn clear(&self) -> Result<bool> {
+        try_c!(self, clear, { Ok(clear(self.as_ptr()) != 0) })
     }
 
     /// Returns the number of items in this menu.
-    pub fn get_count(&self) -> usize {
-        self.0
-            .get_count
-            .map(|get_count| unsafe { get_count(self.as_ptr()) as usize })
-            .unwrap_or(0)
+    pub fn get_count(&self) -> Result<usize> {
+        try_c!(self, get_count, { Ok(get_count(self.as_ptr())) })
     }
 
     /// Add a separator to the menu. Returns true (1) on success.
-    pub fn add_separator(&self) -> bool {
-        self.0
-            .add_separator
-            .map(|add_separator| unsafe { add_separator(self.as_ptr()) != 0 })
-            .unwrap_or(false)
+    pub fn add_separator(&self) -> Result<bool> {
+        try_c!(self, add_separator, {
+            Ok(add_separator(self.as_ptr()) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -645,11 +606,10 @@ impl MenuModel {
 
     /// Insert a separator in the menu at the specified |index|. Returns true (1)
     /// on success.
-    pub fn insert_separator_at(&self, index: usize) -> bool {
-        self.0
-            .insert_separator_at
-            .map(|insert_separator_at| unsafe { insert_separator_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn insert_separator_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, insert_separator_at, {
+            Ok(insert_separator_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -700,11 +660,10 @@ impl MenuModel {
     //     int(CEF_CALLBACK* remove)(struct _cef_menu_model_t* self, int command_id);
 
     /// Removes the item at the specified |index|. Returns true (1) on success.
-    pub fn remove_at(&self, index: usize) -> bool {
-        self.0
-            .remove_at
-            .map(|remove_at| unsafe { remove_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn remove_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, remove_at, {
+            Ok(remove_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -739,14 +698,12 @@ impl MenuModel {
 
     /// Returns the label at the specified |index| or NULL if not found due to
     /// invalid range or the index being a separator.
-    pub fn get_label_at(&self, index: usize) -> Option<String> {
-        self.0
-            .get_label_at
-            .map(|get_label_at| {
-                let s = unsafe { get_label_at(self.as_ptr(), index) };
+    pub fn get_label_at(&self, index: usize) -> Result<Option<String>> {
+        try_c!(self, get_label_at, {
+            let s = get_label_at(self.as_ptr(), index);
 
-                CefString::from_userfree_ptr(s).into()
-            })
+            Ok(CefString::from_userfree_ptr(s).map(|s| s.into()))
+        })
     }
 
     // TODO: Fix this!
@@ -760,15 +717,12 @@ impl MenuModel {
     //     const cef_string_t* label);
 
     /// Set the label at the specified |index|. Returns true (1) on success.
-    pub fn set_label_at(&self, index: usize, label: &str) -> bool {
-        self.0
-            .set_label_at
-            .map(|set_label_at| {
-                let label = CefString::from(label);
+    pub fn set_label_at(&self, index: usize, label: &str) -> Result<bool> {
+        try_c!(self, set_label_at, {
+            let label = CefString::from(label);
 
-                unsafe { set_label_at(self.as_ptr(), index, label.as_ptr()) != 0 }
-            })
-            .unwrap_or(false)
+            Ok(set_label_at(self.as_ptr(), index, label.as_ptr()) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -780,10 +734,10 @@ impl MenuModel {
     //     int command_id);
 
     /// Returns the item type at the specified |index|.
-    pub fn get_type_at(&self, index: usize) -> Option<MenuItemType> {
-        self.0
-            .get_type_at
-            .map(|get_type_at| unsafe { get_type_at(self.as_ptr(), index).into() })
+    pub fn get_type_at(&self, index: usize) -> Result<MenuItemType> {
+        try_c!(self, get_type_at, {
+            Ok(get_type_at(self.as_ptr(), index).into())
+        })
     }
 
     // TODO: Fix this!
@@ -823,12 +777,10 @@ impl MenuModel {
     //     int command_id);
 
     /// Returns the submenu at the specified |index| or NULL if invalid.
-    pub fn get_sub_menu_at(&self, index: usize) -> Option<MenuModel> {
-        self.0
-            .get_sub_menu_at
-            .and_then(|get_sub_menu_at| unsafe {
-                MenuModel::from_ptr(get_sub_menu_at(self.as_ptr(), index))
-            })
+    pub fn get_sub_menu_at(&self, index: usize) -> Result<Option<MenuModel>> {
+        try_c!(self, get_sub_menu_at, {
+            Ok(MenuModel::from_ptr(get_sub_menu_at(self.as_ptr(), index)))
+        })
     }
 
     // TODO: Fix this!
@@ -839,11 +791,10 @@ impl MenuModel {
     //     int(CEF_CALLBACK* is_visible)(struct _cef_menu_model_t* self, int command_id);
 
     /// Returns true (1) if the specified |index| is visible.
-    pub fn is_visible_at(&self, index: usize) -> bool {
-        self.0
-            .is_visible_at
-            .map(|is_visible_at| unsafe { is_visible_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn is_visible_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, is_visible_at, {
+            Ok(is_visible_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -858,13 +809,10 @@ impl MenuModel {
 
     /// Change the visibility at the specified |index|. Returns true (1) on
     /// success.
-    pub fn set_visible_at(&self, index: usize, visible: bool) -> bool {
-        self.0
-            .set_visible_at
-            .map(|set_visible_at| unsafe {
-                set_visible_at(self.as_ptr(), index, visible as c_int) != 0
-            })
-            .unwrap_or(false)
+    pub fn set_visible_at(&self, index: usize, visible: bool) -> Result<bool> {
+        try_c!(self, set_visible_at, {
+            Ok(set_visible_at(self.as_ptr(), index, visible as c_int) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -875,11 +823,10 @@ impl MenuModel {
     //     int(CEF_CALLBACK* is_enabled)(struct _cef_menu_model_t* self, int command_id);
 
     /// Returns true (1) if the specified |index| is enabled.
-    pub fn is_enabled_at(&self, index: usize) -> bool {
-        self.0
-            .is_enabled_at
-            .map(|is_enabled_at| unsafe { is_enabled_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn is_enabled_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, is_enabled_at, {
+            Ok(is_enabled_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -894,13 +841,10 @@ impl MenuModel {
 
     /// Change the enabled status at the specified |index|. Returns true (1) on
     /// success.
-    pub fn set_enabled_at(&self, index: usize, enabled: bool) -> bool {
-        self.0
-            .set_enabled_at
-            .map(|set_enabled_at| unsafe {
-                set_enabled_at(self.as_ptr(), index, enabled as c_int) != 0
-            })
-            .unwrap_or(false)
+    pub fn set_enabled_at(&self, index: usize, enabled: bool) -> Result<bool> {
+        try_c!(self, set_enabled_at, {
+            Ok(set_enabled_at(self.as_ptr(), index, enabled as c_int) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -913,11 +857,10 @@ impl MenuModel {
 
     /// Returns true (1) if the specified |index| is checked. Only applies to
     /// check and radio items.
-    pub fn is_checked_at(&self, index: usize) -> bool {
-        self.0
-            .is_checked_at
-            .map(|is_checked_at| unsafe { is_checked_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn is_checked_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, is_checked_at, {
+            Ok(is_checked_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -932,13 +875,10 @@ impl MenuModel {
 
     /// Check the specified |index|. Only applies to check and radio items.
     /// Returns true (1) on success.
-    pub fn set_checked_at(&self, index: usize, checked: bool) -> bool {
-        self.0
-            .set_checked_at
-            .map(|set_checked_at| unsafe {
-                set_checked_at(self.as_ptr(), index, checked as c_int) != 0
-            })
-            .unwrap_or(false)
+    pub fn set_checked_at(&self, index: usize, checked: bool) -> Result<bool> {
+        try_c!(self, set_checked_at, {
+            Ok(set_checked_at(self.as_ptr(), index, checked as c_int) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -952,11 +892,10 @@ impl MenuModel {
 
     /// Returns true (1) if the specified |index| has a keyboard accelerator
     /// assigned.
-    pub fn has_accelerator_at(&self, index: usize) -> bool {
-        self.0
-            .has_accelerator_at
-            .map(|has_accelerator_at| unsafe { has_accelerator_at(self.as_ptr(), index) != 0 })
-            .unwrap_or(false)
+    pub fn has_accelerator_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, has_accelerator_at, {
+            Ok(has_accelerator_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
@@ -992,13 +931,10 @@ impl MenuModel {
 
     /// Remove the keyboard accelerator at the specified |index|. Returns true (1)
     /// on success.
-    pub fn remove_accelerator_at(&self, index: usize) -> bool {
-        self.0
-            .remove_accelerator_at
-            .map(|remove_accelerator_at| unsafe {
-                remove_accelerator_at(self.as_ptr(), index) != 0
-            })
-            .unwrap_or(false)
+    pub fn remove_accelerator_at(&self, index: usize) -> Result<bool> {
+        try_c!(self, remove_accelerator_at, {
+            Ok(remove_accelerator_at(self.as_ptr(), index) != 0)
+        })
     }
 
     // TODO: Fix this!
