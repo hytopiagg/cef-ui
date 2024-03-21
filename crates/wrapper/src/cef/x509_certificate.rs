@@ -15,7 +15,7 @@ impl X509CertPrincipal {
             .map(|get_display_name| {
                 let s = unsafe { get_display_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -26,7 +26,7 @@ impl X509CertPrincipal {
             .map(|get_common_name| {
                 let s = unsafe { get_common_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -37,7 +37,7 @@ impl X509CertPrincipal {
             .map(|get_locality_name| {
                 let s = unsafe { get_locality_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -48,7 +48,7 @@ impl X509CertPrincipal {
             .map(|get_state_or_province_name| {
                 let s = unsafe { get_state_or_province_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -59,7 +59,7 @@ impl X509CertPrincipal {
             .map(|get_country_name| {
                 let s = unsafe { get_country_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 

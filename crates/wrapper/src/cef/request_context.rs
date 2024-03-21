@@ -68,7 +68,7 @@ impl RequestContext {
             .map(|get_cache_path| {
                 let s = unsafe { get_cache_path(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 

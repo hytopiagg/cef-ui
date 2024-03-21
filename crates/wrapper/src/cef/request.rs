@@ -105,7 +105,7 @@ impl PostDataElement {
         self.0.get_file.map(|get_file| {
             let s = unsafe { get_file(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -243,7 +243,7 @@ impl Request {
         self.0.get_url.map(|get_url| {
             let s = unsafe { get_url(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -262,7 +262,7 @@ impl Request {
         self.0.get_method.map(|get_method| {
             let s = unsafe { get_method(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 
@@ -293,7 +293,7 @@ impl Request {
             .map(|get_referrer_url| {
                 let s = unsafe { get_referrer_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -354,7 +354,7 @@ impl Request {
                 let name = CefString::new(name);
                 let s = unsafe { get_header_by_name(self.as_ptr(), name.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -433,7 +433,7 @@ impl Request {
             .map(|get_first_party_for_cookies| {
                 let s = unsafe { get_first_party_for_cookies(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 

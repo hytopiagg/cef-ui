@@ -85,7 +85,7 @@ impl ProcessMessage {
         self.0.get_name.map(|get_name| {
             let s = unsafe { get_name(self.as_ptr()) };
 
-            CefString::from_userfree_ptr(s).into()
+            CefString::from_userfree_ptr_unchecked(s).into()
         })
     }
 

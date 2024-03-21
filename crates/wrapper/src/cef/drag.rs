@@ -109,7 +109,7 @@ impl DragData {
             .map(|get_link_url| {
                 let s = unsafe { get_link_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -120,7 +120,7 @@ impl DragData {
             .map(|get_link_title| {
                 let s = unsafe { get_link_title(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -131,7 +131,7 @@ impl DragData {
             .map(|get_link_metadata| {
                 let s = unsafe { get_link_metadata(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -142,7 +142,7 @@ impl DragData {
             .map(|get_fragment_text| {
                 let s = unsafe { get_fragment_text(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -153,7 +153,7 @@ impl DragData {
             .map(|get_fragment_html| {
                 let s = unsafe { get_fragment_html(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -165,7 +165,7 @@ impl DragData {
             .map(|get_fragment_base_url| {
                 let s = unsafe { get_fragment_base_url(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 
@@ -176,7 +176,7 @@ impl DragData {
             .map(|get_file_name| {
                 let s = unsafe { get_file_name(self.as_ptr()) };
 
-                CefString::from_userfree_ptr(s).into()
+                CefString::from_userfree_ptr_unchecked(s).into()
             })
     }
 

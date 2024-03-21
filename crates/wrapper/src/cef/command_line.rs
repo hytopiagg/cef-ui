@@ -116,7 +116,7 @@ impl CommandLine {
         try_c!(self, get_command_line_string, {
             let s = get_command_line_string(self.as_ptr());
 
-            Ok(CefString::from_userfree_ptr(s).into())
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
@@ -125,7 +125,7 @@ impl CommandLine {
         try_c!(self, get_program, {
             let s = get_program(self.as_ptr());
 
-            Ok(CefString::from_userfree_ptr(s).into())
+            Ok(CefString::from_userfree_ptr_unchecked(s).into())
         })
     }
 
@@ -161,7 +161,7 @@ impl CommandLine {
             let name = CefString::new(name);
             let s = match get_switch_value(self.as_ptr(), name.as_ptr()) {
                 s if s.is_null() => None,
-                s => Some(CefString::from_userfree_ptr(s).into())
+                s => Some(CefString::from_userfree_ptr_unchecked(s).into())
             };
 
             Ok(s)

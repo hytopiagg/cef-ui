@@ -56,9 +56,17 @@ impl CefString {
         unsafe { &mut *(ptr as *mut Self) }
     }
 
+    /// Same as from_userfree_ptr, but ptr can be null.
+    pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Option<Self> {
+        match ptr.is_null() {
+            true => None,
+            false => Some(Self::from_userfree_ptr_unchecked(ptr))
+        }
+    }
+
     /// Try and create a CefString from a cef_string_userfree_t pointer. This function
     /// will free the memory associated with the original cef_string_userfree_t value.
-    pub fn from_userfree_ptr(ptr: cef_string_userfree_t) -> Self {
+    pub fn from_userfree_ptr_unchecked(ptr: cef_string_userfree_t) -> Self {
         let mut cef = Self::default();
 
         unsafe {
