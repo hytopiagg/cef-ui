@@ -79,22 +79,12 @@ pub use url_request::*;
 pub use values::*;
 pub use x509_certificate::*;
 
-// TODO: Evaluate that your code is actually save! You were doing some unsafe
-//  things getting pointers to CefString's and then letting the original value
-//  be dropped before you used the pointer. This is because you were using the
-//  original value by value instead of by reference.
-
 // TODO: Maybe don't provide default implementations for callbacks?
 //  If anything, check all your default implementations to make sure
 //  they return sane defaults per the documentation.
-
-// TODO: Return Option<T> for all getters on types. Otherwise you may
-//  be returning invalid default values.
 
 // TODO: Make a macro for all the pointer conversion functions.
 
 // TODO: Fix issues where we're using command ids.
 
 // TODO: Always return Option<String>.
-
-// TODO: Move callbacks to their correct modules.
