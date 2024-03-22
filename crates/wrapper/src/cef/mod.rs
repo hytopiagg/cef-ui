@@ -85,6 +85,4 @@ pub use x509_certificate::*;
 
 // TODO: Make a macro for all the pointer conversion functions.
 
-// TODO: Fix issues where we're using command ids.
-
 // TODO: Always return Option<String>.

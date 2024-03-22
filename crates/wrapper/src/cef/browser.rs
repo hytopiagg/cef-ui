@@ -1,5 +1,5 @@
 use crate::{
-    free_cef_string, ref_counted_ptr, try_c, CefString, CefStringList, Client, Color,
+    free_cef_string, ref_counted_ptr, try_c, CefString, CefStringList, Client, Color, CommandId,
     CompositionUnderline, DictionaryValue, DragData, DragOperations, Extension, Frame, KeyEvent,
     MouseButtonType, MouseEvent, NativeWindowHandle, NavigationEntry, NavigationEntryVisitor,
     PaintElementType, Point, Range, RequestContext, Size, State, TouchEvent, WindowInfo,
@@ -1336,9 +1336,9 @@ impl BrowserHost {
     /// Returns true (1) if a Chrome command is supported and enabled. Values for
     /// |command_id| can be found in the cef_command_ids.h file. This function can
     /// only be called on the UI thread. Only used with the Chrome runtime.
-    pub fn can_execute_chrome_command(&self, command_id: i32) -> Result<bool> {
+    pub fn can_execute_chrome_command(&self, command_id: CommandId) -> Result<bool> {
         try_c!(self, can_execute_chrome_command, {
-            Ok(can_execute_chrome_command(self.as_ptr(), command_id) != 0)
+            Ok(can_execute_chrome_command(self.as_ptr(), command_id.into()) != 0)
         })
     }
 
@@ -1347,13 +1347,13 @@ impl BrowserHost {
     /// intended command target. Only used with the Chrome runtime.
     pub fn execute_chrome_command(
         &self,
-        command_id: i32,
+        command_id: CommandId,
         disposition: WindowOpenDisposition
     ) -> Result<()> {
         try_c!(self, execute_chrome_command, {
             Ok(execute_chrome_command(
                 self.as_ptr(),
-                command_id,
+                command_id.into(),
                 disposition.into()
             ))
         })
