@@ -1,8 +1,9 @@
 use crate::{
-    ref_counted_ptr, AuthCallback, Browser, Callback, CefString, ErrorCode, Frame, RefCountedPtr,
-    Request, ResourceRequestHandler, SelectClientCertificateCallback, SslInfo, TerminationStatus,
+    ref_counted_ptr, try_c, AuthCallback, Browser, Callback, CefString, ErrorCode, Frame,
+    RefCountedPtr, Request, ResourceRequestHandler, SslInfo, TerminationStatus,
     WindowOpenDisposition, Wrappable, Wrapped, X509Certificate
 };
+use anyhow::Result;
 use bindings::{
     cef_auth_callback_t, cef_browser_t, cef_callback_t, cef_errorcode_t, cef_frame_t,
     cef_request_handler_t, cef_request_t, cef_resource_request_handler_t,
@@ -10,6 +11,24 @@ use bindings::{
     cef_termination_status_t, cef_window_open_disposition_t, cef_x509certificate_t
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut, slice::from_raw_parts};
+
+// Callback structure used to select a client certificate for authentication.
+ref_counted_ptr!(
+    SelectClientCertificateCallback,
+    cef_select_client_certificate_callback_t
+);
+
+impl SelectClientCertificateCallback {
+    /// Chooses the specified certificate for client certificate authentication.
+    /// NULL value means that no client certificate should be used.
+    pub fn select(&self, cert: Option<X509Certificate>) -> Result<()> {
+        try_c!(self, select, {
+            let cert = cert.map_or(null_mut(), |cert| cert.into_raw());
+
+            Ok(select(self.as_ptr(), cert))
+        })
+    }
+}
 
 /// Implement this structure to handle events related to browser requests. The
 /// functions of this structure will be called on the thread indicated.
