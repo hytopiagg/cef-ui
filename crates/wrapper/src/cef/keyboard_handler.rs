@@ -6,7 +6,6 @@ use std::{ffi::c_int, mem::zeroed};
 
 /// Implement this structure to handle events related to keyboard input. The
 /// functions of this structure will be called on the UI thread.
-#[allow(unused_variables)]
 pub trait KeyboardHandlerCallbacks: Send + Sync + 'static {
     /// Called before a keyboard event is sent to the renderer. |event| contains
     /// information about the keyboard event. |os_event| is the operating system
@@ -20,9 +19,7 @@ pub trait KeyboardHandlerCallbacks: Send + Sync + 'static {
         event: KeyEvent,
         os_event: Option<NativeEventHandle>,
         is_keyboard_shortcut: &mut bool
-    ) -> bool {
-        false
-    }
+    ) -> bool;
 
     /// Called after the renderer and JavaScript in the page has had a chance to
     /// handle the event. |event| contains information about the keyboard event.
@@ -33,9 +30,7 @@ pub trait KeyboardHandlerCallbacks: Send + Sync + 'static {
         browser: Browser,
         event: KeyEvent,
         os_event: Option<NativeEventHandle>
-    ) -> bool {
-        false
-    }
+    ) -> bool;
 }
 
 // Implement this structure to handle events related to keyboard input. The

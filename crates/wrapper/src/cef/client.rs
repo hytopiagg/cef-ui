@@ -27,9 +27,7 @@ pub trait ClientCallbacks: Send + Sync + 'static {
 
     /// Return the handler for context menus. If no handler is provided the
     /// default implementation will be used.
-    fn get_context_menu_handler(&mut self) -> Option<ContextMenuHandler> {
-        None
-    }
+    fn get_context_menu_handler(&mut self) -> Option<ContextMenuHandler>;
 
     // /// Return the handler for dialogs. If no handler is provided the default
     // /// implementation will be used.
@@ -73,14 +71,10 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_client_t* self);
 
     /// Return the handler for keyboard events.
-    fn get_keyboard_handler(&mut self) -> Option<KeyboardHandler> {
-        None
-    }
+    fn get_keyboard_handler(&mut self) -> Option<KeyboardHandler>;
 
     /// Return the handler for browser life span events.
-    fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler> {
-        None
-    }
+    fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler>;
 
     // /// Return the handler for browser load status events.
     // struct _cef_load_handler_t*(CEF_CALLBACK* get_load_handler)(
@@ -92,9 +86,7 @@ pub trait ClientCallbacks: Send + Sync + 'static {
     // struct _cef_client_t* self);
 
     /// Return the handler for off-screen rendering events.
-    fn get_render_handler(&mut self) -> Option<RenderHandler> {
-        None
-    }
+    fn get_render_handler(&mut self) -> Option<RenderHandler>;
 
     // /// Return the handler for browser request events.
     // struct _cef_request_handler_t*(CEF_CALLBACK* get_request_handler)(

@@ -13,17 +13,40 @@ use winit::{
     window::Window
 };
 use wrapper::{
-    App, AppCallbacks, BrowserHost, BrowserSettings, Client, ClientCallbacks, Context, LogSeverity,
-    MainArgs, NativeWindowHandle, Settings, WindowInfo
+    App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
+    ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
+    LogSeverity, MainArgs, NativeWindowHandle, RenderHandler, Settings, WindowInfo
 };
 
 pub struct MyAppCallbacks;
 
-impl AppCallbacks for MyAppCallbacks {}
+impl AppCallbacks for MyAppCallbacks {
+    fn on_before_command_line_processing(&mut self, _: Option<&str>, _: Option<CommandLine>) {}
+
+    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
+        None
+    }
+}
 
 pub struct MyClientCallbacks;
 
-impl ClientCallbacks for MyClientCallbacks {}
+impl ClientCallbacks for MyClientCallbacks {
+    fn get_context_menu_handler(&mut self) -> Option<ContextMenuHandler> {
+        None
+    }
+
+    fn get_keyboard_handler(&mut self) -> Option<KeyboardHandler> {
+        None
+    }
+
+    fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler> {
+        None
+    }
+
+    fn get_render_handler(&mut self) -> Option<RenderHandler> {
+        None
+    }
+}
 
 fn main() {
     if let Err(e) = try_main() {

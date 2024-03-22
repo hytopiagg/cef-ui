@@ -9,7 +9,6 @@ use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 /// functions of this structure will be called on the UI thread. See
 /// cef_request_context_t::LoadExtension for information about extension
 /// loading.
-#[allow(unused_variables)]
 pub trait ExtensionHandlerCallbacks: Send + Sync + 'static {
     /// Called if the cef_request_context_t::LoadExtension request fails. |result|
     /// will be the error code.

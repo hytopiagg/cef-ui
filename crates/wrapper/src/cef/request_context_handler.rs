@@ -11,11 +11,10 @@ use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 /// Implement this structure to provide handler implementations. The handler
 /// instance will not be released until all objects related to the context have
 /// been destroyed.
-#[allow(unused_variables)]
 pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
     /// Called on the browser process UI thread immediately after the request
     /// context has been initialized.
-    fn on_request_context_initialized(&mut self, request_context: RequestContext) {}
+    fn on_request_context_initialized(&mut self, request_context: RequestContext);
 
     /// Called on the browser process IO thread before a resource request is
     /// initiated. The |browser| and |frame| values represent the source of the
@@ -43,9 +42,7 @@ pub trait RequestContextHandlerCallbacks: Send + Sync + 'static {
         is_download: bool,
         request_initiator: &str,
         disable_default_handling: &mut bool
-    ) -> Option<ResourceRequestHandler> {
-        None
-    }
+    ) -> Option<ResourceRequestHandler>;
 }
 
 // Implement this structure to provide handler implementations. The handler

@@ -91,7 +91,6 @@ impl PreferenceRegistrar {
 /// Structure used to implement browser process callbacks. The functions of this
 /// structure will be called on the browser process main thread unless otherwise
 /// indicated.
-#[allow(unused_variables)]
 pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
     /// Provides an opportunity to register custom preferences prior to global and
     /// request context initialization.
@@ -117,19 +116,18 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
         &mut self,
         preferences_type: PreferencesType,
         registrar: &mut PreferenceRegistrar
-    ) {
-    }
+    );
 
     /// Called on the browser process UI thread immediately after the CEF context
     /// has been initialized.
-    fn on_context_initialized(&mut self) {}
+    fn on_context_initialized(&mut self);
 
     /// Called before a child process is launched. Will be called on the browser
     /// process UI thread when launching a render process and on the browser
     /// process IO thread when launching a GPU process. Provides an opportunity to
     /// modify the child process command line. Do not keep a reference to
     /// |command_line| outside of this function.
-    fn on_before_child_process_launch(&mut self, command_line: CommandLine) {}
+    fn on_before_child_process_launch(&mut self, command_line: CommandLine);
 
     /// Implement this function to provide app-specific behavior when an already
     /// running app is relaunched with the same CefSettings.root_cache_path value.
@@ -151,9 +149,7 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
         &mut self,
         command_line: CommandLine,
         current_directory: &str
-    ) -> bool {
-        false
-    }
+    ) -> bool;
 
     /// Called from any thread when work has been scheduled for the browser
     /// process main (UI) thread. This callback is used in combination with
@@ -166,16 +162,14 @@ pub trait BrowserProcessHandlerCallbacks: Send + Sync + 'static {
     /// then the call should happen reasonably soon. If |delay_ms| is > 0 then the
     /// call should be scheduled to happen after the specified delay and any
     /// currently pending scheduled call should be cancelled.
-    fn on_schedule_message_pump_work(&mut self, delay_ms: i64) {}
+    fn on_schedule_message_pump_work(&mut self, delay_ms: i64);
 
     /// Return the default client for use with a newly created browser window. If
     /// null is returned the browser will be unmanaged (no callbacks will be
     /// executed for that browser) and application shutdown will be blocked until
     /// the browser window is closed manually. This function is currently only
     /// used with the chrome runtime.
-    fn get_default_client(&mut self) -> Option<Client> {
-        None
-    }
+    fn get_default_client(&mut self) -> Option<Client>;
 }
 
 // Structure used to implement browser process callbacks. The functions of this

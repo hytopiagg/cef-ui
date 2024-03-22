@@ -55,6 +55,7 @@ pub use extension::*;
 pub use extension_handler::*;
 pub use frame::*;
 pub use ime::*;
+pub use keyboard_handler::*;
 pub use life_span_handler::*;
 pub use macros::*;
 pub use main_args::*;
@@ -79,10 +80,7 @@ pub use url_request::*;
 pub use values::*;
 pub use x509_certificate::*;
 
-// TODO: Maybe don't provide default implementations for callbacks?
-//  If anything, check all your default implementations to make sure
-//  they return sane defaults per the documentation.
-
 // TODO: Make a macro for all the pointer conversion functions.
 
-// TODO: Always return Option<String>.
+// TODO: Consider always returning Result<Option<String>> to guard
+//  against null pointers. I probably shouldn't trust CEF. :^/
