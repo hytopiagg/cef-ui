@@ -1,5 +1,5 @@
 [package]
-name = "wrapper"
+name = "cef-ui"
 version = "0.1.0"
 edition = "2021"
 build = "build.rs"
@@ -19,7 +19,7 @@ chrono = "0.4"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
-bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../bindings-linux-x86_64" }
+bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../cef-ui-bindings-linux-x86_64" }
 
 [dev-dependencies]
 bevy = "0.13"
