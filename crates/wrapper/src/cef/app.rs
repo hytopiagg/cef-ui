@@ -66,6 +66,10 @@ impl App {
 /// Translates CEF -> Rust callbacks.
 struct AppWrapper(Box<dyn AppCallbacks>);
 
+// TODO: Remove this!
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
 impl AppWrapper {
     pub fn new<C: AppCallbacks>(delegate: C) -> Self {
         Self(Box::new(delegate))

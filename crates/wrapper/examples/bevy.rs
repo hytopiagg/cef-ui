@@ -127,7 +127,10 @@ fn try_main() -> Result<()> {
     Ok(())
 }
 
+// TODO: Remove this!
+
 /// Get the window info on Linux.
+#[allow(dead_code)]
 #[cfg(target_os = "linux")]
 fn get_window_info(window: &Window) -> Result<WindowInfo> {
     let native_window_handle = match window.window_handle()?.as_raw() {
