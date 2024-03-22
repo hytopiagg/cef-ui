@@ -1,22 +1,13 @@
-use anyhow::{anyhow, Result};
-use bevy::{
-    log::{
-        tracing_subscriber::{filter::LevelFilter, FmtSubscriber},
-        Level
-    },
-    utils::tracing::subscriber::set_global_default
-};
+use anyhow::Result;
 use cef_ui::{
     App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
     ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
-    LogSeverity, MainArgs, NativeWindowHandle, RenderHandler, Settings, WindowInfo
+    LogSeverity, MainArgs, RenderHandler, Settings, WindowInfo
 };
 use std::{env, path::PathBuf, process::exit};
+use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
-use winit::{
-    raw_window_handle::{HasWindowHandle, RawWindowHandle},
-    window::Window
-};
+use tracing_subscriber::FmtSubscriber;
 
 pub struct MyAppCallbacks;
 
@@ -51,6 +42,7 @@ impl ClientCallbacks for MyClientCallbacks {
 fn main() {
     if let Err(e) = try_main() {
         eprintln!("Error: {}", e);
+
         exit(1);
     }
 }
@@ -66,18 +58,16 @@ fn try_main() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    // TODO: Set this properly based on the platform.
+    // TODO: This should be platform specific.
     let root_cache_dir = PathBuf::from("/tmp");
 
-    println!("Root cache path: {:?}", root_cache_dir);
-
     let main_args = MainArgs::new(env::args())?;
+
     let settings = Settings::new()
         .log_severity(LogSeverity::Warning)
         .root_cache_path(&root_cache_dir)?;
-    let app = App::new(MyAppCallbacks {});
 
-    println!("{:?}", main_args);
+    let app = App::new(MyAppCallbacks {});
 
     let context = Context::new(main_args, settings, Some(app));
 
@@ -90,16 +80,7 @@ fn try_main() -> Result<()> {
     // Initialize CEF.
     context.initialize()?;
 
-    // let event_loop = EventLoop::new()?;
-    //
-    // Create a new window.
-    // let window = WindowBuilder::new()
-    //     .with_title("Bevy")
-    //     .build(&event_loop)?;
-    //
-    // let window_info = get_window_info(&window)?;
-
-    let window_info = WindowInfo::new().window_name(&String::from("Bevy"));
+    let window_info = WindowInfo::new().window_name(&String::from("Simple"));
     let browser_settings = BrowserSettings::new();
     let client = Client::new(MyClientCallbacks);
 
@@ -119,26 +100,5 @@ fn try_main() -> Result<()> {
     // Shutdown CEF.
     context.shutdown();
 
-    // App::new()
-    //     .add_plugins(DefaultPlugins)
-    //     .add_systems(Update, close_on_esc)
-    //     .run();
-
     Ok(())
-}
-
-// TODO: Remove this!
-
-/// Get the window info on Linux.
-#[allow(dead_code)]
-#[cfg(target_os = "linux")]
-fn get_window_info(window: &Window) -> Result<WindowInfo> {
-    let native_window_handle = match window.window_handle()?.as_raw() {
-        RawWindowHandle::Xlib(handle) => NativeWindowHandle::try_from(handle.window),
-        _ => Err(anyhow!("Unsupported window handle type!"))
-    }?;
-
-    Ok(WindowInfo::new()
-        .window_name(&String::from("Bevy"))
-        .parent_window(native_window_handle))
 }
