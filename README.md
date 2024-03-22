@@ -1,6 +1,6 @@
 # cef-ui
 
-This repository attempts to wrap the Chromium Embedded Framework (CEF) in Rust. CEF is a project that allows you to embed Chromium web views in native applications. You can find out more about it [here](https://github.com/chromiumembedded/cef). A high level overview of CEF can be found [here](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage). Details about C interop can be found [here](https://bitbucket.org/chromiumembedded/cef/wiki/UsingTheCAPI.md).
+This repository that wraps the Chromium Embedded Framework (CEF) in Rust. CEF is a project that allows you to embed Chromium web views in native applications. You can find out more about it [here](https://github.com/chromiumembedded/cef). A high level overview of CEF can be found [here](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage). Details about C interop can be found [here](https://bitbucket.org/chromiumembedded/cef/wiki/UsingTheCAPI.md).
 
 # Approach
 
