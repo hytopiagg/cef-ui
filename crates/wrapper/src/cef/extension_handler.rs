@@ -135,6 +135,10 @@ impl ExtensionHandler {
 /// Translates CEF -> Rust callbacks.
 struct ExtensionWrapper(Box<dyn ExtensionHandlerCallbacks>);
 
+// TODO: Remove this!
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
 impl ExtensionWrapper {
     pub fn new<C: ExtensionHandlerCallbacks>(delegate: C) -> Self {
         Self(Box::new(delegate))

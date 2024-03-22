@@ -149,9 +149,16 @@ impl ResourceRequestHandler {
     }
 }
 
+// TODO: Remove this!
+
 /// Translates CEF -> Rust callbacks.
+#[allow(dead_code)]
 struct ResourceRequestHandlerWrapper(Box<dyn ResourceRequestHandlerCallbacks>);
 
+// TODO: Remove this!
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
 impl ResourceRequestHandlerWrapper {
     pub fn new(delegate: impl ResourceRequestHandlerCallbacks) -> Self {
         Self(Box::new(delegate))

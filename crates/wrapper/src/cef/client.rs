@@ -115,6 +115,10 @@ impl Client {
 /// Translates CEF -> Rust callbacks.
 struct ClientWrapper(Box<dyn ClientCallbacks>);
 
+// TODO: Remove this!
+
+#[allow(dead_code)]
+#[allow(unused_variables)]
 impl ClientWrapper {
     pub fn new<C: ClientCallbacks>(delegate: C) -> Self {
         Self(Box::new(delegate))
