@@ -6,16 +6,16 @@ use bevy::{
     },
     utils::tracing::subscriber::set_global_default
 };
+use cef_ui::{
+    App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
+    ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
+    LogSeverity, MainArgs, NativeWindowHandle, RenderHandler, Settings, WindowInfo
+};
 use std::{env, path::PathBuf, process::exit};
 use tracing_log::LogTracer;
 use winit::{
     raw_window_handle::{HasWindowHandle, RawWindowHandle},
     window::Window
-};
-use wrapper::{
-    App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
-    ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
-    LogSeverity, MainArgs, NativeWindowHandle, RenderHandler, Settings, WindowInfo
 };
 
 pub struct MyAppCallbacks;

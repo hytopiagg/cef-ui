@@ -1247,6 +1247,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "cef-ui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bitflags 2.4.2",
+ "cef-ui-bindings-linux-x86_64",
+ "chrono",
+ "dunce",
+ "log",
+ "parking_lot",
+ "paste",
+ "tracing",
+ "tracing-log 0.2.0",
+ "tracing-subscriber",
+ "winit",
+]
+
+[[package]]
 name = "cef-ui-bindings-linux-x86_64"
 version = "0.1.0"
 
@@ -4230,25 +4249,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "wrapper"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bevy",
- "bitflags 2.4.2",
- "cef-ui-bindings-linux-x86_64",
- "chrono",
- "dunce",
- "log",
- "parking_lot",
- "paste",
- "tracing",
- "tracing-log 0.2.0",
- "tracing-subscriber",
- "winit",
 ]
 
 [[package]]
