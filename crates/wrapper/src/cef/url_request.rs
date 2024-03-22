@@ -244,28 +244,27 @@ impl UrlRequest {
 /// Structure that should be implemented by the cef_urlrequest_t client. The
 /// functions of this structure will be called on the same thread that created
 /// the request unless otherwise documented.
-#[allow(unused_variables)]
 pub trait UrlRequestClientCallbacks: Send + Sync + 'static {
     /// Notifies the client that the request has completed. Use the
     /// cef_urlrequest_t::GetRequestStatus function to determine if the request
     /// was successful or not.
-    fn on_request_complete(&mut self, request: UrlRequest) {}
+    fn on_request_complete(&mut self, request: UrlRequest);
 
     /// Notifies the client of upload progress. |current| denotes the number of
     /// bytes sent so far and |total| is the total size of uploading data (or -1
     /// if chunked upload is enabled). This function will only be called if the
     /// UR_FLAG_REPORT_UPLOAD_PROGRESS flag is set on the request.
-    fn on_upload_progress(&mut self, request: UrlRequest, current: i64, total: i64) {}
+    fn on_upload_progress(&mut self, request: UrlRequest, current: i64, total: i64);
 
     /// Notifies the client of download progress. |current| denotes the number of
     /// bytes received up to the call and |total| is the expected total size of
     /// the response (or -1 if not determined).
-    fn on_download_progress(&mut self, request: UrlRequest, current: i64, total: i64) {}
+    fn on_download_progress(&mut self, request: UrlRequest, current: i64, total: i64);
 
     /// Called when some part of the response is read. |data| contains the current
     /// bytes received since the last call. This function will not be called if
     /// the UR_FLAG_NO_DOWNLOAD_DATA flag is set on the request.
-    fn on_download_data(&mut self, request: UrlRequest, data: &[u8]) {}
+    fn on_download_data(&mut self, request: UrlRequest, data: &[u8]);
 
     /// Called on the IO thread when the browser needs credentials from the user.
     /// |isProxy| indicates whether the host is a proxy server. |host| contains
@@ -285,9 +284,7 @@ pub trait UrlRequestClientCallbacks: Send + Sync + 'static {
         realm: &str,
         scheme: &str,
         callback: AuthCallback
-    ) -> bool {
-        false
-    }
+    ) -> bool;
 }
 
 // Structure that should be implemented by the cef_urlrequest_t client. The

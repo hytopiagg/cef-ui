@@ -10,7 +10,6 @@ use std::{mem::zeroed, ptr::null_mut};
 
 /// Implement this structure to provide handler implementations. Methods will be
 /// called by the process and/or thread indicated.
-#[allow(unused_variables)]
 pub trait AppCallbacks: Send + Sync + 'static {
     /// Provides an opportunity to view and/or modify command-line arguments
     /// before processing by CEF and Chromium. The |process_type| value will be
@@ -26,8 +25,7 @@ pub trait AppCallbacks: Send + Sync + 'static {
         &mut self,
         process_type: Option<&str>,
         command_line: Option<CommandLine>
-    ) {
-    }
+    );
 
     // TODO: Fix this!
 
@@ -35,30 +33,24 @@ pub trait AppCallbacks: Send + Sync + 'static {
     // /// reference to the |registrar| object. This function is called on the main
     // /// thread for each process and the registered schemes should be the same
     // /// across all processes.
-    // fn on_register_custom_schemes(&mut self, registrar: SchemeRegistrar) {}
+    // fn on_register_custom_schemes(&mut self, registrar: SchemeRegistrar);
 
     // /// Return the handler for resource bundle events. If
     // /// cef_settings_t.pack_loading_disabled is true (1) a handler must be
     // /// returned. If no handler is returned resources will be loaded from pack
     // /// files. This function is called by the browser and render processes on
     // /// multiple threads.
-    // fn get_resource_bundle_handler(&mut self) -> Option<ResourceBundleHandler> {
-    //     None
-    // }
+    // fn get_resource_bundle_handler(&mut self) -> Option<ResourceBundleHandler>;
 
     /// Return the handler for functionality specific to the browser process. This
     /// function is called on multiple threads in the browser process.
-    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
-        None
-    }
+    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler>;
 
     // TODO: Fix this!
 
     // /// Return the handler for functionality specific to the render process. This
     // /// function is called on the render process main thread.
-    // fn get_render_process_handler(&mut self) -> Option<RenderProcessHandler> {
-    //     None
-    // }
+    // fn get_render_process_handler(&mut self) -> Option<RenderProcessHandler>;
 }
 
 // Implement this structure to provide handler implementations. Methods will be

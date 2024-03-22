@@ -85,7 +85,6 @@ impl From<&PopupFeatures> for cef_popup_features_t {
 /// Implement this structure to handle events related to browser life span. The
 /// functions of this structure will be called on the UI thread unless otherwise
 /// indicated.
-#[allow(unused_variables)]
 pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// Called on the UI thread before a new popup browser is created. The
     /// |browser| and |frame| values represent the source of the popup request.
@@ -124,9 +123,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
         settings: &mut BrowserSettings,
         extra_info: &mut Option<DictionaryValue>,
         no_javascript_access: &mut bool
-    ) -> bool {
-        false
-    }
+    ) -> bool;
 
     /// Called on the UI thread before a new DevTools popup browser is created.
     /// The |browser| value represents the source of the popup request. Optionally
@@ -153,14 +150,13 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
         settings: &mut BrowserSettings,
         extra_info: &mut Option<DictionaryValue>,
         use_default_window: &mut bool
-    ) {
-    }
+    );
 
     /// Called after a new browser is created. It is now safe to begin performing
     /// actions with |browser|. cef_frame_handler_t callbacks related to initial
     /// main frame creation will arrive before this callback. See
     /// cef_frame_handler_t documentation for additional usage information.
-    fn on_after_created(&mut self, browser: Browser) {}
+    fn on_after_created(&mut self, browser: Browser);
 
     ///
     /// Called when a browser has received a request to close. This may result
@@ -250,9 +246,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     ///     is destroyed.
     /// 11. Application exits by calling cef_quit_message_loop() if no other
     /// browsers exist.
-    fn do_close(&mut self, browser: Browser) -> bool {
-        false
-    }
+    fn do_close(&mut self, browser: Browser) -> bool;
 
     /// Called just before a browser is destroyed. Release all references to the
     /// browser object and do not attempt to execute any functions on the browser
@@ -264,7 +258,7 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// and cef_resource_request_handler_t callbacks related to those requests may
     /// still arrive on the IO thread after this callback. See cef_frame_handler_t
     /// and do_close() documentation for additional usage information.
-    fn on_before_close(&mut self, browser: Browser) {}
+    fn on_before_close(&mut self, browser: Browser);
 }
 
 // Implement this structure to handle events related to browser life span. The

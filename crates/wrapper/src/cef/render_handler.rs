@@ -18,20 +18,15 @@ use std::{
 
 /// Implement this structure to handle events when window rendering is disabled.
 /// The functions of this structure will be called on the UI thread.
-#[allow(unused_variables)]
 pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     /// Return the handler for accessibility notifications. If no handler is
     /// provided the default implementation will be used.
-    fn get_accessibility_handler(&mut self) -> Option<AccessibilityHandler> {
-        None
-    }
+    fn get_accessibility_handler(&mut self) -> Option<AccessibilityHandler>;
 
     // /// Called to retrieve the root window rectangle in screen DIP coordinates.
     // /// Return true (1) if the rectangle was provided. If this function returns
     // /// false (0) the rectangle from GetViewRect will be used.
-    fn get_root_screen_rect(&mut self, browser: Browser) -> Option<Rect> {
-        None
-    }
+    fn get_root_screen_rect(&mut self, browser: Browser) -> Option<Rect>;
 
     /// Called to retrieve the view rectangle in screen DIP coordinates. This
     /// function must always provide a non-NULL rectangle.
@@ -129,7 +124,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     fn update_drag_cursor(&mut self, browser: Browser, operation: DragOperations);
 
     /// Called when the scroll offset has changed.
-    fn on_scroll_offset_changed(&mut self, browser: Browser, x: f64, y: f64) {}
+    fn on_scroll_offset_changed(&mut self, browser: Browser, x: f64, y: f64);
 
     /// Called when the IME composition range has changed. |selected_range| is the
     /// range of characters that have been selected. |character_bounds| is the
@@ -139,8 +134,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
         browser: Browser,
         selected_range: &Range,
         character_bounds: &[Rect]
-    ) {
-    }
+    );
 
     /// Called when text selection has changed for the specified |browser|.
     /// |selected_text| is the currently selected text and |selected_range| is the
@@ -150,14 +144,13 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
         browser: Browser,
         selected_text: &str,
         selected_range: &Range
-    ) {
-    }
+    );
 
     /// Called when an on-screen keyboard should be shown or hidden for the
     /// specified |browser|. |input_mode| specifies what kind of keyboard should
     /// be opened. If |input_mode| is CEF_TEXT_INPUT_MODE_NONE, any existing
     /// keyboard for this browser should be hidden.
-    fn on_virtual_keyboard_requested(&mut self, browser: Browser, input_mode: TextInputMode) {}
+    fn on_virtual_keyboard_requested(&mut self, browser: Browser, input_mode: TextInputMode);
 }
 
 // Implement this structure to handle events when window rendering is disabled.
