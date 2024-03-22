@@ -184,7 +184,7 @@ impl Value {
     /// set successfully.
     pub fn set_bool(&self, value: bool) -> Result<bool> {
         try_c!(self, set_bool, {
-            Ok(set_bool(self.as_ptr(), if value { 1 } else { 0 }) != 0)
+            Ok(set_bool(self.as_ptr(), value as c_int) != 0)
         })
     }
 
@@ -388,7 +388,7 @@ impl DictionaryValue {
         try_c!(self, copy, {
             Ok(DictionaryValue::from_ptr_unchecked(copy(
                 self.as_ptr(),
-                if exclude_empty_children { 1 } else { 0 }
+                exclude_empty_children as c_int
             )))
         })
     }
@@ -560,7 +560,7 @@ impl DictionaryValue {
         try_c!(self, set_bool, {
             let key = CefString::new(key);
 
-            Ok(set_bool(self.as_ptr(), key.as_ptr(), if value { 1 } else { 0 }) != 0)
+            Ok(set_bool(self.as_ptr(), key.as_ptr(), value as c_int) != 0)
         })
     }
 
@@ -808,7 +808,7 @@ impl ListValue {
     /// the value was set successfully.
     pub fn set_bool(&self, index: usize, value: bool) -> Result<bool> {
         try_c!(self, set_bool, {
-            Ok(set_bool(self.as_ptr(), index, if value { 1 } else { 0 }) != 0)
+            Ok(set_bool(self.as_ptr(), index, value as c_int) != 0)
         })
     }
 
