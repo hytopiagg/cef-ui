@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="bevy-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --example bevy" />
+  <configuration default="false" name="simple-release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="run --release --example simple" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs>
       <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef" />

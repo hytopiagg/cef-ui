@@ -22,7 +22,6 @@ chrono = "0.4"
 bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../cef-ui-bindings-linux-x86_64" }
 
 [dev-dependencies]
-bevy = "0.13"
 winit = "0.29"
 tracing = "0.1"
 tracing-log = "0.2"
