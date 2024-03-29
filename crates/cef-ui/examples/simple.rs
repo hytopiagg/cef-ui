@@ -1,4 +1,9 @@
-use std::{env, path::PathBuf, process::exit};
+use std::{
+    env,
+    fs::{create_dir_all, remove_dir_all},
+    path::PathBuf,
+    process::exit
+};
 
 use anyhow::Result;
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -63,6 +68,8 @@ fn try_main() -> Result<()> {
     // TODO: This should be platform specific.
     let root_cache_dir = PathBuf::from("/tmp/cef");
 
+    ensure_root_cache_dir(&root_cache_dir)?;
+
     let main_args = MainArgs::new(env::args())?;
 
     let settings = Settings::new()
@@ -101,6 +108,17 @@ fn try_main() -> Result<()> {
 
     // Shutdown CEF.
     context.shutdown();
+
+    Ok(())
+}
+
+/// Remove the root cache directory if it exists and then create it.
+fn ensure_root_cache_dir(path: &PathBuf) -> Result<()> {
+    if path.exists() {
+        remove_dir_all(path)?;
+    }
+
+    create_dir_all(path)?;
 
     Ok(())
 }
