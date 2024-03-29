@@ -1,6 +1,9 @@
 use crate::{App, MainArgs, Settings};
 use anyhow::{anyhow, Result};
-use bindings::{cef_execute_process, cef_initialize, cef_run_message_loop, cef_shutdown};
+use bindings::{
+    cef_do_message_loop_work, cef_execute_process, cef_initialize, cef_quit_message_loop,
+    cef_run_message_loop, cef_shutdown
+};
 use std::ptr::null_mut;
 
 pub struct Context {
@@ -80,10 +83,34 @@ impl Context {
         unsafe { cef_run_message_loop() };
     }
 
+    /// Quit the CEF message loop that was started by calling
+    /// cef_run_message_loop(). This function should only be called on the main
+    /// application thread and only if cef_run_message_loop() was used.
+    pub fn quit_message_loop(&self) {
+        unsafe { cef_quit_message_loop() };
+    }
+
     /// This function should be called on the main application thread to shut down
     /// the CEF browser process before the application exits. Do not call any other
     /// CEF functions after calling this function.
     pub fn shutdown(&self) {
         unsafe { cef_shutdown() };
+    }
+
+    /// Perform a single iteration of CEF message loop processing. This function is
+    /// provided for cases where the CEF message loop must be integrated into an
+    /// existing application message loop. Use of this function is not recommended
+    /// for most users; use either the cef_run_message_loop() function or
+    /// cef_settings_t.multi_threaded_message_loop if possible. When using this
+    /// function care must be taken to balance performance against excessive CPU
+    /// usage. It is recommended to enable the cef_settings_t.external_message_pump
+    /// option when using this function so that
+    /// cef_browser_process_handler_t::on_schedule_message_pump_work() callbacks can
+    /// facilitate the scheduling process. This function should only be called on
+    /// the main application thread and only if cef_initialize() is called with a
+    /// cef_settings_t.multi_threaded_message_loop value of false (0). This function
+    /// will not block.
+    pub fn do_message_loop_work(&self) {
+        unsafe { cef_do_message_loop_work() };
     }
 }
