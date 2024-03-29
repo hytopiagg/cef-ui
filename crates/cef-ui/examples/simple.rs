@@ -66,14 +66,14 @@ fn try_main() -> Result<()> {
     set_global_default(subscriber)?;
 
     // TODO: This should be platform specific.
-    let root_cache_dir = PathBuf::from("/tmp/cef");
+    let root_cache_dir = PathBuf::from("/tmp/simple");
 
     ensure_root_cache_dir(&root_cache_dir)?;
 
     let main_args = MainArgs::new(env::args())?;
 
     let settings = Settings::new()
-        .log_severity(LogSeverity::Verbose)
+        .log_severity(LogSeverity::Warning)
         .root_cache_path(&root_cache_dir)?;
 
     let app = App::new(MyAppCallbacks {});

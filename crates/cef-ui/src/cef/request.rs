@@ -14,7 +14,7 @@ use std::{
 };
 
 /// Post data elements may represent either bytes or files.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PostDataElementType {
     Empty,
     Bytes,

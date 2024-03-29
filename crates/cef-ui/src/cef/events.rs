@@ -394,7 +394,7 @@ impl From<&KeyEvent> for cef_key_event_t {
 }
 
 /// Mouse button types.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum MouseButtonType {
     Left,
     Middle,

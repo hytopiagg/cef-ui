@@ -3,7 +3,7 @@ use anyhow::Result;
 use bindings::{cef_process_id_t, cef_process_message_create, cef_process_message_t};
 
 /// Existing process IDs.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ProcessId {
     // Browser process.
     Browser,
