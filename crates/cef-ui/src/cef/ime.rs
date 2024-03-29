@@ -3,7 +3,7 @@ use bindings::{cef_composition_underline_style_t, cef_composition_underline_t};
 use std::ffi::c_int;
 
 /// Composition underline style.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum CompositionUnderlineStyle {
     Solid,
     Dot,

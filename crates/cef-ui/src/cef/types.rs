@@ -2221,7 +2221,7 @@ impl From<&HorizontalAlignment> for cef_horizontal_alignment_t {
 }
 
 /// Paint element types.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum PaintElementType {
     /// View.
     View,
@@ -2263,7 +2263,7 @@ impl From<&PaintElementType> for cef_paint_element_type_t {
 /// Input mode of a virtual keyboard. These constants match their equivalents
 /// in Chromium's text_input_mode.h and should not be renumbered.
 /// See https://html.spec.whatwg.org/#input-modalities:-the-inputmode-attribute
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextInputMode {
     Default,
     None,
@@ -2323,7 +2323,7 @@ impl From<&TextInputMode> for cef_text_input_mode_t {
 /// The manner in which a link click should be opened. These constants match
 /// their equivalents in Chromium's window_open_disposition.h and should not be
 /// renumbered.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum WindowOpenDisposition {
     Unknown,
     CurrentTab,
@@ -2422,7 +2422,7 @@ impl From<&WindowOpenDisposition> for cef_window_open_disposition_t {
 }
 
 /// Process termination status values.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TerminationStatus {
     /// Non-zero exit status.
     AbnormalTermination,
@@ -2479,7 +2479,7 @@ impl From<&TerminationStatus> for cef_termination_status_t {
 /// navigation. If the `--no-referrers` command-line flag is specified then the
 /// policy value will be ignored and the Referrer value will never be sent. Must
 /// be kept synchronized with net::URLRequest::ReferrerPolicy from Chromium.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ReferrerPolicy {
     /// Clear the referrer header if the header value is HTTPS but the request
     /// destination is HTTP. This is the default behavior.
@@ -2588,7 +2588,7 @@ impl From<&ReferrerPolicy> for cef_referrer_policy_t {
 
 /// Resource type for a request. These constants match their equivalents in
 /// Chromium's ResourceType and should not be renumbered.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ResourceType {
     /// Top level page.
     MainFrame,
@@ -2727,7 +2727,7 @@ impl From<&ResourceType> for cef_resource_type_t {
 }
 
 /// Structure representing a point.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Point {
     pub x: i32,
@@ -2765,7 +2765,7 @@ impl From<&Point> for cef_point_t {
 }
 
 /// Structure representing a rectangle.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Rect {
     pub x:      i32,
@@ -2809,7 +2809,7 @@ impl From<&Rect> for cef_rect_t {
 }
 
 /// Structure representing a size.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Size {
     pub width:  i32,
@@ -2847,7 +2847,7 @@ impl From<&Size> for cef_size_t {
 }
 
 /// Structure representing insets.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Insets {
     pub top:    i32,
@@ -2891,7 +2891,7 @@ impl From<&Insets> for cef_insets_t {
 }
 
 /// Structure representing a range.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[repr(C)]
 pub struct Range {
     pub from: u32,

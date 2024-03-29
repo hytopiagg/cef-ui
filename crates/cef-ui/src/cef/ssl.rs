@@ -80,7 +80,7 @@ impl From<&CertStatus> for cef_cert_status_t {
 
 /// Supported SSL content status flags. See content/public/common/ssl_status.h
 /// for more information.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SslContentStatus {
     NormalContent,
     DisplayedInsecureContent,
@@ -129,7 +129,7 @@ impl From<&SslContentStatus> for cef_ssl_content_status_t {
 
 /// Supported SSL version values. See net/ssl/ssl_connection_status_flags.h
 /// for more information.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SslVersion {
     Unknown,
     Ssl2,
