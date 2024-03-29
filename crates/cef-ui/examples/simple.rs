@@ -1,13 +1,15 @@
+use std::{env, path::PathBuf, process::exit};
+
 use anyhow::Result;
+use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
+use tracing_log::LogTracer;
+use tracing_subscriber::FmtSubscriber;
+
 use cef_ui::{
     App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
     ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
     LogSeverity, MainArgs, RenderHandler, Settings, WindowInfo
 };
-use std::{env, path::PathBuf, process::exit};
-use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
-use tracing_log::LogTracer;
-use tracing_subscriber::FmtSubscriber;
 
 pub struct MyAppCallbacks;
 
@@ -59,12 +61,12 @@ fn try_main() -> Result<()> {
     set_global_default(subscriber)?;
 
     // TODO: This should be platform specific.
-    let root_cache_dir = PathBuf::from("/tmp");
+    let root_cache_dir = PathBuf::from("/tmp/cef");
 
     let main_args = MainArgs::new(env::args())?;
 
     let settings = Settings::new()
-        .log_severity(LogSeverity::Warning)
+        .log_severity(LogSeverity::Verbose)
         .root_cache_path(&root_cache_dir)?;
 
     let app = App::new(MyAppCallbacks {});
