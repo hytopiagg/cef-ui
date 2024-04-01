@@ -4,9 +4,6 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
-[build-dependencies]
-anyhow = { workspace = true }
-
 [dependencies]
 anyhow = { workspace = true }
 paste = "1.0"
@@ -16,13 +13,10 @@ tracing-log = "0.2.0"
 parking_lot = "0.12"
 bitflags = "2.4"
 chrono = "0.4"
+reqwest = { version = "0.12", features = ["blocking"] }
+tar = "0.4"
+flate2 = "1.0"
 
 # Bindings for x86_64 Linux.
 [target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
 bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../cef-ui-bindings-linux-x86_64" }
-
-[dev-dependencies]
-winit = "0.29"
-tracing = "0.1"
-tracing-log = "0.2"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }

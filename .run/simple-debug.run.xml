@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="simple-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --example simple" />
+    <option name="command" value="run" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs>
       <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef" />
