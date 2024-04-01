@@ -248,12 +248,9 @@ dependencies = [
  "cef-ui-bindings-linux-x86_64",
  "chrono",
  "dunce",
- "flate2",
  "log",
  "parking_lot",
  "paste",
- "reqwest",
- "tar",
  "tracing-log",
 ]
 
@@ -267,6 +264,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cef-ui",
+ "flate2",
+ "reqwest",
+ "tar",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
