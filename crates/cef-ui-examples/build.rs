@@ -13,11 +13,3 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
-fn print_env(name: &str) {
-    let value = env::var(name)
-        .ok()
-        .unwrap_or("<missing>".into());
-
-    println!("cargo:warning={} = {}", name, value);
-}
