@@ -1,0 +1,15 @@
+[package]
+name = "cef-ui-examples"
+version = "0.1.0"
+edition = "2021"
+
+[build-dependencies]
+anyhow = { workspace = true }
+
+[dependencies]
+cef-ui = { path = "../cef-ui" }
+anyhow = { workspace = true }
+winit = "0.29"
+tracing = "0.1"
+tracing-log = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
