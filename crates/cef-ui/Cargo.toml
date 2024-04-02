@@ -5,6 +5,7 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
+bindings = { package = "cef-ui-bindings", path = "../cef-ui-bindings" }
 anyhow = { workspace = true }
 paste = "1.0"
 dunce = "1.0"
@@ -14,6 +15,3 @@ parking_lot = "0.12"
 bitflags = "2.4"
 chrono = "0.4"
 
-# Bindings for x86_64 Linux.
-[target.'cfg(all(target_os = "linux", target_arch = "x86_64"))'.dependencies]
-bindings = { package = "cef-ui-bindings-linux-x86_64", path = "../cef-ui-bindings-linux-x86_64" }

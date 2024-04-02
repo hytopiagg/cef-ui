@@ -9,9 +9,13 @@ use std::{
 };
 use tar::Archive;
 
-/// The current CEF url on Linux.
-#[cfg(target_os = "linux")]
+/// Binaries for x86_64 Linux.
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download/cef-linux-x86_64-v0.1.0/cef-linux-x86_64.tar.gz";
+
+/// Binaries for arm64 macOS.
+#[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download/cef-macos-arm64-v0.1.0/cef-macos-arm64.tar.gz";
 
 /// Download a file to disk.
 fn download_file(url: &str, path: &Path) -> Result<()> {
@@ -73,12 +77,27 @@ fn main() -> Result<()> {
         .ok_or(anyhow!("Invalid CEF path!"))?
         .to_string();
 
-    // This tells Rust where to find libcef.so at compile time.
-    println!("cargo:rustc-link-search=native={}", cef_dir);
+    // Linker flags on x86_64 Linux.
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    {
+        // This tells Rust where to find libcef.so at compile time.
+        println!("cargo:rustc-link-search=native={}", cef_dir);
 
-    // This tells Rust where to find libcef.so at runtime.
-    println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/cef");
-    println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/../../artifacts/cef");
+        // This tells Rust where to find libcef.so at runtime.
+        println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/cef");
+        println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/../../artifacts/cef");
+    }
+
+    // Linker flags on arm64 macOS.
+    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+    {
+        // This tells Rust where to find the CEF framework at compile time.
+        println!("cargo:rustc-link-search=framework={}", cef_dir);
+
+        // This tells Rust where to find the CEF framework at runtime.
+        // println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/cef");
+        // println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../../artifacts/cef");
+    }
 
     Ok(())
 }
