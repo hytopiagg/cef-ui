@@ -78,9 +78,10 @@ script = '''
 private = true
 workspace = false
 condition = { platforms = ["mac"] }
-env = { "APP_NAME" = "cef-ui", "RES_DIR" = "resources/macos" }
+env = { "APP_NAME" = "cef-ui-simple", "RES_DIR" = "resources/macos" }
 script = '''
     APP_DIR="${TARGET_DIR}/${APP_NAME}.app"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app"
 
     # Remove any existing app.
     rm -fr "${APP_DIR}"
@@ -88,7 +89,7 @@ script = '''
     # Create the directory structure.
     mkdir -p "${APP_DIR}/Contents/MacOS"
     mkdir -p "${APP_DIR}/Contents/Resources"
-    mkdir -p "${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app/Contents/MacOS"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
 
     # Copy the framework.
     cp -r "${ARTIFACTS_DIR}/cef/Chromium Embedded Framework.framework" "${APP_DIR}/Contents/Frameworks"
@@ -96,7 +97,10 @@ script = '''
     # Copy resources.
     cp -r "${RES_DIR}/Info.plist" "${APP_DIR}/Contents"
     cp -r "${RES_DIR}/Icon.icns" "${APP_DIR}/Contents/Resources"
-    cp -r "${RES_DIR}/HelperInfo.plist" "${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app/Contents/Info.plist"
+    cp -r "${RES_DIR}/HelperInfo.plist" "${HELPER_DIR}/Contents/Info.plist"
+
+    # Copy binaries.
+    cp "${TARGET_DIR}/${APP_NAME}" "${APP_DIR}/Contents/MacOS"
 '''
 
 # ----------------------
