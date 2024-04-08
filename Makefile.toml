@@ -9,6 +9,8 @@ additional_profiles = ["release"]
 [env]
 PROJECT_DIR = "${CARGO_MAKE_WORKING_DIRECTORY}"
 ARTIFACTS_DIR = "${PROJECT_DIR}/artifacts"
+APP_NAME = "cef-ui-simple"
+APP_HELPER_NAME = "cef-ui-simple-helper"
 
 [env.development]
 TARGET_DIR = "target/debug"
@@ -53,6 +55,8 @@ workspace = false
 dependencies = [
     "build-debug",
     "build-release",
+    "build-macos-debug-helper",
+    "build-macos-release-helper",
     "build-macos-app"
 ]
 
@@ -62,7 +66,7 @@ private = true
 workspace = false
 condition = { profiles = ["development"] }
 script = '''
-    cargo build
+    cargo build --bin ${APP_NAME}
 '''
 
 [tasks.build-release]
@@ -71,14 +75,32 @@ private = true
 workspace = false
 condition = { profiles = ["release"] }
 script = '''
-    cargo build --release
+    cargo build --release --bin ${APP_NAME}
+'''
+
+[tasks.build-macos-debug-helper]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["development"], platforms = ["mac"] }
+script = '''
+    cargo build --bin ${APP_HELPER_NAME}
+'''
+
+[tasks.build-macos-release-helper]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["release"], platforms = ["mac"] }
+script = '''
+    cargo build --release --bin ${APP_HELPER_NAME}
 '''
 
 [tasks.build-macos-app]
 private = true
 workspace = false
 condition = { platforms = ["mac"] }
-env = { "APP_NAME" = "cef-ui-simple", "RES_DIR" = "resources/macos" }
+env = { "RES_DIR" = "resources/macos" }
 script = '''
     APP_DIR="${TARGET_DIR}/${APP_NAME}.app"
     HELPER_DIR="${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app"
@@ -101,6 +123,7 @@ script = '''
 
     # Copy binaries.
     cp "${TARGET_DIR}/${APP_NAME}" "${APP_DIR}/Contents/MacOS"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${APP_NAME} Helper"
 '''
 
 # ----------------------
@@ -122,7 +145,7 @@ private = true
 workspace = false
 condition = { profiles = ["development"] }
 script = '''
-    cargo run
+    cargo run --bin ${APP_NAME}
 '''
 
 [tasks.run-release]
@@ -131,5 +154,5 @@ private = true
 workspace = false
 condition = { profiles = ["release"] }
 script = '''
-    cargo run --release
+    cargo run --release --bin ${APP_NAME}
 '''
