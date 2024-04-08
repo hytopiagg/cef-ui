@@ -8,6 +8,7 @@ additional_profiles = ["release"]
 
 [env]
 PROJECT_DIR = "${CARGO_MAKE_WORKING_DIRECTORY}"
+ARTIFACTS_DIR = "${PROJECT_DIR}/artifacts"
 
 [env.development]
 TARGET_DIR = "target/debug"
@@ -77,19 +78,26 @@ script = '''
 private = true
 workspace = false
 condition = { platforms = ["mac"] }
+env = { "APP_NAME" = "cef-ui", "RES_DIR" = "resources/macos" }
 script = '''
-    echo ${PROJECT_DIR}
-    echo ${TARGET_DIR}
-'''
+    APP_DIR="${TARGET_DIR}/${APP_NAME}.app"
 
-#[tasks.macos-bundle-game]
-#script = [
-#    "mkdir -p ./target/debug/${CLIENT_NAME}.app/Contents/Frameworks",
-#    "mkdir -p ./target/debug/${CLIENT_NAME}.app/Contents/MacOS",
-#    "cp ./target/debug/${CLIENT_NAME} ./target/debug/${CLIENT_NAME}.app/Contents/MacOS/${CLIENT_NAME}",
-#    "cp ./build/game-info.plist ./target/debug/${CLIENT_NAME}.app/Contents/Info.plist",
-#    "cp -r ./${CLIENT_NAME}/assets/ ./target/debug/${CLIENT_NAME}.app/Contents/MacOS/assets/",
-#]
+    # Remove any existing app.
+    rm -fr "${APP_DIR}"
+
+    # Create the directory structure.
+    mkdir -p "${APP_DIR}/Contents/MacOS"
+    mkdir -p "${APP_DIR}/Contents/Resources"
+    mkdir -p "${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app/Contents/MacOS"
+
+    # Copy the framework.
+    cp -r "${ARTIFACTS_DIR}/cef/Chromium Embedded Framework.framework" "${APP_DIR}/Contents/Frameworks"
+
+    # Copy resources.
+    cp -r "${RES_DIR}/Info.plist" "${APP_DIR}/Contents"
+    cp -r "${RES_DIR}/Icon.icns" "${APP_DIR}/Contents/Resources"
+    cp -r "${RES_DIR}/HelperInfo.plist" "${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app/Contents/Info.plist"
+'''
 
 # ----------------------
 # This runs the project.
