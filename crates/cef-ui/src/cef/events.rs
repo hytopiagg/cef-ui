@@ -1,4 +1,4 @@
-use bindings::{
+use crate::bindings::{
     cef_event_flags_t, cef_event_flags_t_EVENTFLAG_ALTGR_DOWN,
     cef_event_flags_t_EVENTFLAG_ALT_DOWN, cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON,
     cef_event_flags_t_EVENTFLAG_COMMAND_DOWN, cef_event_flags_t_EVENTFLAG_CONTROL_DOWN,

@@ -1,8 +1,8 @@
 use crate::{
+    bindings::{cef_navigation_entry_t, cef_navigation_entry_visitor_t},
     ref_counted_ptr, try_c, CefString, CefTime, RefCountedPtr, SslStatus, Wrappable, Wrapped
 };
 use anyhow::Result;
-use bindings::{cef_navigation_entry_t, cef_navigation_entry_visitor_t};
 use chrono::{DateTime, Utc};
 use parking_lot::Mutex;
 use std::{ffi::c_int, mem::zeroed};

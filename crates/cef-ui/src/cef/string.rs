@@ -1,15 +1,17 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped};
-use bindings::{
-    cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
-    cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
-    cef_string_map_alloc, cef_string_map_append, cef_string_map_clear, cef_string_map_find,
-    cef_string_map_free, cef_string_map_key, cef_string_map_size, cef_string_map_t,
-    cef_string_map_value, cef_string_multimap_alloc, cef_string_multimap_append,
-    cef_string_multimap_clear, cef_string_multimap_enumerate, cef_string_multimap_find_count,
-    cef_string_multimap_free, cef_string_multimap_key, cef_string_multimap_size,
-    cef_string_multimap_t, cef_string_multimap_value, cef_string_t, cef_string_userfree_t,
-    cef_string_userfree_utf16_free, cef_string_utf16_set, cef_string_utf8_to_utf16,
-    cef_string_visitor_t
+use crate::{
+    bindings::{
+        cef_string_list_alloc, cef_string_list_append, cef_string_list_clear, cef_string_list_copy,
+        cef_string_list_free, cef_string_list_size, cef_string_list_t, cef_string_list_value,
+        cef_string_map_alloc, cef_string_map_append, cef_string_map_clear, cef_string_map_find,
+        cef_string_map_free, cef_string_map_key, cef_string_map_size, cef_string_map_t,
+        cef_string_map_value, cef_string_multimap_alloc, cef_string_multimap_append,
+        cef_string_multimap_clear, cef_string_multimap_enumerate, cef_string_multimap_find_count,
+        cef_string_multimap_free, cef_string_multimap_key, cef_string_multimap_size,
+        cef_string_multimap_t, cef_string_multimap_value, cef_string_t, cef_string_userfree_t,
+        cef_string_userfree_utf16_free, cef_string_utf16_set, cef_string_utf8_to_utf16,
+        cef_string_visitor_t
+    },
+    ref_counted_ptr, RefCountedPtr, Wrappable, Wrapped
 };
 use parking_lot::Mutex;
 use std::{

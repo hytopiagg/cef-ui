@@ -1,8 +1,10 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Wrappable};
-use bindings::{
-    cef_browser_t, cef_callback_t, cef_cookie_access_filter_t, cef_frame_t, cef_request_t,
-    cef_resource_handler_t, cef_resource_request_handler_t, cef_response_filter_t, cef_response_t,
-    cef_return_value_t, cef_string_t, cef_urlrequest_status_t
+use crate::{
+    bindings::{
+        cef_browser_t, cef_callback_t, cef_cookie_access_filter_t, cef_frame_t, cef_request_t,
+        cef_resource_handler_t, cef_resource_request_handler_t, cef_response_filter_t,
+        cef_response_t, cef_return_value_t, cef_string_t, cef_urlrequest_status_t
+    },
+    ref_counted_ptr, RefCountedPtr, Wrappable
 };
 use std::{ffi::c_int, mem::zeroed};
 

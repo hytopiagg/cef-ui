@@ -1,4 +1,4 @@
-use bindings::{
+use crate::bindings::{
     cef_errorcode_t, cef_horizontal_alignment_t, cef_insets_t, cef_log_items_t, cef_log_severity_t,
     cef_paint_element_type_t, cef_point_t, cef_range_t, cef_rect_t, cef_referrer_policy_t,
     cef_resource_type_t, cef_screen_info_t, cef_size_t, cef_state_t, cef_termination_status_t,

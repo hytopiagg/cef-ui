@@ -1,4 +1,4 @@
-use crate::XEvent;
+use crate::bindings::XEvent;
 
 // TODO: We currently only support X11, we
 //  still need to add support for Wayland.

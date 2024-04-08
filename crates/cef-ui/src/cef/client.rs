@@ -1,14 +1,15 @@
 use crate::{
-    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, ContextMenuHandler, LifeSpanHandler,
-    RefCountedPtr, RenderHandler, Wrappable, Wrapped
-};
-use bindings::{
-    cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
-    cef_context_menu_handler_t, cef_dialog_handler_t, cef_display_handler_t,
-    cef_download_handler_t, cef_drag_handler_t, cef_find_handler_t, cef_focus_handler_t,
-    cef_frame_handler_t, cef_frame_t, cef_jsdialog_handler_t, cef_keyboard_handler_t,
-    cef_life_span_handler_t, cef_load_handler_t, cef_permission_handler_t, cef_print_handler_t,
-    cef_process_id_t, cef_process_message_t, cef_render_handler_t, cef_request_handler_t
+    bindings::{
+        cef_audio_handler_t, cef_browser_t, cef_client_t, cef_command_handler_t,
+        cef_context_menu_handler_t, cef_dialog_handler_t, cef_display_handler_t,
+        cef_download_handler_t, cef_drag_handler_t, cef_find_handler_t, cef_focus_handler_t,
+        cef_frame_handler_t, cef_frame_t, cef_jsdialog_handler_t, cef_keyboard_handler_t,
+        cef_life_span_handler_t, cef_load_handler_t, cef_permission_handler_t, cef_print_handler_t,
+        cef_process_id_t, cef_process_message_t, cef_render_handler_t, cef_request_handler_t
+    },
+    cef::keyboard_handler::KeyboardHandler,
+    ref_counted_ptr, ContextMenuHandler, LifeSpanHandler, RefCountedPtr, RenderHandler, Wrappable,
+    Wrapped
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 
