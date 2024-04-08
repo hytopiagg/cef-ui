@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-cef-ui = { path = "../cef-ui" }
 anyhow = { workspace = true }
+libloading = "0.8"
