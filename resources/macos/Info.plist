@@ -9,7 +9,7 @@
 	<string>cef-ui</string>
 
 	<key>CFBundleIconFile</key>
-	<string>cef-ui.icns</string>
+	<string>Icon.icns</string>
 
 	<key>CFBundleIdentifier</key>
 	<string>org.hytopia.cef-ui</string>
