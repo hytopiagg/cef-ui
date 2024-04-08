@@ -273,7 +273,7 @@ name = "cef-ui-simple-helper"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cef-ui",
+ "libloading",
 ]
 
 [[package]]
