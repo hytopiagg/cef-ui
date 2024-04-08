@@ -2,6 +2,19 @@
 [config]
 additional_profiles = ["release"]
 
+# ----------------------------
+# Setup environment variables.
+# ----------------------------
+
+[env]
+PROJECT_DIR = "${CARGO_MAKE_WORKING_DIRECTORY}"
+
+[env.development]
+TARGET_DIR = "target/debug"
+
+[env.release]
+TARGET_DIR = "target/release"
+
 # ------------------------
 # This cleans the project.
 # ------------------------
@@ -38,7 +51,8 @@ clear = true
 workspace = false
 dependencies = [
     "build-debug",
-    "build-release"
+    "build-release",
+    "build-macos-app"
 ]
 
 [tasks.build-debug]
@@ -57,6 +71,15 @@ workspace = false
 condition = { profiles = ["release"] }
 script = '''
     cargo build --release
+'''
+
+[tasks.build-macos-app]
+private = true
+workspace = false
+condition = { platforms = ["mac"] }
+script = '''
+    echo ${PROJECT_DIR}
+    echo ${TARGET_DIR}
 '''
 
 # ----------------------
