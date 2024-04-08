@@ -1,0 +1,91 @@
+# This is a better name.
+[config]
+additional_profiles = ["release"]
+
+# ------------------------
+# This cleans the project.
+# ------------------------
+
+[tasks.clean]
+clear = true
+workspace = false
+dependencies = [
+    "cargo-clean",
+    "remove-artifacts"
+]
+
+[tasks.cargo-clean]
+private = true
+workspace = false
+script = '''
+    cargo clean
+'''
+
+[tasks.remove-artifacts]
+private = true
+workspace = false
+script = '''
+    rm -rf artifacts
+'''
+
+# ------------------------
+# This builds the project.
+# ------------------------
+
+# Builds the project.
+[tasks.build]
+clear = true
+workspace = false
+dependencies = [
+    "build-debug",
+    "build-release"
+]
+
+[tasks.build-debug]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["development"] }
+script = '''
+    cargo build
+'''
+
+[tasks.build-release]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["release"] }
+script = '''
+    cargo build --release
+'''
+
+# ----------------------
+# This runs the project.
+# ----------------------
+
+# Builds the project.
+[tasks.run]
+clear = true
+workspace = false
+dependencies = [
+    "run-debug",
+    "run-release"
+]
+
+[tasks.run-debug]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["development"] }
+script = '''
+    cargo run
+'''
+
+[tasks.run-release]
+clear = true
+private = true
+workspace = false
+condition = { profiles = ["release"] }
+script = '''
+    cargo run --release
+'''
