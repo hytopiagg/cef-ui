@@ -1,7 +1,7 @@
 use crate::{
+    bindings::{cef_browser_t, cef_event_handle_t, cef_key_event_t, cef_keyboard_handler_t},
     ref_counted_ptr, Browser, KeyEvent, NativeEventHandle, RefCountedPtr, Wrappable, Wrapped
 };
-use bindings::{cef_browser_t, cef_event_handle_t, cef_key_event_t, cef_keyboard_handler_t};
 use std::{ffi::c_int, mem::zeroed};
 
 /// Implement this structure to handle events related to keyboard input. The

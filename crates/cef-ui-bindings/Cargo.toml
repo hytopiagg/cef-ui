@@ -1,6 +1,0 @@
-[package]
-name = "cef-ui-bindings"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]

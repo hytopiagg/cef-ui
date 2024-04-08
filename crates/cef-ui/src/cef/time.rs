@@ -1,4 +1,4 @@
-use bindings::{cef_basetime_t, cef_time_from_basetime, cef_time_t};
+use crate::bindings::{cef_basetime_t, cef_time_from_basetime, cef_time_t};
 use chrono::{DateTime, NaiveDateTime, Utc};
 use std::mem::zeroed;
 

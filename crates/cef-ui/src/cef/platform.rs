@@ -1,9 +1,11 @@
 /// Platform-specific types on Linux.
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 mod inner {
-    use crate::{free_cef_string, CefString, Rect};
+    use crate::{
+        bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t},
+        free_cef_string, CefString, Rect
+    };
     use anyhow::{anyhow, Error, Result};
-    use bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t};
     use std::{ffi::c_int, mem::zeroed};
 
     /// Native window handle.
@@ -167,9 +169,11 @@ mod inner {}
 /// Platform-specific types on macOS.
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 mod inner {
-    use crate::{free_cef_string, CefString, Rect};
+    use crate::{
+        bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t},
+        free_cef_string, CefString, Rect
+    };
     use anyhow::{anyhow, Error, Result};
-    use bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t};
     use std::{ffi::c_int, mem::zeroed};
 
     /// Native window handle.

@@ -5,7 +5,6 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
-bindings = { package = "cef-ui-bindings", path = "../cef-ui-bindings" }
 anyhow = { workspace = true }
 paste = "1.0"
 dunce = "1.0"

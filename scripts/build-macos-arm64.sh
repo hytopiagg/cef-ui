@@ -76,4 +76,4 @@ tar -czvf cef-macos-arm64.tar.gz cef/
 popd || exit
 
 # Copy the final bindings to the correct location.
-cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/cef-ui-bindings/src/macos_arm64"
+cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/cef-ui/src/bindings/macos_arm64"

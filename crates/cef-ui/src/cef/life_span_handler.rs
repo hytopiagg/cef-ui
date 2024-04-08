@@ -1,11 +1,11 @@
 use crate::{
+    bindings::{
+        cef_browser_settings_t, cef_browser_t, cef_client_t, cef_dictionary_value_t, cef_frame_t,
+        cef_life_span_handler_t, cef_popup_features_t, cef_string_t, cef_window_info_t,
+        cef_window_open_disposition_t
+    },
     ref_counted_ptr, Browser, BrowserSettings, CefString, Client, DictionaryValue, Frame,
     RefCountedPtr, WindowInfo, WindowOpenDisposition, Wrappable, Wrapped
-};
-use bindings::{
-    cef_browser_settings_t, cef_browser_t, cef_client_t, cef_dictionary_value_t, cef_frame_t,
-    cef_life_span_handler_t, cef_popup_features_t, cef_string_t, cef_window_info_t,
-    cef_window_open_disposition_t
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 

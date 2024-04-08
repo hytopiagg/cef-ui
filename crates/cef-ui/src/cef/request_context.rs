@@ -1,9 +1,9 @@
 use crate::{
+    bindings::{cef_errorcode_t, cef_request_context_t, cef_resolve_callback_t, cef_string_list_t},
     ref_counted_ptr, try_c, CefString, CefStringList, CompletionCallback, ErrorCode, RefCountedPtr,
     RequestContextHandler, Wrappable, Wrapped
 };
 use anyhow::Result;
-use bindings::{cef_errorcode_t, cef_request_context_t, cef_resolve_callback_t, cef_string_list_t};
 use parking_lot::Mutex;
 use std::mem::zeroed;
 

@@ -1,6 +1,8 @@
-use crate::{ref_counted_ptr, try_c, CefString, CefStringMultiMap, ErrorCode};
+use crate::{
+    bindings::{cef_response_create, cef_response_t},
+    ref_counted_ptr, try_c, CefString, CefStringMultiMap, ErrorCode
+};
 use anyhow::Result;
-use bindings::{cef_response_create, cef_response_t};
 use std::{collections::HashMap, ffi::c_int};
 
 // Structure used to represent a web response. The functions of this structure

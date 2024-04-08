@@ -1,5 +1,7 @@
-use crate::{ref_counted_ptr, RefCountedPtr, Value, Wrappable, Wrapped};
-use bindings::{cef_accessibility_handler_t, cef_value_t};
+use crate::{
+    bindings::{cef_accessibility_handler_t, cef_value_t},
+    ref_counted_ptr, RefCountedPtr, Value, Wrappable, Wrapped
+};
 use std::mem::zeroed;
 
 /// Implement this structure to receive accessibility notification when

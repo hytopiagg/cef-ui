@@ -79,4 +79,4 @@ tar -czvf cef-linux-x86_64.tar.gz cef/
 popd || exit
 
 # Copy the final bindings to the correct location.
-cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/cef-ui-bindings/src/linux_x86_64"
+cp "$ARTIFACTS/$EXTRACTED/$BINDINGS" "../crates/cef-ui/src/bindings/linux_x86_64"

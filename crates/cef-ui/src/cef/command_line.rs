@@ -1,6 +1,8 @@
-use crate::{ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap};
+use crate::{
+    bindings::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t},
+    ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap
+};
 use anyhow::Result;
-use bindings::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t};
 use std::{
     collections::HashMap,
     ffi::{c_char, c_int, CString},

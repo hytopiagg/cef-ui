@@ -1,7 +1,10 @@
-use crate::{ref_counted_ptr, Browser, ErrorCode, Extension, RefCountedPtr, Wrappable, Wrapped};
-use bindings::{
-    cef_browser_settings_t, cef_browser_t, cef_client_t, cef_errorcode_t, cef_extension_handler_t,
-    cef_extension_t, cef_get_extension_resource_callback_t, cef_string_t, cef_window_info_t
+use crate::{
+    bindings::{
+        cef_browser_settings_t, cef_browser_t, cef_client_t, cef_errorcode_t,
+        cef_extension_handler_t, cef_extension_t, cef_get_extension_resource_callback_t,
+        cef_string_t, cef_window_info_t
+    },
+    ref_counted_ptr, Browser, ErrorCode, Extension, RefCountedPtr, Wrappable, Wrapped
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 

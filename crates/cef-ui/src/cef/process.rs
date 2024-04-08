@@ -1,6 +1,8 @@
-use crate::{ref_counted_ptr, try_c, CefString, ListValue, SharedMemoryRegion};
+use crate::{
+    bindings::{cef_process_id_t, cef_process_message_create, cef_process_message_t},
+    ref_counted_ptr, try_c, CefString, ListValue, SharedMemoryRegion
+};
 use anyhow::Result;
-use bindings::{cef_process_id_t, cef_process_message_create, cef_process_message_t};
 
 /// Existing process IDs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
