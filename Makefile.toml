@@ -82,6 +82,15 @@ script = '''
     echo ${TARGET_DIR}
 '''
 
+#[tasks.macos-bundle-game]
+#script = [
+#    "mkdir -p ./target/debug/${CLIENT_NAME}.app/Contents/Frameworks",
+#    "mkdir -p ./target/debug/${CLIENT_NAME}.app/Contents/MacOS",
+#    "cp ./target/debug/${CLIENT_NAME} ./target/debug/${CLIENT_NAME}.app/Contents/MacOS/${CLIENT_NAME}",
+#    "cp ./build/game-info.plist ./target/debug/${CLIENT_NAME}.app/Contents/Info.plist",
+#    "cp -r ./${CLIENT_NAME}/assets/ ./target/debug/${CLIENT_NAME}.app/Contents/MacOS/assets/",
+#]
+
 # ----------------------
 # This runs the project.
 # ----------------------
