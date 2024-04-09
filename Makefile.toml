@@ -102,28 +102,63 @@ workspace = false
 condition = { platforms = ["mac"] }
 env = { "RES_DIR" = "resources/macos" }
 script = '''
+    # The path to the app.
     APP_DIR="${TARGET_DIR}/${APP_NAME}.app"
-    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${APP_NAME} Helper.app"
 
     # Remove any existing app.
     rm -fr "${APP_DIR}"
 
-    # Create the directory structure.
+    # Setup the main app.
+    mkdir -p "${APP_DIR}/Contents/Frameworks"
     mkdir -p "${APP_DIR}/Contents/MacOS"
     mkdir -p "${APP_DIR}/Contents/Resources"
-    mkdir -p "${HELPER_DIR}/Contents/MacOS"
-
-    # Copy the framework.
-    cp -r "${ARTIFACTS_DIR}/cef/Chromium Embedded Framework.framework" "${APP_DIR}/Contents/Frameworks"
-
-    # Copy resources.
     cp -r "${RES_DIR}/Info.plist" "${APP_DIR}/Contents"
     cp -r "${RES_DIR}/Icon.icns" "${APP_DIR}/Contents/Resources"
-    cp -r "${RES_DIR}/HelperInfo.plist" "${HELPER_DIR}/Contents/Info.plist"
-
-    # Copy binaries.
+    cp -r "${RES_DIR}/English.lproj" "${APP_DIR}/Contents/Resources/English.lproj"
     cp "${TARGET_DIR}/${APP_NAME}" "${APP_DIR}/Contents/MacOS"
-    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${APP_NAME} Helper"
+
+    # Copy the CEF framework.
+    cp -r "${ARTIFACTS_DIR}/cef/Chromium Embedded Framework.framework" "${APP_DIR}/Contents/Frameworks"
+
+    # Create the helper app.
+    HELPER_NAME="${APP_NAME} Helper"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${HELPER_NAME}.app"
+    HELPER_PLIST="HelperInfo.plist"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
+    cp -r "${RES_DIR}/${HELPER_PLIST}" "${HELPER_DIR}/Contents/Info.plist"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${HELPER_NAME}"
+
+    # Create the alerts app.
+    HELPER_NAME="${APP_NAME} Helper (Alerts)"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${HELPER_NAME}.app"
+    HELPER_PLIST="AlertsHelperInfo.plist"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
+    cp -r "${RES_DIR}/${HELPER_PLIST}" "${HELPER_DIR}/Contents/Info.plist"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${HELPER_NAME}"
+
+    # Create the gpu app.
+    HELPER_NAME="${APP_NAME} Helper (GPU)"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${HELPER_NAME}.app"
+    HELPER_PLIST="GpuHelperInfo.plist"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
+    cp -r "${RES_DIR}/${HELPER_PLIST}" "${HELPER_DIR}/Contents/Info.plist"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${HELPER_NAME}"
+
+    # Create the plugin app.
+    HELPER_NAME="${APP_NAME} Helper (Plugin)"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${HELPER_NAME}.app"
+    HELPER_PLIST="PluginHelperInfo.plist"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
+    cp -r "${RES_DIR}/${HELPER_PLIST}" "${HELPER_DIR}/Contents/Info.plist"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${HELPER_NAME}"
+
+    # Create the renderer app.
+    HELPER_NAME="${APP_NAME} Helper (Renderer)"
+    HELPER_DIR="${APP_DIR}/Contents/Frameworks/${HELPER_NAME}.app"
+    HELPER_PLIST="RendererHelperInfo.plist"
+    mkdir -p "${HELPER_DIR}/Contents/MacOS"
+    cp -r "${RES_DIR}/${HELPER_PLIST}" "${HELPER_DIR}/Contents/Info.plist"
+    cp "${TARGET_DIR}/${APP_HELPER_NAME}" "${HELPER_DIR}/Contents/MacOS/${HELPER_NAME}"
 '''
 
 # ----------------------
