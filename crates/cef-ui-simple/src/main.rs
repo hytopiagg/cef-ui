@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{create_dir_all, remove_dir_all, File},
+    fs::{create_dir_all, remove_dir_all},
     path::PathBuf,
     process::exit
 };
@@ -19,84 +19,9 @@ use cef_ui::{
     RenderHandler, RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo,
     WindowOpenDisposition
 };
-use log::{debug, error};
+use log::{error, info};
 
-pub struct MyLifeSpanHandlerCallbacks;
-
-#[allow(unused_variables)]
-impl LifeSpanHandlerCallbacks for MyLifeSpanHandlerCallbacks {
-    unsafe fn on_before_popup(
-        &mut self,
-        browser: Browser,
-        frame: Frame,
-        target_url: Option<String>,
-        target_frame_name: Option<String>,
-        target_disposition: WindowOpenDisposition,
-        user_gesture: bool,
-        popup_features: PopupFeatures,
-        window_info: &mut WindowInfo,
-        client: &mut Option<Client>,
-        settings: &mut BrowserSettings,
-        extra_info: &mut Option<DictionaryValue>,
-        no_javascript_access: &mut bool
-    ) -> bool {
-        true
-    }
-
-    fn on_before_dev_tools_popup(
-        &mut self,
-        browser: Browser,
-        window_info: &mut WindowInfo,
-        client: &mut Option<Client>,
-        settings: &mut BrowserSettings,
-        extra_info: &mut Option<DictionaryValue>,
-        use_default_window: &mut bool
-    ) {
-    }
-
-    fn on_after_created(&mut self, browser: Browser) {}
-
-    fn do_close(&mut self, browser: Browser) -> bool {
-        debug!("Closing browser.");
-
-        false
-    }
-
-    fn on_before_close(&mut self, browser: Browser) {
-        debug!("Quitting message loop.");
-
-        unsafe {
-            cef_quit_message_loop();
-        }
-    }
-}
-
-pub struct MyAppCallbacks;
-
-impl AppCallbacks for MyAppCallbacks {
-    fn on_before_command_line_processing(
-        &mut self,
-        process_type: Option<&str>,
-        command_line: Option<CommandLine>
-    ) {
-        if let Some(command_line) = command_line {
-            if process_type.is_none() {
-                debug!("Setting command line switches.");
-
-                // This is to disable scary warnings on macOS.
-                #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-                if let Err(e) = command_line.append_switch("--use-mock-keychain") {
-                    error!("{}", e);
-                }
-            }
-        }
-    }
-
-    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
-        None
-    }
-}
-
+/// Context menu callbacks.
 pub struct MyContextMenuHandler;
 
 #[allow(unused_variables)]
@@ -108,6 +33,7 @@ impl ContextMenuHandlerCallbacks for MyContextMenuHandler {
         params: ContextMenuParams,
         model: MenuModel
     ) {
+        // Prevent popups from spawning.
         if let Err(e) = model.clear() {
             error!("{}", e);
         }
@@ -162,6 +88,60 @@ impl ContextMenuHandlerCallbacks for MyContextMenuHandler {
     fn on_quick_menu_dismissed(&mut self, browser: Browser, frame: Frame) {}
 }
 
+/// Life span callbacks.
+pub struct MyLifeSpanHandlerCallbacks;
+
+#[allow(unused_variables)]
+impl LifeSpanHandlerCallbacks for MyLifeSpanHandlerCallbacks {
+    unsafe fn on_before_popup(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        target_url: Option<String>,
+        target_frame_name: Option<String>,
+        target_disposition: WindowOpenDisposition,
+        user_gesture: bool,
+        popup_features: PopupFeatures,
+        window_info: &mut WindowInfo,
+        client: &mut Option<Client>,
+        settings: &mut BrowserSettings,
+        extra_info: &mut Option<DictionaryValue>,
+        no_javascript_access: &mut bool
+    ) -> bool {
+        true
+    }
+
+    fn on_before_dev_tools_popup(
+        &mut self,
+        browser: Browser,
+        window_info: &mut WindowInfo,
+        client: &mut Option<Client>,
+        settings: &mut BrowserSettings,
+        extra_info: &mut Option<DictionaryValue>,
+        use_default_window: &mut bool
+    ) {
+    }
+
+    fn on_after_created(&mut self, browser: Browser) {}
+
+    fn do_close(&mut self, browser: Browser) -> bool {
+        info!("Closing CEF browser.");
+
+        false
+    }
+
+    fn on_before_close(&mut self, browser: Browser) {
+        info!("Quitting CEF message loop.");
+
+        // If you have more than one browser open, you want to only
+        // call this when the number of open browsers reaches zero.
+        unsafe {
+            cef_quit_message_loop();
+        }
+    }
+}
+
+/// Client callbacks.
 pub struct MyClientCallbacks;
 
 impl ClientCallbacks for MyClientCallbacks {
@@ -174,12 +154,38 @@ impl ClientCallbacks for MyClientCallbacks {
     }
 
     fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler> {
-        debug!("Creating life span handler.");
-
         Some(LifeSpanHandler::new(MyLifeSpanHandlerCallbacks {}))
     }
 
     fn get_render_handler(&mut self) -> Option<RenderHandler> {
+        None
+    }
+}
+
+/// Application callbacks.
+pub struct MyAppCallbacks;
+
+#[allow(unused_variables)]
+impl AppCallbacks for MyAppCallbacks {
+    fn on_before_command_line_processing(
+        &mut self,
+        process_type: Option<&str>,
+        command_line: Option<CommandLine>
+    ) {
+        info!("Setting CEF command line switches.");
+
+        // This is to disable scary warnings on macOS.
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        if let Some(command_line) = command_line {
+            if process_type.is_none() {
+                if let Err(e) = command_line.append_switch("--use-mock-keychain") {
+                    error!("{}", e);
+                }
+            }
+        }
+    }
+
+    fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
         None
     }
 }
@@ -196,13 +202,9 @@ fn try_main() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
-    // Open a file to write logs to
-    let log_file = File::create("/Users/kevin/repos/cef-ui/CEF.log")?;
-
     // Setup the tracing subscriber globally.
     let subscriber = FmtSubscriber::builder()
         .with_max_level(LevelFilter::from_level(Level::DEBUG))
-        .with_writer(log_file)
         .finish();
 
     set_global_default(subscriber)?;
@@ -246,12 +248,12 @@ fn try_main() -> Result<()> {
         None
     );
 
-    debug!("Running message loop.");
+    info!("Running CEF message loop.");
 
     // Run the message loop.
     context.run_message_loop();
 
-    debug!("Shutting down CEF.");
+    info!("Shutting down CEF.");
 
     // Shutdown CEF.
     context.shutdown();
