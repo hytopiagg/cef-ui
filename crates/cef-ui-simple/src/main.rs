@@ -11,13 +11,65 @@ use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 use cef_ui::{
-    App, AppCallbacks, Browser, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
-    ClientCallbacks, CommandLine, Context, ContextMenuHandler, ContextMenuHandlerCallbacks,
-    ContextMenuParams, EventFlags, Frame, KeyboardHandler, LifeSpanHandler, LogSeverity, MainArgs,
-    MenuCommandId, MenuModel, Point, QuickMenuEditStateFlags, RenderHandler,
-    RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo
+    bindings::cef_quit_message_loop, App, AppCallbacks, Browser, BrowserHost,
+    BrowserProcessHandler, BrowserSettings, Client, ClientCallbacks, CommandLine, Context,
+    ContextMenuHandler, ContextMenuHandlerCallbacks, ContextMenuParams, DictionaryValue,
+    EventFlags, Frame, KeyboardHandler, LifeSpanHandler, LifeSpanHandlerCallbacks, LogSeverity,
+    MainArgs, MenuCommandId, MenuModel, Point, PopupFeatures, QuickMenuEditStateFlags,
+    RenderHandler, RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo,
+    WindowOpenDisposition
 };
 use log::{debug, error};
+
+pub struct MyLifeSpanHandlerCallbacks;
+
+#[allow(unused_variables)]
+impl LifeSpanHandlerCallbacks for MyLifeSpanHandlerCallbacks {
+    unsafe fn on_before_popup(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        target_url: Option<String>,
+        target_frame_name: Option<String>,
+        target_disposition: WindowOpenDisposition,
+        user_gesture: bool,
+        popup_features: PopupFeatures,
+        window_info: &mut WindowInfo,
+        client: &mut Option<Client>,
+        settings: &mut BrowserSettings,
+        extra_info: &mut Option<DictionaryValue>,
+        no_javascript_access: &mut bool
+    ) -> bool {
+        true
+    }
+
+    fn on_before_dev_tools_popup(
+        &mut self,
+        browser: Browser,
+        window_info: &mut WindowInfo,
+        client: &mut Option<Client>,
+        settings: &mut BrowserSettings,
+        extra_info: &mut Option<DictionaryValue>,
+        use_default_window: &mut bool
+    ) {
+    }
+
+    fn on_after_created(&mut self, browser: Browser) {}
+
+    fn do_close(&mut self, browser: Browser) -> bool {
+        debug!("Closing browser.");
+
+        false
+    }
+
+    fn on_before_close(&mut self, browser: Browser) {
+        debug!("Quitting message loop.");
+
+        unsafe {
+            cef_quit_message_loop();
+        }
+    }
+}
 
 pub struct MyAppCallbacks;
 
@@ -122,7 +174,9 @@ impl ClientCallbacks for MyClientCallbacks {
     }
 
     fn get_life_span_handler(&mut self) -> Option<LifeSpanHandler> {
-        None
+        debug!("Creating life span handler.");
+
+        Some(LifeSpanHandler::new(MyLifeSpanHandlerCallbacks {}))
     }
 
     fn get_render_handler(&mut self) -> Option<RenderHandler> {
@@ -192,8 +246,12 @@ fn try_main() -> Result<()> {
         None
     );
 
+    debug!("Running message loop.");
+
     // Run the message loop.
     context.run_message_loop();
+
+    debug!("Shutting down CEF.");
 
     // Shutdown CEF.
     context.shutdown();
