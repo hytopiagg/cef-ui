@@ -1,6 +1,6 @@
 use std::{
     env,
-    fs::{create_dir_all, remove_dir_all},
+    fs::{create_dir_all, remove_dir_all, File},
     path::PathBuf,
     process::exit
 };
@@ -11,26 +11,110 @@ use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 use cef_ui::{
-    App, AppCallbacks, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
-    ClientCallbacks, CommandLine, Context, ContextMenuHandler, KeyboardHandler, LifeSpanHandler,
-    LogSeverity, MainArgs, RenderHandler, Settings, WindowInfo
+    App, AppCallbacks, Browser, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
+    ClientCallbacks, CommandLine, Context, ContextMenuHandler, ContextMenuHandlerCallbacks,
+    ContextMenuParams, EventFlags, Frame, KeyboardHandler, LifeSpanHandler, LogSeverity, MainArgs,
+    MenuCommandId, MenuModel, Point, QuickMenuEditStateFlags, RenderHandler,
+    RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo
 };
+use log::{debug, error};
 
 pub struct MyAppCallbacks;
 
 impl AppCallbacks for MyAppCallbacks {
-    fn on_before_command_line_processing(&mut self, _: Option<&str>, _: Option<CommandLine>) {}
+    fn on_before_command_line_processing(
+        &mut self,
+        process_type: Option<&str>,
+        command_line: Option<CommandLine>
+    ) {
+        if let Some(command_line) = command_line {
+            if process_type.is_none() {
+                debug!("Setting command line switches.");
+
+                // This is to disable scary warnings on macOS.
+                #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+                if let Err(e) = command_line.append_switch("--use-mock-keychain") {
+                    error!("{}", e);
+                }
+            }
+        }
+    }
 
     fn get_browser_process_handler(&mut self) -> Option<BrowserProcessHandler> {
         None
     }
 }
 
+pub struct MyContextMenuHandler;
+
+#[allow(unused_variables)]
+impl ContextMenuHandlerCallbacks for MyContextMenuHandler {
+    fn on_before_context_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        model: MenuModel
+    ) {
+        if let Err(e) = model.clear() {
+            error!("{}", e);
+        }
+    }
+
+    fn run_context_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        model: MenuModel,
+        callback: RunContextMenuCallback
+    ) -> bool {
+        false
+    }
+
+    fn on_context_menu_command(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        params: ContextMenuParams,
+        command_id: MenuCommandId,
+        event_flags: EventFlags
+    ) -> bool {
+        false
+    }
+
+    fn on_context_menu_dismissed(&mut self, browser: Browser, frame: Frame) {}
+
+    fn run_quick_menu(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        location: &Point,
+        size: &Size,
+        edit_state_flags: QuickMenuEditStateFlags,
+        callback: RunQuickMenuCallback
+    ) -> bool {
+        false
+    }
+
+    fn on_quick_menu_command(
+        &mut self,
+        browser: Browser,
+        frame: Frame,
+        command_id: MenuCommandId,
+        event_flags: EventFlags
+    ) -> bool {
+        false
+    }
+
+    fn on_quick_menu_dismissed(&mut self, browser: Browser, frame: Frame) {}
+}
+
 pub struct MyClientCallbacks;
 
 impl ClientCallbacks for MyClientCallbacks {
     fn get_context_menu_handler(&mut self) -> Option<ContextMenuHandler> {
-        None
+        Some(ContextMenuHandler::new(MyContextMenuHandler {}))
     }
 
     fn get_keyboard_handler(&mut self) -> Option<KeyboardHandler> {
@@ -58,9 +142,13 @@ fn try_main() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
+    // Open a file to write logs to
+    let log_file = File::create("/Users/kevin/repos/cef-ui/CEF.log")?;
+
     // Setup the tracing subscriber globally.
     let subscriber = FmtSubscriber::builder()
         .with_max_level(LevelFilter::from_level(Level::DEBUG))
+        .with_writer(log_file)
         .finish();
 
     set_global_default(subscriber)?;
@@ -74,7 +162,8 @@ fn try_main() -> Result<()> {
 
     let settings = Settings::new()
         .log_severity(LogSeverity::Warning)
-        .root_cache_path(&root_cache_dir)?;
+        .root_cache_path(&root_cache_dir)?
+        .no_sandbox(true);
 
     let app = App::new(MyAppCallbacks {});
 
