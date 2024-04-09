@@ -158,7 +158,6 @@ pub trait LifeSpanHandlerCallbacks: Send + Sync + 'static {
     /// cef_frame_handler_t documentation for additional usage information.
     fn on_after_created(&mut self, browser: Browser);
 
-    ///
     /// Called when a browser has received a request to close. This may result
     /// directly from a call to cef_browser_host_t::*close_browser() or indirectly
     /// if the browser is parented to a top-level window created by CEF and the
