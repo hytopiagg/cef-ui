@@ -13,8 +13,8 @@ flate2 = "1.0"
 [dependencies]
 cef-ui = { path = "../cef-ui" }
 anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-log = { workspace = true }
+tracing-subscriber = { workspace = true }
+log = { workspace = true }
 winit = "0.29"
-tracing = "0.1"
-tracing-log = "0.2"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-log = "0.4.20"
