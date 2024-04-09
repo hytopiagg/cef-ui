@@ -6,11 +6,10 @@ build = "build.rs"
 
 [dependencies]
 anyhow = { workspace = true }
+tracing-log = { workspace = true }
+log = { workspace = true }
 paste = "1.0"
 dunce = "1.0"
-log = "0.4"
-tracing-log = "0.2.0"
 parking_lot = "0.12"
 bitflags = "2.4"
 chrono = "0.4"
-

@@ -1,8 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/*",
+    "crates/*",
 ]
 
 [workspace.dependencies]
 anyhow = "1.0"
+tracing = "0.1"
+tracing-log = "0.2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+log = "0.4.20"
