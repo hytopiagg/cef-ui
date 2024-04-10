@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="simple-helper-release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --bin cef-ui-simple-helper --release" />
+  <configuration default="false" name="build-artifacts-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="run --bin build-artifacts" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs>
       <env name="CEF_DIR" value="$PROJECT_DIR$/artifacts/cef" />

@@ -6,9 +6,9 @@ build = "build.rs"
 
 [build-dependencies]
 anyhow = { workspace = true }
-reqwest = { version = "0.12", features = ["blocking"] }
-tar = "0.4"
-flate2 = "1.0"
+reqwest = { workspace = true }
+tar = { workspace = true }
+flate2 = { workspace = true }
 
 [dependencies]
 cef-ui = { path = "../cef-ui" }
