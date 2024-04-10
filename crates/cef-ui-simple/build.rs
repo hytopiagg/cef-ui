@@ -93,10 +93,6 @@ fn main() -> Result<()> {
     {
         // This tells Rust where to find the CEF framework at compile time.
         println!("cargo:rustc-link-search=framework={}", cef_dir);
-
-        // This tells Rust where to find the CEF framework at runtime.
-        // println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/cef");
-        // println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../../artifacts/cef");
     }
 
     Ok(())
