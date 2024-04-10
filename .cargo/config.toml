@@ -1,0 +1,2 @@
+[alias]
+build-artifacts = "run --bin build-artifacts --release"
