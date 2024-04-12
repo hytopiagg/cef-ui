@@ -6,7 +6,7 @@ use bindgen::{builder, EnumVariation};
 use std::{
     env::consts::{ARCH, OS},
     fs,
-    fs::{canonicalize, create_dir_all, remove_dir_all},
+    fs::{canonicalize, create_dir_all, remove_dir_all, remove_file},
     path::Path,
     process::Command
 };
@@ -210,9 +210,17 @@ fn strip_debug_symbols(extracted_dir: &Path) -> Result<()> {
 fn create_artifact(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
     let cef_dir = artifacts_dir.join("cef");
 
-    // Copy binaries and resources.
-    copy_files(&extracted_dir.join("Release"), &cef_dir)?;
-    copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
+    // Copy files for Linux.
+    if cfg!(target_os = "linux") {
+        copy_files(&extracted_dir.join("Release"), &cef_dir)?;
+        copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
+    }
+
+    // Copy files for macOS.
+    if cfg!(target_os = "macos") {
+        copy_files(&extracted_dir.join("Release"), &cef_dir)?;
+        remove_file(&cef_dir.join("cef_sandbox.a"))?;
+    }
 
     // Create the tar gzipped file.
     let filename = format!("cef-{}-{}.tgz", OS, ARCH);
