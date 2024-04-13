@@ -36,6 +36,14 @@ bitflags! {
     }
 }
 
+impl From<u32> for EventFlags {
+    fn from(value: u32) -> Self {
+        let value = value as cef_event_flags_t;
+
+        Self::from(&value)
+    }
+}
+
 impl From<cef_event_flags_t> for EventFlags {
     fn from(value: cef_event_flags_t) -> Self {
         Self::from(&value)
@@ -45,6 +53,14 @@ impl From<cef_event_flags_t> for EventFlags {
 impl From<&cef_event_flags_t> for EventFlags {
     fn from(value: &cef_event_flags_t) -> Self {
         Self::from_bits_truncate(*value)
+    }
+}
+
+impl From<EventFlags> for u32 {
+    fn from(value: EventFlags) -> Self {
+        let value: cef_event_flags_t = value.into();
+
+        value as u32
     }
 }
 
