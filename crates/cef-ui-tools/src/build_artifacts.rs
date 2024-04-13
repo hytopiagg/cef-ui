@@ -36,11 +36,12 @@ pub fn build_artifacts() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    // Create a fresh artifacts directory.
     let project_dir = get_project_dir()?;
-    let artifacts_dir = project_dir.join("artifacts");
 
+    // Create the artifacts/ directory.
     info!("Creating artifacts dir ..");
+
+    let artifacts_dir = project_dir.join("artifacts");
 
     if artifacts_dir.exists() {
         remove_dir_all(&artifacts_dir)?;
@@ -49,9 +50,9 @@ pub fn build_artifacts() -> Result<()> {
     create_dir_all(&artifacts_dir)?;
 
     // Download CEF.
-    let filename = get_url_filename(CEF_URL)?;
-
     info!("Downloading CEF ..");
+
+    let filename = get_url_filename(CEF_URL)?;
 
     download_file(CEF_URL, &artifacts_dir.join(&filename))?;
 
@@ -61,6 +62,8 @@ pub fn build_artifacts() -> Result<()> {
     extract_bz2(&artifacts_dir.join(&filename), &artifacts_dir)?;
 
     // Generate bindings.
+    info!("Generating bindings ..");
+
     let extracted_dir = filename
         .strip_suffix(".tar.bz2")
         .unwrap();
@@ -68,27 +71,22 @@ pub fn build_artifacts() -> Result<()> {
     let extracted_dir = canonicalize(&extracted_dir)?;
     let bindings_file = extracted_dir.join("bindings.rs");
 
-    info!("Generating bindings ..");
-
     generate_bindings(&extracted_dir, &bindings_file)?;
 
-    // Copy the bindings to the cef-ui crate.
-    let dst = format!(
-        "{}/crates/cef-ui/src/bindings/{}_{}/bindings.rs",
-        get_project_dir()?.to_str().unwrap(),
-        OS,
-        ARCH
-    );
-
+    // Strip debug symbols.
     info!("Stripping debug symbols ..");
 
     strip_debug_symbols(&extracted_dir)?;
 
+    // Create artifacts.
     info!("Creating artifacts ..");
 
-    create_artifact(&artifacts_dir, &extracted_dir)?;
+    create_artifacts(&artifacts_dir, &extracted_dir)?;
 
+    // Copy bindings.
     info!("Copying bindings ..");
+
+    let dst = project_dir.join("crates/cef-ui/src/bindings/windows_x86_64/bindings.rs");
 
     fs::copy(bindings_file, dst)?;
 
@@ -148,7 +146,19 @@ fn create_header(include_dir: &Path) -> Result<String> {
 fn generate_bindings(extracted_dir: &Path, bindings_file: &Path) -> Result<()> {
     let include_dir = extracted_dir.join("include");
     let header = create_header(&include_dir)?;
-    let inc_dir = |path: &Path| format!("-I{}", path.to_string_lossy().to_string());
+    let inc = |path: &Path| {
+        let mut path = path.to_string_lossy().to_string();
+
+        // This is so gross, on Windows a prefix is added for paths longer than
+        // 256 characters and this breaks Rust bindgen, hence this hack. :^/
+        if cfg!(target_os = "windows") {
+            if let Some(modified) = path.strip_prefix(r#"\\?\"#) {
+                path = modified.to_string();
+            }
+        }
+
+        return format!("-I{}", path);
+    };
 
     // Generate the bindings.
     let bindings = builder()
@@ -168,9 +178,9 @@ fn generate_bindings(extracted_dir: &Path, bindings_file: &Path) -> Result<()> {
         .constified_enum("cef_context_menu_edit_state_flags_t")
         .constified_enum("cef_quick_menu_edit_state_flags_t")
         .clang_args(&[
-            inc_dir(&include_dir),
-            inc_dir(&include_dir.join("capi")),
-            inc_dir(&extracted_dir)
+            inc(&include_dir),
+            inc(&include_dir.join("capi")),
+            inc(&extracted_dir)
         ])
         .generate()?;
 
@@ -207,10 +217,10 @@ fn strip_debug_symbols(extracted_dir: &Path) -> Result<()> {
 }
 
 /// Create the final artifact.
-fn create_artifact(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
+fn create_artifacts(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
     let cef_dir = artifacts_dir.join("cef");
 
-    // Copy files for Linux.
+    // Copy files for Linux and Windows.
     if cfg!(target_os = "linux") {
         copy_files(&extracted_dir.join("Release"), &cef_dir)?;
         copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
@@ -220,6 +230,14 @@ fn create_artifact(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
     if cfg!(target_os = "macos") {
         copy_files(&extracted_dir.join("Release"), &cef_dir)?;
         remove_file(&cef_dir.join("cef_sandbox.a"))?;
+    }
+
+    // Copy files for Windows.
+    if cfg!(target_os = "windows") {
+        copy_files(&extracted_dir.join("Release"), &cef_dir)?;
+        copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
+        remove_file(&cef_dir.join("cef_sandbox.lib"))?;
+        remove_file(&cef_dir.join("libcef.lib"))?;
     }
 
     // Create the tar gzipped file.
