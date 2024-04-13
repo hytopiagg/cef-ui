@@ -99,5 +99,12 @@ fn main() -> Result<()> {
         println!("cargo:rustc-link-search=framework={}", cef_dir);
     }
 
+    // Linker flags on x86_64 Windows.
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    {
+        // This tells Rust where to find libcef.lib at compile time.
+        println!("cargo:rustc-link-search=native={}", cef_dir);
+    }
+
     Ok(())
 }

@@ -10,4 +10,10 @@ fn main() {
     {
         println!("cargo:rustc-link-lib=framework=Chromium Embedded Framework");
     }
+
+    // Linker flags on x86_64 Windows.
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    {
+        println!("cargo:rustc-link-lib=dylib=libcef");
+    }
 }
