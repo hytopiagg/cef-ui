@@ -237,7 +237,6 @@ fn create_artifacts(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
         copy_files(&extracted_dir.join("Release"), &cef_dir)?;
         copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
         remove_file(&cef_dir.join("cef_sandbox.lib"))?;
-        remove_file(&cef_dir.join("libcef.lib"))?;
     }
 
     // Create the tar gzipped file.
