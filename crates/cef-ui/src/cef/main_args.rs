@@ -40,7 +40,6 @@ impl MainArgs {
     }
 }
 
-
 // Structure representing CefExecuteProcess arguments.
 // typedef struct _cef_main_args_t {
 //     HINSTANCE instance;

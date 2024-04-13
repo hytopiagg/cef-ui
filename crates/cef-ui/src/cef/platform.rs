@@ -328,13 +328,16 @@ mod inner {
 #[cfg(target_os = "windows")]
 mod inner {
     use crate::{
-        bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t},
+        bindings::{
+            cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t, HMENU
+        },
         free_cef_string, CefString, Rect
     };
     use anyhow::{anyhow, Error, Result};
-    use std::{ffi::c_int, mem::zeroed};
-    use std::ffi::c_ulong;
-    use crate::bindings::HMENU;
+    use std::{
+        ffi::{c_int, c_ulong},
+        mem::zeroed
+    };
 
     /// Native window handle.
     #[derive(Clone)]
