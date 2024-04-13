@@ -3,10 +3,7 @@ use crate::{
     ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap
 };
 use anyhow::Result;
-use std::{
-    collections::HashMap,
-    ptr::null_mut
-};
+use std::{collections::HashMap, ptr::null_mut};
 
 #[cfg(not(target_os = "windows"))]
 use std::ffi::{c_char, c_int, CString};
