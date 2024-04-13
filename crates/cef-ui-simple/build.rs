@@ -17,6 +17,10 @@ pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download/cef-artifacts-v0.1.0/cef-macos-aarch64.tgz";
 
+/// Binaries for x86_64 Windows.
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download/cef-artifacts-v0.1.0/cef-windows-x86_64.tgz";
+
 /// Download a file to disk.
 fn download_file(url: &str, path: &Path) -> Result<()> {
     let response = get(url)?;
