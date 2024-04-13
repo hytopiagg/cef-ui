@@ -15,8 +15,8 @@ use std::{
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct MainArgs {
-    // We must keep the CString vector alive
-    // for the pointer vector to remain valid.
+    /// We must keep the CString vector alive
+    /// for the pointer vector to remain valid.
     args: Vec<CString>,
     argv: Vec<*const c_char>,
     cef:  cef_main_args_t
