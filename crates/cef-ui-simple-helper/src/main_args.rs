@@ -1,5 +1,8 @@
 use anyhow::Result;
-use std::ffi::{c_char, c_int, CString};
+use std::{
+    env::args,
+    ffi::{c_char, c_int, CString}
+};
 
 /// This is lifted from the bindgen output.
 #[repr(C)]
@@ -23,7 +26,11 @@ pub struct MainArgs {
 
 impl MainArgs {
     /// Try and create a new MainArgs from an iterator of strings.
-    pub fn new<T: IntoIterator<Item = String>>(args: T) -> Result<Self> {
+    pub fn new() -> Result<Self> {
+        let args = args()
+            .into_iter()
+            .map(|arg| CString::new(arg))
+            .collect::<Result<Vec<CString>, _>>()?;
         let args = args
             .into_iter()
             .map(|arg| CString::new(arg))

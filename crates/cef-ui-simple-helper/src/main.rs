@@ -3,7 +3,6 @@ use anyhow::{anyhow, Result};
 use libloading::{Library, Symbol};
 use log::{error, info};
 use std::{
-    env,
     env::current_exe,
     ffi::{c_int, c_void},
     fs::canonicalize,
@@ -52,7 +51,7 @@ fn try_main() -> Result<i32> {
 
     info!("cef_path: {:?}", cef_path);
 
-    let main_args = MainArgs::new(env::args())?;
+    let main_args = MainArgs::new()?;
 
     info!("main_args: {:?}", main_args);
 

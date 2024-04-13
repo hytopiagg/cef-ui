@@ -1,5 +1,4 @@
 use std::{
-    env,
     fs::{create_dir_all, remove_dir_all},
     path::PathBuf,
     process::exit
@@ -214,15 +213,13 @@ fn try_main() -> Result<()> {
 
     ensure_root_cache_dir(&root_cache_dir)?;
 
-    let main_args = MainArgs::new(env::args())?;
-
+    let main_args = MainArgs::new()?;
     let settings = Settings::new()
         .log_severity(LogSeverity::Warning)
         .root_cache_path(&root_cache_dir)?
         .no_sandbox(true);
 
     let app = App::new(MyAppCallbacks {});
-
     let context = Context::new(main_args, settings, Some(app));
 
     // If this is a CEF subprocess, let it run and then
