@@ -7,9 +7,8 @@ use crate::bindings::{
     cef_event_flags_t_EVENTFLAG_LEFT_MOUSE_BUTTON, cef_event_flags_t_EVENTFLAG_MIDDLE_MOUSE_BUTTON,
     cef_event_flags_t_EVENTFLAG_NONE, cef_event_flags_t_EVENTFLAG_NUM_LOCK_ON,
     cef_event_flags_t_EVENTFLAG_RIGHT_MOUSE_BUTTON, cef_event_flags_t_EVENTFLAG_SHIFT_DOWN,
-    cef_horizontal_alignment_t, cef_key_event_t, cef_key_event_type_t, cef_mouse_button_type_t,
-    cef_mouse_event_t, cef_point_t, cef_pointer_type_t, cef_touch_event_t, cef_touch_event_type_t,
-    char16_t
+    cef_key_event_t, cef_key_event_type_t, cef_mouse_button_type_t, cef_mouse_event_t,
+    cef_pointer_type_t, cef_touch_event_t, cef_touch_event_type_t, char16_t
 };
 use bitflags::bitflags;
 use std::ffi::c_int;
