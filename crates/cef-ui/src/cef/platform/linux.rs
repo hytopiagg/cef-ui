@@ -1,9 +1,15 @@
 use crate::{
-    bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t},
+    bindings::{
+        cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t
+    },
     free_cef_string, CefString, Rect
 };
 use anyhow::{anyhow, Error, Result};
-use std::{ffi::c_int, mem::zeroed};
+use std::{
+    env::args,
+    ffi::{c_char, c_int, CString},
+    mem::zeroed
+};
 
 /// Structure representing CefExecuteProcess arguments.
 #[derive(Debug)]
@@ -16,19 +22,17 @@ pub struct MainArgs {
     cef:  cef_main_args_t
 }
 
-impl crate::MainArgs {
+impl MainArgs {
     /// Try and create a new MainArgs from an iterator of strings.
-    pub fn new<T: IntoIterator<Item = String>>(args: T) -> Result<Self> {
-        let args = args
+    pub fn new() -> Result<Self> {
+        let args = args()
             .into_iter()
             .map(|arg| CString::new(arg))
             .collect::<Result<Vec<CString>, _>>()?;
-
         let argv = args
             .iter()
             .map(|arg| arg.as_ptr())
             .collect::<Vec<*const c_char>>();
-
         let cef = cef_main_args_t {
             argc: argv.len() as i32,
             argv: argv.as_ptr() as *mut *mut c_char
