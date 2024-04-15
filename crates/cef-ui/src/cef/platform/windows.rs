@@ -1,14 +1,16 @@
 use crate::{
-    bindings::{cef_event_handle_t, cef_string_t, cef_window_handle_t, cef_window_info_t, HMENU},
+    bindings::{
+        cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t,
+        GetModuleHandleA, HMENU
+    },
     free_cef_string, CefString, Rect
 };
 use anyhow::{anyhow, Error, Result};
 use std::{
     ffi::{c_int, c_ulong},
-    mem::zeroed
+    mem::zeroed,
+    ptr::null
 };
-use std::ptr::null;
-use crate::bindings::{cef_main_args_t, GetModuleHandleA};
 
 /// Structure representing CefExecuteProcess arguments.
 #[derive(Debug)]
@@ -23,9 +25,7 @@ impl MainArgs {
         let instance = unsafe { GetModuleHandleA(null()) };
 
         Ok(Self {
-            cef: cef_main_args_t {
-                instance
-            }
+            cef: cef_main_args_t { instance }
         })
     }
 
@@ -34,11 +34,6 @@ impl MainArgs {
         &self.cef
     }
 }
-
-// Structure representing CefExecuteProcess arguments.
-// typedef struct _cef_main_args_t {
-//     HINSTANCE instance;
-// } cef_main_args_t;
 
 /// Native window handle.
 #[derive(Clone)]
