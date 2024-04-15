@@ -1,14 +1,4 @@
-use std::{
-    fs::{create_dir_all, remove_dir_all},
-    path::PathBuf,
-    process::exit
-};
-
 use anyhow::Result;
-use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
-use tracing_log::LogTracer;
-use tracing_subscriber::FmtSubscriber;
-
 use cef_ui::{
     bindings::cef_quit_message_loop, App, AppCallbacks, Browser, BrowserHost,
     BrowserProcessHandler, BrowserSettings, Client, ClientCallbacks, CommandLine, Context,
@@ -19,6 +9,10 @@ use cef_ui::{
     WindowOpenDisposition
 };
 use log::{error, info};
+use std::{fs::create_dir_all, path::PathBuf, process::exit};
+use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
+use tracing_log::LogTracer;
+use tracing_subscriber::FmtSubscriber;
 
 /// Context menu callbacks.
 pub struct MyContextMenuHandler;
@@ -124,14 +118,10 @@ impl LifeSpanHandlerCallbacks for MyLifeSpanHandlerCallbacks {
     fn on_after_created(&mut self, browser: Browser) {}
 
     fn do_close(&mut self, browser: Browser) -> bool {
-        info!("Closing CEF browser.");
-
         false
     }
 
     fn on_before_close(&mut self, browser: Browser) {
-        info!("Quitting CEF message loop.");
-
         // If you have more than one browser open, you want to only
         // call this when the number of open browsers reaches zero.
         unsafe {
@@ -201,9 +191,13 @@ fn try_main() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
+    // let filename = PathBuf::from(r#"/home/kevin/repos/cef-ui/CEF.log"#);
+    // let log_file = File::create(filename)?;
+
     // Setup the tracing subscriber globally.
     let subscriber = FmtSubscriber::builder()
         .with_max_level(LevelFilter::from_level(Level::DEBUG))
+        //.with_writer(log_file)
         .finish();
 
     set_global_default(subscriber)?;
@@ -258,13 +252,11 @@ fn try_main() -> Result<()> {
     Ok(())
 }
 
-/// Remove the root cache directory if it exists and then create it.
+/// Make sure the root cache directory exists.
 fn ensure_root_cache_dir(path: &PathBuf) -> Result<()> {
-    if path.exists() {
-        remove_dir_all(path)?;
+    if !path.exists() {
+        create_dir_all(path)?;
     }
-
-    create_dir_all(path)?;
 
     Ok(())
 }
