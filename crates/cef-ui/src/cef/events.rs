@@ -36,6 +36,7 @@ bitflags! {
     }
 }
 
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 impl From<u32> for EventFlags {
     fn from(value: u32) -> Self {
         let value = value as cef_event_flags_t;
@@ -56,6 +57,7 @@ impl From<&cef_event_flags_t> for EventFlags {
     }
 }
 
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 impl From<EventFlags> for u32 {
     fn from(value: EventFlags) -> Self {
         let value: cef_event_flags_t = value.into();
