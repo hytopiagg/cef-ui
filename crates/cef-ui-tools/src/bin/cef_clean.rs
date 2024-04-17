@@ -1,8 +1,8 @@
 use anyhow::Result;
-use cef_ui_tools::build_artifacts;
+use cef_ui_tools::cef_clean;
 
 fn main() -> Result<()> {
-    build_artifacts()?;
+    cef_clean()?;
 
     Ok(())
 }

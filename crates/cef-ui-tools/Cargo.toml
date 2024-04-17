@@ -20,9 +20,13 @@ walkdir = "2.5"
 bindgen = "0.69"
 
 [[bin]]
-name = "build-artifacts"
-path = "src/bin/build_artifacts.rs"
+name = "cef-artifacts"
+path = "src/bin/cef_artifacts.rs"
 
 [[bin]]
-name = "clean-all"
-path = "src/bin/clean_all.rs"
+name = "cef-clean"
+path = "src/bin/cef_clean.rs"
+
+[[bin]]
+name = "cef-build"
+path = "src/bin/cef_build.rs"

@@ -25,7 +25,7 @@ const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg
 const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg4d3b0b4%2Bchromium-121.0.6167.184_windows64_minimal.tar.bz2";
 
 /// Try and generate CEF artifacts.
-pub fn build_artifacts() -> Result<()> {
+pub fn cef_artifacts() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
