@@ -22,3 +22,7 @@ bindgen = "0.69"
 [[bin]]
 name = "build-artifacts"
 path = "src/bin/build_artifacts.rs"
+
+[[bin]]
+name = "clean-all"
+path = "src/bin/clean_all.rs"
