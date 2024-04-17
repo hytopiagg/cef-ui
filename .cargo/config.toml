@@ -1,3 +1,4 @@
 [alias]
-clean-all = "run --bin clean-all --release"
-build-artifacts = "run --bin build-artifacts --release"
+cef-build = "run --bin cef-build --release"
+cef-clean = "run --bin cef-clean --release"
+cef-artifacts = "run --bin cef-artifacts --release"
