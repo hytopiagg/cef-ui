@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="clean-all-release" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --bin cef-clean --release" />
+  <configuration default="false" name="cef-run-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="cef-run-debug" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs />
     <option name="emulateTerminal" value="true" />
@@ -13,7 +13,7 @@
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
     <method v="2">
-      <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="cef-build-debug" run_configuration_type="CargoCommandRunConfiguration" />
     </method>
   </configuration>
 </component>

@@ -8,7 +8,7 @@ use std::{
     fs,
     fs::{canonicalize, create_dir_all, remove_dir_all, remove_file},
     path::Path,
-    process::Command
+    process::{Command, Stdio}
 };
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
@@ -200,6 +200,8 @@ fn strip_debug_symbols(extracted_dir: &Path) -> Result<()> {
 
             Command::new("strip")
                 .arg(value)
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
                 .output()?;
 
             Ok(())
