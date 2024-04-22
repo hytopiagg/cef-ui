@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="build-artifacts-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --bin cef-artifacts" />
+  <configuration default="false" name="cef-build-debug" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="cef-build-debug" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
     <envs />
     <option name="emulateTerminal" value="true" />
@@ -12,8 +12,6 @@
     <option name="backtrace" value="SHORT" />
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
-    <method v="2">
-      <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>

@@ -1,8 +1,8 @@
 use anyhow::Result;
-use cef_ui_tools::cef_build;
+use cef_ui_tools::cef_run;
 
 fn main() -> Result<()> {
-    cef_build()?;
+    cef_run()?;
 
     Ok(())
 }

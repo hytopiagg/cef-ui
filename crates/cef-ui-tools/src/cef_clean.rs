@@ -1,5 +1,10 @@
 use anyhow::Result;
-use std::{env::current_dir, fs::remove_dir_all, process::Command};
+use log::info;
+use std::{
+    env::current_dir,
+    fs::remove_dir_all,
+    process::{Command, Stdio}
+};
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
@@ -16,9 +21,15 @@ pub fn cef_clean() -> Result<()> {
 
     set_global_default(subscriber)?;
 
+    info!("Cleaning project ..");
+
     Command::new("cargo")
         .args(&["clean"])
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
         .output()?;
+
+    info!("Removing artifacts dir ..");
 
     let artifacts_dir = current_dir()?.join("artifacts");
 

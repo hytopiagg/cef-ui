@@ -30,3 +30,7 @@ path = "src/bin/cef_clean.rs"
 [[bin]]
 name = "cef-build"
 path = "src/bin/cef_build.rs"
+
+[[bin]]
+name = "cef-run"
+path = "src/bin/cef_run.rs"
