@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="app-bundle" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="cef-ui" TARGET_NAME="FakeRust" CONFIG_NAME="FakeRust" RUN_PATH="$PROJECT_DIR$/target/debug/cef-ui-simple.app/Contents/MacOS/cef-ui-simple">
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="cef-build-debug" run_configuration_type="CargoCommandRunConfiguration" />
+    </method>
+  </configuration>
+</component>
