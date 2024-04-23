@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cef-build-debug",
+            "type": "cargo",
+            "command": "cef-build-debug",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
+}
