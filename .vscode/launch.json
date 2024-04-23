@@ -21,7 +21,7 @@
             "preLaunchTask": "cef-build-release"
         },
         {
-            "name": "Debug macOS",
+            "name": "Debug (macOS)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
@@ -29,7 +29,7 @@
             "preLaunchTask": "cef-build-debug"
         },
         {
-            "name": "Release macOS",
+            "name": "Release (macOS)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/release/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
