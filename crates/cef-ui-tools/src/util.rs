@@ -4,11 +4,9 @@ use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use percent_encoding::percent_decode_str;
 use reqwest::blocking::get;
 use std::{
-    env::current_exe,
-    fs,
-    fs::{create_dir, create_dir_all, read_dir, File},
-    io,
-    io::Cursor,
+    env::{current_dir, current_exe},
+    fs::{self, create_dir, create_dir_all, read_dir, remove_dir_all, remove_file, File},
+    io::{self, Cursor},
     path::{Path, PathBuf}
 };
 use tar::{Archive, Builder};
@@ -30,6 +28,19 @@ pub fn get_project_dir() -> Result<PathBuf> {
     let exe_dir = exe_dir.canonicalize()?;
 
     Ok(exe_dir)
+}
+
+/// Gets the target directory.
+pub fn get_target_dir(release: bool) -> Result<PathBuf> {
+    let target_dir = current_dir()?;
+    let target_dir = target_dir
+        .join("target")
+        .join(match release {
+            true => "release",
+            false => "debug"
+        });
+
+    Ok(target_dir)
 }
 
 /// Given a url, get the filename it points to.
@@ -98,7 +109,8 @@ pub fn create_tar_gz(file: &Path, dir: &Path) -> Result<()> {
 }
 
 /// Copies all files and directories in one directory to a target
-/// directory, resursively. Copies both files and directories.
+/// directory, resursively. Copies both files and directories. It
+/// replaces files if they already exist.
 pub fn copy_files(src: &Path, dst: &Path) -> Result<()> {
     // Ensure destination exists.
     if !dst.exists() {
@@ -119,9 +131,17 @@ fn copy_recursive(src: &Path, dst: &Path) -> Result<()> {
         if file_type.is_file() {
             let dst = dst.join(entry.file_name());
 
+            if dst.exists() {
+                remove_file(&dst)?;
+            }
+
             fs::copy(entry.path(), dst)?;
         } else if file_type.is_dir() {
             let dst = dst.join(entry.file_name());
+
+            if dst.exists() {
+                remove_dir_all(&dst)?;
+            }
 
             create_dir(&dst)?;
             copy_recursive(&entry.path(), &dst)?;
