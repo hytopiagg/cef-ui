@@ -1,4 +1,4 @@
-use crate::copy_files;
+use crate::{copy_files, get_target_dir};
 use anyhow::Result;
 use clap::Parser;
 use log::info;
@@ -50,6 +50,14 @@ pub fn cef_build() -> Result<()> {
         build_app_bundle(args.release)?;
     }
 
+    // On Windows, we have to copy all the
+    // CEF files to the target directory.
+    if cfg!(target_os = "windows") {
+        info!("Copying CEF files ..");
+
+        copy_cef_to_target(args.release)?;
+    }
+
     Ok(())
 }
 
@@ -73,21 +81,14 @@ fn build_exe(release: bool, name: &str) -> Result<()> {
 /// Package the app bundle on macOS.
 fn build_app_bundle(release: bool) -> Result<()> {
     let cwd = current_dir()?;
-    let target_dir = cwd
-        .join("target")
-        .join(match release {
-            true => "release",
-            false => "debug"
-        });
-
+    let target_dir = get_target_dir(release)?;
     let app_dir = target_dir.join("cef-ui-simple.app");
+    let resources_dir = cwd.join("resources/macos");
 
     // Remove any existing app.
     if app_dir.exists() {
         remove_dir_all(&app_dir)?;
     }
-
-    let resources_dir = cwd.join("resources/macos");
 
     // Create main bundle folders.
     create_dir_all(app_dir.clone())?;
@@ -161,6 +162,17 @@ fn build_app_bundle(release: bool) -> Result<()> {
     create_helper(Some("GPU"))?;
     create_helper(Some("Plugin"))?;
     create_helper(Some("Renderer"))?;
+
+    Ok(())
+}
+
+/// Copy the CEF files to the target directory on Windows.
+fn copy_cef_to_target(release: bool) -> Result<()> {
+    let cwd = current_dir()?;
+    let target_dir = get_target_dir(release)?;
+
+    // Copy the CEF framework.
+    copy_files(&cwd.join("artifacts/cef"), &target_dir)?;
 
     Ok(())
 }

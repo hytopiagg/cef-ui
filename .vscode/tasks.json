@@ -4,7 +4,12 @@
         {
             "label": "cef-build-debug",
             "type": "cargo",
-            "command": "cef-build-debug",
+            "command": "run",
+            "args": [
+                "--bin",
+                "cef-build",
+                "--release"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             }
@@ -12,7 +17,14 @@
         {
             "label": "cef-build-release",
             "type": "cargo",
-            "command": "cef-build-release",
+            "command": "run",
+            "args": [
+                "--bin",
+                "cef-build",
+                "--release",
+                "--",
+                "--release"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             }
