@@ -5,13 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug macOS",
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
             "program": "${workspaceFolder}/target/debug/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
-            "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "cef-build-debug"
+        },
+        {
+            "name": "Release macOS",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/release/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cef-build-release"
         }
     ]
 }

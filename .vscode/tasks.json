@@ -8,6 +8,14 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             }
+        },
+        {
+            "label": "cef-build-release",
+            "type": "cargo",
+            "command": "cef-build-release",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
         }
     ]
 }
