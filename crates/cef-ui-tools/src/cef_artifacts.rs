@@ -86,7 +86,10 @@ pub fn cef_artifacts() -> Result<()> {
     // Copy bindings.
     info!("Copying bindings ..");
 
-    let dst = project_dir.join("crates/cef-ui/src/bindings/windows_x86_64/bindings.rs");
+    let dst = project_dir.join(format!(
+        "crates/cef-ui/src/bindings/{}_{}/bindings.rs",
+        OS, ARCH
+    ));
 
     fs::copy(bindings_file, dst)?;
 
