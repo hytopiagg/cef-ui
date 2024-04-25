@@ -1,8 +1,8 @@
-use crate::{
-    copy_files, create_tar_gz, download_file, extract_bz2, get_project_dir, get_url_filename
-};
 use anyhow::Result;
 use bindgen::{builder, EnumVariation};
+use cef_ui_util::{
+    copy_files, create_tar_gz, download_file, extract_bz2, get_project_dir, get_url_filename
+};
 use std::{
     env::consts::{ARCH, OS},
     fs::{self, canonicalize, create_dir_all, remove_dir_all, remove_file, rename},
