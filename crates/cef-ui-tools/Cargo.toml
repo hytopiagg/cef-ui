@@ -4,18 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+cef-ui-util = { path = "../cef-ui-util" }
 anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-log = { workspace = true }
 tracing-subscriber = { workspace = true }
 log = { workspace = true }
-reqwest = { workspace = true }
-tar = { workspace = true }
-flate2 = { workspace = true }
 clap = { version = "4.0", features = ["derive"] }
-url = "2.5"
-percent-encoding = "2.3"
-bzip2 = "0.4"
 walkdir = "2.5"
 bindgen = "0.69"
 

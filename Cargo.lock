@@ -351,10 +351,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cef-ui",
- "flate2",
+ "cef-ui-util",
  "log",
- "reqwest",
- "tar",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
@@ -379,18 +377,26 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bindgen",
- "bzip2",
+ "cef-ui-util",
  "clap",
- "flate2",
  "log",
- "percent-encoding",
- "reqwest",
- "tar",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
- "url",
  "walkdir",
+]
+
+[[package]]
+name = "cef-ui-util"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bzip2",
+ "flate2",
+ "percent-encoding",
+ "reqwest",
+ "tar",
+ "url",
 ]
 
 [[package]]

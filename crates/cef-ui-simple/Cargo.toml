@@ -9,10 +9,8 @@ sandbox = []
 default = ["sandbox"]
 
 [build-dependencies]
+cef-ui-util = { path = "../cef-ui-util" }
 anyhow = { workspace = true }
-reqwest = { workspace = true }
-tar = { workspace = true }
-flate2 = { workspace = true }
 
 [dependencies]
 cef-ui = { path = "../cef-ui" }

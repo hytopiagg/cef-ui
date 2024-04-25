@@ -1,13 +1,10 @@
 use anyhow::{anyhow, Result};
-use flate2::read::GzDecoder;
-use reqwest::blocking::get;
+use cef_ui_util::{download_file, extract_tar_gz};
 use std::{
     env::var,
-    fs::{canonicalize, create_dir_all, File},
-    io::{copy, Cursor},
+    fs::{canonicalize, create_dir_all},
     path::{Path, PathBuf}
 };
-use tar::Archive;
 
 /// Binaries for x86_64 Linux.
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
@@ -20,28 +17,6 @@ pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download
 /// Binaries for x86_64 Windows.
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 pub const CEF_URL: &str = "https://github.com/hytopiagg/cef-ui/releases/download/cef-artifacts-v0.1.0/cef-windows-x86_64.tgz";
-
-/// Download a file to disk.
-fn download_file(url: &str, path: &Path) -> Result<()> {
-    let response = get(url)?;
-    let mut file = File::create(path)?;
-    let mut content = Cursor::new(response.bytes()?);
-
-    copy(&mut content, &mut file)?;
-
-    Ok(())
-}
-
-/// Untar and decompress a file.
-fn extract_tar_gz(path: &Path, dir: &Path) -> Result<()> {
-    let file = File::open(path)?;
-    let tar = GzDecoder::new(file);
-    let mut archive = Archive::new(tar);
-
-    archive.unpack(dir)?;
-
-    Ok(())
-}
 
 /// Download a tarball, untar it, and decompress it. This
 /// makes sure that any existing files are overwritten.
