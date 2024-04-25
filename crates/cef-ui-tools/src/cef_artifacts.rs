@@ -5,8 +5,7 @@ use anyhow::Result;
 use bindgen::{builder, EnumVariation};
 use std::{
     env::consts::{ARCH, OS},
-    fs,
-    fs::{canonicalize, create_dir_all, remove_dir_all, remove_file},
+    fs::{self, canonicalize, create_dir_all, remove_dir_all, remove_file, rename},
     path::Path,
     process::{Command, Stdio}
 };
@@ -234,7 +233,10 @@ fn create_artifacts(artifacts_dir: &Path, extracted_dir: &Path) -> Result<()> {
     // Copy files for macOS.
     if cfg!(target_os = "macos") {
         copy_files(&extracted_dir.join("Release"), &cef_dir)?;
-        remove_file(&cef_dir.join("cef_sandbox.a"))?;
+        rename(
+            &cef_dir.join("cef_sandbox.a"),
+            &cef_dir.join("libcef_sandbox.a")
+        )?;
     }
 
     // Copy files for Windows.

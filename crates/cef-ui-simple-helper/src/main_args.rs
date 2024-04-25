@@ -31,16 +31,10 @@ impl MainArgs {
             .into_iter()
             .map(|arg| CString::new(arg))
             .collect::<Result<Vec<CString>, _>>()?;
-        let args = args
-            .into_iter()
-            .map(|arg| CString::new(arg))
-            .collect::<Result<Vec<CString>, _>>()?;
-
         let argv = args
             .iter()
             .map(|arg| arg.as_ptr())
             .collect::<Vec<*const c_char>>();
-
         let cef = cef_main_args_t {
             argc: argv.len() as i32,
             argv: argv.as_ptr() as *mut *mut c_char

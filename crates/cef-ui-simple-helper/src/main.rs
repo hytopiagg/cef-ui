@@ -1,4 +1,7 @@
-use crate::main_args::{cef_main_args_t, MainArgs};
+use crate::{
+    main_args::{cef_main_args_t, MainArgs},
+    sandbox::ScopedSandbox
+};
 use anyhow::{anyhow, Result};
 use libloading::{Library, Symbol};
 use log::{error, info};
@@ -15,6 +18,7 @@ use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 mod main_args;
+mod sandbox;
 
 /// The relative path to the CEF framework library on macOS.
 const CEF_PATH: &str = "../../../Chromium Embedded Framework.framework/Chromium Embedded Framework";
@@ -47,24 +51,33 @@ fn try_main() -> Result<i32> {
 
     set_global_default(subscriber)?;
 
-    let cef_path = get_cef_path(CEF_PATH)?;
+    // Setup the sandbox if enabled.
+    #[cfg(feature = "sandbox")]
+    let _sandbox = ScopedSandbox::new()?;
 
-    info!("cef_path: {:?}", cef_path);
-
-    let main_args = MainArgs::new()?;
-
-    info!("main_args: {:?}", main_args);
-
+    // Manually load CEF and execute the subprocess.
     let ret = unsafe {
-        let lib = Library::new(cef_path)?;
+        // Load our main args.
+        let main_args = MainArgs::new()?;
 
+        info!("Main args: {:?}", main_args);
+
+        // Manually load the cef_execute_process function.
+        let cef_path = get_cef_path(CEF_PATH)?;
+        let lib = Library::new(cef_path)?;
         let cef_execute_process: Symbol<
             unsafe extern "C" fn(args: *const cef_main_args_t, *mut c_void, *mut c_void) -> c_int
         > = lib.get(b"cef_execute_process")?;
 
+        info!("Executing CEF subprocess ..");
+
         let ret = cef_execute_process(main_args.as_raw(), null_mut(), null_mut()) as i32;
 
+        info!("CEF exited with code: {}", ret);
+
         lib.close()?;
+
+        info!("Closed CEF library.");
 
         ret
     };
