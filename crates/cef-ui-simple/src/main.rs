@@ -191,7 +191,7 @@ fn try_main() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
-    // let filename = PathBuf::from(r#"/home/kevin/repos/cef-ui/CEF.log"#);
+    // let filename = PathBuf::from(r#"/Users/kevin/repos/cef-ui/CEF.log"#);
     // let log_file = File::create(filename)?;
 
     // Setup the tracing subscriber globally.
@@ -207,11 +207,19 @@ fn try_main() -> Result<()> {
 
     ensure_root_cache_dir(&root_cache_dir)?;
 
+    // let log_file = PathBuf::from(r#"/Users/kevin/repos/cef-ui/REAL_CEF.log"#);
+
+    // if !log_file.exists() {
+    //     File::create(&log_file)?;
+    // }
+
+    let sandbox = cfg!(feature = "sandbox");
     let main_args = MainArgs::new()?;
     let settings = Settings::new()
-        .log_severity(LogSeverity::Warning)
+        .log_severity(LogSeverity::Info)
         .root_cache_path(&root_cache_dir)?
-        .no_sandbox(true);
+        //.log_file(&log_file)?
+        .no_sandbox(!sandbox);
 
     let app = App::new(MyAppCallbacks {});
     let context = Context::new(main_args, settings, Some(app));
