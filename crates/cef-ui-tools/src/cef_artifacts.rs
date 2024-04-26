@@ -1,12 +1,12 @@
 use anyhow::Result;
 use bindgen::{builder, EnumVariation};
 use cef_ui_util::{
-    copy_files, create_tar_gz, download_file, extract_bz2, get_project_dir, get_url_filename
+    copy_files, create_tar_gz, download_file, extract_bz2, get_exe_dir, get_url_filename
 };
 use std::{
     env::consts::{ARCH, OS},
     fs::{self, canonicalize, create_dir_all, remove_dir_all, remove_file, rename},
-    path::Path,
+    path::{Path, PathBuf},
     process::{Command, Stdio}
 };
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -95,6 +95,14 @@ pub fn cef_artifacts() -> Result<()> {
     info!("Done!");
 
     Ok(())
+}
+
+/// Gets the project directory.
+fn get_project_dir() -> Result<PathBuf> {
+    let exe_dir = get_exe_dir()?.join("../../");
+    let exe_dir = exe_dir.canonicalize()?;
+
+    Ok(exe_dir)
 }
 
 /// Creates the bindgen header file.

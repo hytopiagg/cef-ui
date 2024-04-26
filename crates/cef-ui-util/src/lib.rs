@@ -4,7 +4,7 @@ use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use percent_encoding::percent_decode_str;
 use reqwest::blocking::get;
 use std::{
-    env::{current_dir, current_exe},
+    env::current_exe,
     fs::{self, create_dir, create_dir_all, read_dir, remove_dir_all, remove_file, File},
     io::{self, Cursor},
     path::{Path, PathBuf}
@@ -20,27 +20,6 @@ pub fn get_exe_dir() -> Result<PathBuf> {
         .ok_or_else(|| anyhow!("Failed to get parent directory of executable."))?;
 
     Ok(exe_dir.to_path_buf())
-}
-
-/// Gets the project directory.
-pub fn get_project_dir() -> Result<PathBuf> {
-    let exe_dir = get_exe_dir()?.join("../../");
-    let exe_dir = exe_dir.canonicalize()?;
-
-    Ok(exe_dir)
-}
-
-/// Gets the target directory.
-pub fn get_target_dir(release: bool) -> Result<PathBuf> {
-    let target_dir = current_dir()?;
-    let target_dir = target_dir
-        .join("target")
-        .join(match release {
-            true => "release",
-            false => "debug"
-        });
-
-    Ok(target_dir)
 }
 
 /// Given a url, get the filename it points to.
