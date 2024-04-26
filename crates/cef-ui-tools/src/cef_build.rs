@@ -1,10 +1,11 @@
 use anyhow::Result;
-use cef_ui_util::{copy_files, get_target_dir};
+use cef_ui_util::copy_files;
 use clap::Parser;
 use log::info;
 use std::{
     env::current_dir,
     fs::{copy, create_dir_all, remove_dir_all},
+    path::PathBuf,
     process::{Command, Stdio}
 };
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -59,6 +60,19 @@ pub fn cef_build() -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Gets the target directory.
+fn get_target_dir(release: bool) -> Result<PathBuf> {
+    let target_dir = current_dir()?;
+    let target_dir = target_dir
+        .join("target")
+        .join(match release {
+            true => "release",
+            false => "debug"
+        });
+
+    Ok(target_dir)
 }
 
 /// Build a specific executable.
