@@ -11,16 +11,12 @@ fn main() -> Result<()> {
         .ok_or(anyhow!("Invalid CEF path!"))?
         .to_string();
 
-    // Linker flags on arm64 macOS.
-    #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
-    {
-        // Link against the CEF sandbox static library.
-        println!("cargo:rustc-link-search=native={}", cef_dir);
-        println!("cargo:rustc-link-lib=static=cef_sandbox");
+    // Link against the CEF sandbox static library.
+    println!("cargo:rustc-link-search=native={}", cef_dir);
+    println!("cargo:rustc-link-lib=static=cef_sandbox");
 
-        // We must also link against the macOS sandbox libary.
-        println!("cargo:rustc-link-lib=sandbox");
-    }
+    // We must also link against the macOS sandbox libary.
+    println!("cargo:rustc-link-lib=sandbox");
 
     Ok(())
 }
