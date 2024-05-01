@@ -1,10 +1,12 @@
-use crate::{copy_files, create_tar_gz, download_file, extract_bz2, get_exe_dir, get_url_filename};
+use crate::{
+    copy_files, create_tar_gz, download_file, extract_bz2, get_tool_workspace_dir, get_url_filename
+};
 use anyhow::Result;
 use bindgen::{builder, EnumVariation};
 use std::{
     env::consts::{ARCH, OS},
     fs::{self, canonicalize, create_dir_all, remove_dir_all, remove_file, rename},
-    path::{Path, PathBuf},
+    path::Path,
     process::{Command, Stdio}
 };
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -22,7 +24,7 @@ const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg
 const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg4d3b0b4%2Bchromium-121.0.6167.184_windows64_minimal.tar.bz2";
 
 /// Try and generate CEF artifacts.
-pub fn cef_artifacts() -> Result<()> {
+pub fn cef_artifacts(artifacts_dir: &Path) -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
@@ -33,12 +35,10 @@ pub fn cef_artifacts() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    let project_dir = get_project_dir()?;
+    let workspace_dir = get_tool_workspace_dir()?;
 
     // Create the artifacts/ directory.
     info!("Creating artifacts dir ..");
-
-    let artifacts_dir = project_dir.join("artifacts");
 
     if artifacts_dir.exists() {
         remove_dir_all(&artifacts_dir)?;
@@ -83,7 +83,7 @@ pub fn cef_artifacts() -> Result<()> {
     // Copy bindings.
     info!("Copying bindings ..");
 
-    let dst = project_dir.join(format!(
+    let dst = workspace_dir.join(format!(
         "crates/cef-ui/src/bindings/{}_{}/bindings.rs",
         OS, ARCH
     ));
@@ -93,14 +93,6 @@ pub fn cef_artifacts() -> Result<()> {
     info!("Done!");
 
     Ok(())
-}
-
-/// Gets the project directory.
-fn get_project_dir() -> Result<PathBuf> {
-    let exe_dir = get_exe_dir()?.join("../../");
-    let exe_dir = exe_dir.canonicalize()?;
-
-    Ok(exe_dir)
 }
 
 /// Creates the bindgen header file.

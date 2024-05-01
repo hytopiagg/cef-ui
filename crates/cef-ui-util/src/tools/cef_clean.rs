@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::{
-    env::current_dir,
     fs::remove_dir_all,
+    path::Path,
     process::{Command, Stdio}
 };
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -9,7 +9,7 @@ use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 
 /// Clean the project.
-pub fn cef_clean() -> Result<()> {
+pub fn cef_clean(artifacts_dir: &Path) -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
@@ -30,11 +30,9 @@ pub fn cef_clean() -> Result<()> {
 
     info!("Removing artifacts dir ..");
 
-    let artifacts_dir = current_dir()?.join("artifacts");
-
     // Remove the artifacts directory.
     if artifacts_dir.exists() {
-        remove_dir_all(&artifacts_dir)?;
+        remove_dir_all(artifacts_dir)?;
     }
 
     Ok(())

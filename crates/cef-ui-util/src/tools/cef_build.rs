@@ -50,14 +50,6 @@ pub fn cef_build() -> Result<()> {
         build_app_bundle(args.release)?;
     }
 
-    // On Windows, we have to copy all the
-    // CEF files to the target directory.
-    if cfg!(target_os = "windows") {
-        info!("Copying CEF files ..");
-
-        copy_cef_to_target(args.release)?;
-    }
-
     Ok(())
 }
 
@@ -175,17 +167,6 @@ fn build_app_bundle(release: bool) -> Result<()> {
     create_helper(Some("GPU"))?;
     create_helper(Some("Plugin"))?;
     create_helper(Some("Renderer"))?;
-
-    Ok(())
-}
-
-/// Copy the CEF files to the target directory on Windows.
-fn copy_cef_to_target(release: bool) -> Result<()> {
-    let cwd = current_dir()?;
-    let target_dir = get_target_dir(release)?;
-
-    // Copy the CEF framework.
-    copy_files(&cwd.join("artifacts/cef"), &target_dir)?;
 
     Ok(())
 }
