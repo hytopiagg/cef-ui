@@ -65,3 +65,12 @@ pub fn get_tool_workspace_dir() -> Result<PathBuf> {
 
     Ok(dir)
 }
+
+/// Get the target directory. Only call from tools.
+pub fn get_tool_target_dir(profile: &str) -> Result<PathBuf> {
+    let dir = get_tool_workspace_dir()?
+        .join("target")
+        .join(profile);
+
+    Ok(dir)
+}
