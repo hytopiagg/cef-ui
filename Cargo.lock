@@ -337,9 +337,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bitflags 2.4.2",
+ "cef-ui-util",
  "chrono",
  "dunce",
- "log",
  "parking_lot",
  "paste",
  "tracing-log",
@@ -351,7 +351,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "libloading",
- "log",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
@@ -364,7 +363,6 @@ dependencies = [
  "anyhow",
  "cef-ui",
  "cef-ui-util",
- "log",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
@@ -372,18 +370,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "cef-ui-simple-helper"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cef-ui-helper",
+ "cef-ui-util",
+]
+
+[[package]]
 name = "cef-ui-tools"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bindgen",
  "cef-ui-util",
- "clap",
- "log",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
- "walkdir",
 ]
 
 [[package]]
@@ -391,12 +394,18 @@ name = "cef-ui-util"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bindgen",
  "bzip2",
+ "clap",
  "flate2",
  "percent-encoding",
  "reqwest",
  "tar",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
  "url",
+ "walkdir",
 ]
 
 [[package]]

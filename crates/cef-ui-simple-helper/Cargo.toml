@@ -1,0 +1,12 @@
+[package]
+name = "cef-ui-simple-helper"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[build-dependencies]
+anyhow = { workspace = true }
+cef-ui-util = { path = "../cef-ui-util" }
+
+[dependencies]
+cef-ui-helper = { path = "../cef-ui-helper" }

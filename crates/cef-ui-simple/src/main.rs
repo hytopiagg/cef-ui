@@ -8,9 +8,8 @@ use cef_ui::{
     RenderHandler, RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo,
     WindowOpenDisposition
 };
-use log::{error, info};
 use std::{fs::create_dir_all, path::PathBuf, process::exit};
-use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
+use tracing::{error, info, level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
 

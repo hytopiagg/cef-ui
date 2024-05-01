@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
-use log::info;
 use std::{
     env::args,
     ffi::{c_char, c_int, CString},
     os::raw::c_void
 };
+use tracing::info;
 
 // The external sandbox functions that we want to
 // load from our static library. We have to define
