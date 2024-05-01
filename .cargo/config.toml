@@ -1,5 +1,5 @@
 [alias]
-cef-build-debug = "run --bin cef-build --release"
-cef-build-release = "run --bin cef-build --release -- --release"
+cef-build-debug = "run --bin cef-build --release -- --profile dev"
+cef-build-release = "run --bin cef-build --release -- --profile release"
 cef-clean = "run --bin cef-clean --release"
 cef-artifacts = "run --bin cef-artifacts --release"

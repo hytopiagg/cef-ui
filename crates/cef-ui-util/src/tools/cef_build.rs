@@ -1,10 +1,9 @@
-use crate::copy_files;
+use crate::{copy_files, get_tool_target_dir};
 use anyhow::Result;
 use clap::Parser;
 use std::{
     env::current_dir,
     fs::{copy, create_dir_all, remove_dir_all},
-    path::PathBuf,
     process::{Command, Stdio}
 };
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
@@ -15,8 +14,8 @@ use tracing_subscriber::FmtSubscriber;
 #[derive(Parser, Default)]
 struct BuildArgs {
     /// Whether this is a release build.
-    #[arg(long, default_value_t = false)]
-    pub release: bool
+    #[arg(long, default_value_t = String::from("dev"))]
+    pub profile: String
 }
 
 /// Build the project.
@@ -31,48 +30,31 @@ pub fn cef_build() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    info!("Building project ..");
+    info!("Building main binary ..");
 
     let args = BuildArgs::parse();
 
     // Build the main executable.
-    build_exe(args.release, "cef-ui-simple")?;
+    build_exe("cef-ui-simple", &args.profile)?;
 
     // On macOS, build the helper executable
     // and package the app bundle as required.
     if cfg!(target_os = "macos") {
-        info!("Building helper ..");
+        info!("Building helper binary ..");
 
-        build_exe(args.release, "cef-ui-simple-helper")?;
+        build_exe("cef-ui-simple-helper", &args.profile)?;
 
         info!("Building app bundle ..");
 
-        build_app_bundle(args.release)?;
+        build_app_bundle(&args.profile)?;
     }
 
     Ok(())
 }
 
-/// Gets the target directory.
-fn get_target_dir(release: bool) -> Result<PathBuf> {
-    let target_dir = current_dir()?;
-    let target_dir = target_dir
-        .join("target")
-        .join(match release {
-            true => "release",
-            false => "debug"
-        });
-
-    Ok(target_dir)
-}
-
 /// Build a specific executable.
-fn build_exe(release: bool, name: &str) -> Result<()> {
-    let mut args = vec!["build", "--bin", name];
-
-    if release {
-        args.push("--release");
-    }
+fn build_exe(name: &str, profile: &str) -> Result<()> {
+    let args = vec!["build", "--bin", name, "--profile", profile];
 
     Command::new("cargo")
         .args(&args)
@@ -84,9 +66,9 @@ fn build_exe(release: bool, name: &str) -> Result<()> {
 }
 
 /// Package the app bundle on macOS.
-fn build_app_bundle(release: bool) -> Result<()> {
+fn build_app_bundle(profile: &str) -> Result<()> {
     let cwd = current_dir()?;
-    let target_dir = get_target_dir(release)?;
+    let target_dir = get_tool_target_dir(profile)?;
     let app_dir = target_dir.join("cef-ui-simple.app");
     let resources_dir = cwd.join("resources/macos");
 
