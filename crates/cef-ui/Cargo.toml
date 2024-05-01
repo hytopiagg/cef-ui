@@ -5,9 +5,9 @@ edition = "2021"
 build = "build.rs"
 
 [dependencies]
+cef-ui-util = { path = "../cef-ui-util" }
 anyhow = { workspace = true }
 tracing-log = { workspace = true }
-log = { workspace = true }
 paste = "1.0"
 dunce = "1.0"
 parking_lot = "0.12"

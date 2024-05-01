@@ -9,19 +9,16 @@ anyhow = { workspace = true }
 tracing = { workspace = true }
 tracing-log = { workspace = true }
 tracing-subscriber = { workspace = true }
-log = { workspace = true }
-clap = { version = "4.0", features = ["derive"] }
-walkdir = "2.5"
-bindgen = "0.69"
+
 
 [[bin]]
 name = "cef-artifacts"
-path = "src/bin/cef_artifacts.rs"
+path = "src/cef_artifacts.rs"
 
 [[bin]]
 name = "cef-build"
-path = "src/bin/cef_build.rs"
+path = "src/cef_build.rs"
 
 [[bin]]
 name = "cef-clean"
-path = "src/bin/cef_clean.rs"
+path = "src/cef_clean.rs"
