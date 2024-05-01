@@ -44,7 +44,7 @@ pub fn cef_build() -> Result<()> {
     if cfg!(target_os = "macos") {
         info!("Building helper ..");
 
-        build_exe(args.release, "cef-ui-simple-helper")?;
+        build_exe(args.release, "cef-ui-helper")?;
 
         info!("Building app bundle ..");
 
@@ -161,7 +161,7 @@ fn build_app_bundle(release: bool) -> Result<()> {
         )?;
 
         copy(
-            target_dir.join("cef-ui-simple-helper"),
+            target_dir.join("cef-ui-helper"),
             helper_dir
                 .join("Contents/MacOS")
                 .join(helper_name)

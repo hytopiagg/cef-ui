@@ -16,7 +16,7 @@ Here is an overview of all crates in the repository:
 | --- | --- |
 | `cef-ui` | The full CEF implementation. |
 | `cef-ui-simple` | A simple CEF example. |
-| `cef-ui-simple-helper` | The helper executable for the simple CEF example (required on macOS). |
+| `cef-ui-helper` | The helper executable (necessary on macOS). |
 | `cef-ui-tools` | Binary targets to build the project. |
 
 The `cef-ui-tools` crate exists to deal with platform-specific issues in pure Rust. For example, on macOS, CEF will only function if it adheres to its [app bundle structure](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage.md#markdown-header-macos).
