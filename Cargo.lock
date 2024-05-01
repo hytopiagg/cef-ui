@@ -346,6 +346,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cef-ui-helper"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "libloading",
+ "log",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "cef-ui-simple"
 version = "0.1.0"
 dependencies = [
@@ -357,18 +369,6 @@ dependencies = [
  "tracing-log",
  "tracing-subscriber",
  "winit",
-]
-
-[[package]]
-name = "cef-ui-simple-helper"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "libloading",
- "log",
- "tracing",
- "tracing-log",
- "tracing-subscriber",
 ]
 
 [[package]]
