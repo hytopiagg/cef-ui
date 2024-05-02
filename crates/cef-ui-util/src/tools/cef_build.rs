@@ -1,10 +1,9 @@
+use crate::{build_exe, AppBundleSettings};
 use anyhow::Result;
 use clap::Parser;
 use tracing::{info, level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
-
-use crate::{build_exe, AppBundleSettings};
 
 /// Command line arguments.
 #[derive(Parser, Default)]
