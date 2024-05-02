@@ -5,9 +5,13 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf}
 };
+use tracing::info;
 
 /// Use this to build app bundles on macOS.
 pub struct AppBundleSettings {
+    /// The profile to use.
+    pub profile: String,
+
     /// The artifacts directory.
     pub artifacts_dir: PathBuf,
 
@@ -23,7 +27,7 @@ pub struct AppBundleSettings {
     pub helper_exe_name: String,
 
     /// The resources directory where the app bundle template
-    /// files are stored (for example, plists, icons, etc.).
+    /// files are stored (for example, plists and icons).
     pub resources_dir: PathBuf,
 
     /// The org name to use in plists.
@@ -31,8 +35,10 @@ pub struct AppBundleSettings {
 }
 
 impl AppBundleSettings {
-    pub fn run(&self, profile: &str) -> Result<()> {
-        let target_dir = get_tool_target_dir(profile)?;
+    pub fn run(&self) -> Result<()> {
+        info!("Building app bundle {} ..", self.app_name);
+
+        let target_dir = get_tool_target_dir(&self.profile)?;
         let app_dir = target_dir.join(format!("{}.app", self.app_name));
 
         // Remove any existing app.
@@ -50,7 +56,7 @@ impl AppBundleSettings {
         {
             let org_name = format!("org.{}.{}", self.org_name, self.app_name);
 
-            self.create_plist(
+            Self::create_plist(
                 &self
                     .resources_dir
                     .join("Info.plist"),
@@ -113,7 +119,7 @@ impl AppBundleSettings {
             create_dir_all(app_dir.join("Contents/MacOS"))?;
 
             // Create the helper plist.
-            self.create_plist(
+            Self::create_plist(
                 &self
                     .resources_dir
                     .join("HelperInfo.plist"),
@@ -139,11 +145,13 @@ impl AppBundleSettings {
         create_helper(Some("Plugin"))?;
         create_helper(Some("Renderer"))?;
 
+        info!("Done!");
+
         Ok(())
     }
 
     /// Create the main plist file.
-    fn create_plist(&self, src: &Path, dst: &Path, org_name: &str, app_name: &str) -> Result<()> {
+    fn create_plist(src: &Path, dst: &Path, org_name: &str, app_name: &str) -> Result<()> {
         let mut file = File::open(src)?;
         let mut contents = String::new();
 

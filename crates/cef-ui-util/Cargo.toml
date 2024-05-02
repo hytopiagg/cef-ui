@@ -16,4 +16,3 @@ tar = "0.4"
 flate2 = "1.0"
 walkdir = "2.5"
 bindgen = "0.69"
-clap = { version = "4.0", features = ["derive"] }

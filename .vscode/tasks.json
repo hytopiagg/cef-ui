@@ -8,7 +8,10 @@
             "args": [
                 "--bin",
                 "cef-build",
-                "--release"
+                "--release",
+                "--",
+                "--profile",
+                "dev"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -23,7 +26,8 @@
                 "cef-build",
                 "--release",
                 "--",
-                "--release"
+                "--profile",
+                "release"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
