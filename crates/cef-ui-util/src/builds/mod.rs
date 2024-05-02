@@ -1,9 +1,9 @@
-mod cef;
+mod get_cef;
 mod link_cef;
 mod link_cef_helper;
 mod paths;
 
-pub use cef::*;
+pub use get_cef::*;
 pub use link_cef::*;
 pub use link_cef_helper::*;
 pub use paths::*;
