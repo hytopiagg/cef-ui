@@ -1,91 +1,162 @@
-use crate::{copy_files, get_tool_target_dir, get_tool_workspace_dir};
+use crate::{copy_files, get_tool_target_dir};
 use anyhow::Result;
-use std::fs::{copy, create_dir_all, remove_dir_all};
+use std::{
+    fs::{copy, create_dir_all, remove_dir_all, File},
+    io::{Read, Write},
+    path::{Path, PathBuf}
+};
 
-/// Package the app bundle on macOS.
-pub fn build_app_bundle(profile: &str) -> Result<()> {
-    let workspace_dir = get_tool_workspace_dir()?;
-    let target_dir = get_tool_target_dir(profile)?;
-    let app_dir = target_dir.join("cef-ui-simple.app");
-    let resources_dir = workspace_dir.join("resources/macos");
+/// Use this to build app bundles on macOS.
+pub struct AppBundleSettings {
+    /// The artifacts directory.
+    pub artifacts_dir: PathBuf,
 
-    // Remove any existing app.
-    if app_dir.exists() {
-        remove_dir_all(&app_dir)?;
-    }
+    /// The name of the app bundle (aka, {app_name}.app). This name is
+    /// also the name that must be used for the main executable within
+    /// the app bundle. This is required by CEF.
+    pub app_name: String,
 
-    // Create main bundle folders.
-    create_dir_all(app_dir.clone())?;
-    create_dir_all(app_dir.join("Contents/Frameworks"))?;
-    create_dir_all(app_dir.join("Contents/MacOS"))?;
-    create_dir_all(app_dir.join("Contents/Resources"))?;
+    /// The main executable name.
+    pub main_exe_name: String,
 
-    // Copy main bundle files.
-    copy(
-        resources_dir.join("Info.plist"),
-        app_dir.join("Contents/Info.plist")
-    )?;
+    /// The helper executable name.
+    pub helper_exe_name: String,
 
-    copy(
-        resources_dir.join("Icon.icns"),
-        app_dir.join("Contents/Resources/Icon.icns")
-    )?;
+    /// The resources directory where the app bundle template
+    /// files are stored (for example, plists, icons, etc.).
+    pub resources_dir: PathBuf,
 
-    copy_files(
-        &resources_dir.join("English.lproj"),
-        &app_dir.join("Contents/Resources/English.lproj")
-    )?;
+    /// The org name to use in plists.
+    pub org_name: String
+}
 
-    copy(
-        target_dir.join("cef-ui-simple"),
-        app_dir.join("Contents/MacOS/cef-ui-simple")
-    )?;
+impl AppBundleSettings {
+    pub fn run(&self, profile: &str) -> Result<()> {
+        let target_dir = get_tool_target_dir(profile)?;
+        let app_dir = target_dir.join(format!("{}.app", self.app_name));
 
-    // Copy the CEF framework.
-    copy_files(
-        &workspace_dir.join("artifacts/cef/Chromium Embedded Framework.framework"),
-        &app_dir.join("Contents/Frameworks/Chromium Embedded Framework.framework")
-    )?;
+        // Remove any existing app.
+        if app_dir.exists() {
+            remove_dir_all(&app_dir)?;
+        }
 
-    let create_helper = |name: Option<&str>| -> Result<()> {
-        let helper_name = match name {
-            Some(name) => format!("cef-ui-simple Helper ({})", name),
-            None => "cef-ui-simple Helper".to_string()
-        };
+        // Create main bundle folders.
+        create_dir_all(app_dir.clone())?;
+        create_dir_all(app_dir.join("Contents/Frameworks"))?;
+        create_dir_all(app_dir.join("Contents/MacOS"))?;
+        create_dir_all(app_dir.join("Contents/Resources"))?;
 
-        let helper_dir = app_dir.join(format!("Contents/Frameworks/{}.app", helper_name));
+        // Create the main plist.
+        {
+            let org_name = format!("org.{}.{}", self.org_name, self.app_name);
 
-        // Create helper bundle folders.
-        create_dir_all(helper_dir.clone())?;
-        create_dir_all(helper_dir.join("Contents/MacOS"))?;
+            self.create_plist(
+                &self
+                    .resources_dir
+                    .join("Info.plist"),
+                &app_dir.join("Contents/Info.plist"),
+                &org_name,
+                &self.app_name
+            )?;
+        }
 
-        // Copy helper bundle files.
-        let plist_name = match name {
-            Some(name) => format!("{}HelperInfo.plist", name),
-            None => "HelperInfo.plist".to_string()
-        };
-
+        // Copy the main icon.
         copy(
-            resources_dir.join(plist_name),
-            helper_dir.join("Contents/Info.plist")
+            self.resources_dir.join("Icon.icns"),
+            app_dir.join("Contents/Resources/Icon.icns")
         )?;
 
-        copy(
-            target_dir.join("cef-ui-simple-helper"),
-            helper_dir
-                .join("Contents/MacOS")
-                .join(helper_name)
+        // Copy the English localization.
+        copy_files(
+            &self
+                .resources_dir
+                .join("English.lproj"),
+            &app_dir.join("Contents/Resources/English.lproj")
         )?;
+
+        // Copy the main executable.
+        copy(
+            target_dir.join(&self.main_exe_name),
+            app_dir
+                .join("Contents/MacOS/")
+                .join(&self.app_name)
+        )?;
+
+        // Copy the CEF framework.
+        copy_files(
+            &self
+                .artifacts_dir
+                .join("cef/Chromium Embedded Framework.framework"),
+            &app_dir.join("Contents/Frameworks/Chromium Embedded Framework.framework")
+        )?;
+
+        // Function to create helper app bundles.
+        let create_helper = |name: Option<&str>| -> Result<()> {
+            let org_name = match name {
+                Some(name) => {
+                    let name = name.to_lowercase();
+
+                    format!("org.{}.{}.helper.{}", self.org_name, self.app_name, name)
+                },
+                None => format!("org.{}.{}.helper", self.org_name, self.app_name)
+            };
+
+            let app_name = match name {
+                Some(name) => format!("{} Helper ({})", self.app_name, name),
+                None => format!("{} Helper", self.app_name)
+            };
+
+            let app_dir = app_dir.join(format!("Contents/Frameworks/{}.app", app_name));
+
+            // Create helper bundle folders.
+            create_dir_all(app_dir.clone())?;
+            create_dir_all(app_dir.join("Contents/MacOS"))?;
+
+            // Create the helper plist.
+            self.create_plist(
+                &self
+                    .resources_dir
+                    .join("HelperInfo.plist"),
+                &app_dir.join("Contents/Info.plist"),
+                &org_name,
+                &app_name
+            )?;
+
+            copy(
+                target_dir.join(&self.helper_exe_name),
+                app_dir
+                    .join("Contents/MacOS")
+                    .join(app_name)
+            )?;
+
+            Ok(())
+        };
+
+        // Create the helper bundles.
+        create_helper(None)?;
+        create_helper(Some("Alerts"))?;
+        create_helper(Some("GPU"))?;
+        create_helper(Some("Plugin"))?;
+        create_helper(Some("Renderer"))?;
 
         Ok(())
-    };
+    }
 
-    // Create the helper bundles.
-    create_helper(None)?;
-    create_helper(Some("Alerts"))?;
-    create_helper(Some("GPU"))?;
-    create_helper(Some("Plugin"))?;
-    create_helper(Some("Renderer"))?;
+    /// Create the main plist file.
+    fn create_plist(&self, src: &Path, dst: &Path, org_name: &str, app_name: &str) -> Result<()> {
+        let mut file = File::open(src)?;
+        let mut contents = String::new();
 
-    Ok(())
+        file.read_to_string(&mut contents)?;
+
+        contents = contents
+            .replace("{org-name}", org_name)
+            .replace("{app-name}", app_name);
+
+        let mut output = File::create(dst)?;
+
+        output.write_all(contents.as_bytes())?;
+
+        Ok(())
+    }
 }

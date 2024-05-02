@@ -6,19 +6,19 @@
 	<string>en</string>
 
 	<key>CFBundleDisplayName</key>
-	<string>cef-ui-simple Helper</string>
+	<string>{app-name}</string>
 
 	<key>CFBundleExecutable</key>
-	<string>cef-ui-simple Helper</string>
+	<string>{app-name}</string>
 
 	<key>CFBundleIdentifier</key>
-	<string>org.hytopia.cef-ui-simple.helper</string>
+	<string>{org-name}</string>
 
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 
 	<key>CFBundleName</key>
-	<string>cef-ui-simple Helper</string>
+	<string>{app-name}</string>
 
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>

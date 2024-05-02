@@ -7,7 +7,8 @@ use std::{
     env::current_exe,
     fs::{self, create_dir, create_dir_all, read_dir, remove_dir_all, remove_file, File},
     io::{self, Cursor},
-    path::{Path, PathBuf}
+    path::{Path, PathBuf},
+    process::{Command, Stdio}
 };
 use tar::{Archive, Builder};
 use url::Url;
@@ -126,6 +127,19 @@ fn copy_recursive(src: &Path, dst: &Path) -> Result<()> {
             copy_recursive(&entry.path(), &dst)?;
         }
     }
+
+    Ok(())
+}
+
+/// Build a specific executable.
+pub fn build_exe(name: &str, profile: &str) -> Result<()> {
+    let args = vec!["build", "--bin", name, "--profile", profile];
+
+    Command::new("cargo")
+        .args(&args)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .output()?;
 
     Ok(())
 }
