@@ -1,4 +1,4 @@
-use crate::download_and_extract_cef;
+use crate::{copy_files, download_and_extract_cef, get_build_rs_target_dir};
 use anyhow::Result;
 use std::path::Path;
 
@@ -43,7 +43,8 @@ pub fn link_cef(artifacts_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-#[cfg(all(target_os = "linux"))]
+/// Copy the CEF files to the target directory on Linux.
+#[allow(dead_code)]
 fn copy_cef_linux(artifacts_dir: &Path) -> Result<()> {
     let src = artifacts_dir.join("cef");
     let dst = get_build_rs_target_dir()?.join("cef");
@@ -55,7 +56,7 @@ fn copy_cef_linux(artifacts_dir: &Path) -> Result<()> {
 }
 
 /// Copy the CEF files to the target directory on Windows.
-#[cfg(all(target_os = "windows"))]
+#[allow(dead_code)]
 fn copy_cef_windows(artifacts_dir: &Path) -> Result<()> {
     let src = artifacts_dir.join("cef");
     let dst = get_build_rs_target_dir()?;
