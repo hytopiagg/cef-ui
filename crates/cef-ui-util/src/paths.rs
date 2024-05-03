@@ -1,13 +1,13 @@
 use crate::get_exe_dir;
 use anyhow::Result;
+use cargo_metadata::MetadataCommand;
 use std::{env::var, fs::canonicalize, path::PathBuf};
 
 /// Get the workspace directory. Only call within build.rs!
 pub fn get_build_rs_workspace_dir() -> Result<PathBuf> {
-    let dir = PathBuf::from(var("CARGO_MANIFEST_DIR")?).join("../..");
-    let dir = canonicalize(dir)?;
+    let metadata = MetadataCommand::new().exec()?;
 
-    Ok(dir)
+    Ok(metadata.workspace_root.into())
 }
 
 /// Get the target directory. Only call within build.rs!
