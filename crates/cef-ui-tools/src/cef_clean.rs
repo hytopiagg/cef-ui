@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cef_ui_util::{get_tool_workspace_dir, CleanCommand};
+use cef_ui_util::{get_tool_artifacts_dir, get_tool_workspace_dir, CleanCommand};
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
@@ -15,8 +15,7 @@ fn main() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    let workspace_dir = get_tool_workspace_dir()?;
-    let artifacts_dir = workspace_dir.join("artifacts");
+    let artifacts_dir = get_tool_artifacts_dir()?;
 
     CleanCommand { artifacts_dir }.run()?;
 

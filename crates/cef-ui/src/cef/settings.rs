@@ -34,6 +34,11 @@ impl Settings {
         self
     }
 
+    /// Returns true if the sandbox is enabled.
+    pub fn is_sandbox_enabled(&self) -> bool {
+        self.0.no_sandbox == 0
+    }
+
     /// The path to a separate executable that will be launched for sub-processes.
     /// If this value is empty on Windows or Linux then the main process
     /// executable will be used. If this value is empty on macOS then a helper

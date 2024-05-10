@@ -1,25 +1,32 @@
 use crate::{
     bindings::{
         cef_do_message_loop_work, cef_execute_process, cef_initialize, cef_quit_message_loop,
-        cef_run_message_loop, cef_shutdown
+        cef_run_message_loop, cef_sandbox_info_create, cef_sandbox_info_destroy, cef_shutdown
     },
     App, MainArgs, Settings
 };
 use anyhow::{anyhow, Result};
-use std::ptr::null_mut;
+use std::{ffi::c_void, ptr::null_mut};
 
 pub struct Context {
-    pub main_args: MainArgs,
-    pub settings:  Settings,
-    pub app:       Option<App>
+    pub main_args:            MainArgs,
+    pub settings:             Settings,
+    pub app:                  Option<App>,
+    pub windows_sandbox_info: *mut c_void
 }
 
 impl Context {
     pub fn new(main_args: MainArgs, settings: Settings, app: Option<App>) -> Self {
+        // The windows sandbox must be enabled here and passed to both
+        // cef_execute_process and cef_initialize. On macOS, it's handled
+        // in the helper executable in a totally different way. :^/
+        let windows_sandbox_info = create_windows_sandbox_info(&settings);
+
         Self {
             main_args,
             settings,
-            app
+            app,
+            windows_sandbox_info
         }
     }
 
@@ -41,7 +48,7 @@ impl Context {
                 .map(|app| app.into_raw())
                 .unwrap_or(null_mut());
 
-            cef_execute_process(self.main_args.as_raw(), app, null_mut())
+            cef_execute_process(self.main_args.as_raw(), app, self.windows_sandbox_info)
         };
 
         match code {
@@ -67,7 +74,7 @@ impl Context {
                     .clone()
                     .map(|app| app.into_raw())
                     .unwrap_or(null_mut()),
-                null_mut()
+                self.windows_sandbox_info
             ) != 0
         } {
             true => Ok(()),
@@ -116,3 +123,38 @@ impl Context {
         unsafe { cef_do_message_loop_work() };
     }
 }
+
+impl Drop for Context {
+    fn drop(&mut self) {
+        // Destroy the windows sandbox info. This
+        // will be a noop on non-Windows platforms.
+        destroy_windows_sandbox_info(self.windows_sandbox_info);
+    }
+}
+
+/// This function creates the windows sandbox info.
+#[cfg(target_os = "windows")]
+fn create_windows_sandbox_info(settings: &Settings) -> *mut c_void {
+    match settings.is_sandbox_enabled() {
+        true => unsafe { cef_sandbox_info_create() },
+        false => null_mut()
+    }
+}
+
+/// This function destroys the windows sandbox info.
+#[cfg(target_os = "windows")]
+fn destroy_windows_sandbox_info(windows_sandbox_info: *mut c_void) {
+    if !windows_sandbox_info.is_null() {
+        unsafe { cef_sandbox_info_destroy(windows_sandbox_info) };
+    }
+}
+
+/// This function creates the windows sandbox info.
+#[cfg(not(target_os = "windows"))]
+fn create_windows_sandbox_info(_settings: &Settings) -> *mut c_void {
+    null_mut()
+}
+
+/// This function destroys the windows sandbox info.
+#[cfg(not(target_os = "windows"))]
+fn destroy_windows_sandbox_info(windows_sandbox_info: *mut c_void) {}

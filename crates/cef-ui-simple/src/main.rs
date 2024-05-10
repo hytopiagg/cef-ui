@@ -190,37 +190,31 @@ fn try_main() -> Result<()> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
-    // let filename = PathBuf::from(r#"/Users/kevin/repos/cef-ui/CEF.log"#);
-    // let log_file = File::create(filename)?;
-
     // Setup the tracing subscriber globally.
     let subscriber = FmtSubscriber::builder()
         .with_max_level(LevelFilter::from_level(Level::DEBUG))
-        //.with_writer(log_file)
         .finish();
 
     set_global_default(subscriber)?;
 
-    // TODO: This should be platform specific.
-    let root_cache_dir = PathBuf::from("/tmp/simple");
+    // Ensure the root cache directory exists.
+    let root_cache_dir = get_root_cache_dir()?;
 
-    ensure_root_cache_dir(&root_cache_dir)?;
-
-    // let log_file = PathBuf::from(r#"/Users/kevin/repos/cef-ui/REAL_CEF.log"#);
-
-    // if !log_file.exists() {
-    //     File::create(&log_file)?;
-    // }
-
-    let sandbox = cfg!(feature = "sandbox");
+    // The command line arguments.
     let main_args = MainArgs::new()?;
+
+    // Prepare the outermost CEF settings. We will drive the
+    // event loop ourselves and use offscreen rendering.
     let settings = Settings::new()
         .log_severity(LogSeverity::Info)
         .root_cache_path(&root_cache_dir)?
-        //.log_file(&log_file)?
-        .no_sandbox(!sandbox);
+        .no_sandbox(false);
 
+    // Create the outermost CEF application.
     let app = App::new(MyAppCallbacks {});
+
+    // Create the CEF context which is the outermost way we interact
+    // with CEF, mainly for booting it up and shutting it down.
     let context = Context::new(main_args, settings, Some(app));
 
     // If this is a CEF subprocess, let it run and then
@@ -232,8 +226,13 @@ fn try_main() -> Result<()> {
     // Initialize CEF.
     context.initialize()?;
 
-    let window_info = WindowInfo::new().window_name(&String::from("Simple"));
+    // Create the window.
+    let window_info = WindowInfo::new().window_name(&String::from("cef-ui-simple"));
+
+    // Create the browser settings.
     let browser_settings = BrowserSettings::new();
+
+    // The browser-specific client.
     let client = Client::new(MyClientCallbacks);
 
     // Create a new browser.
@@ -259,11 +258,14 @@ fn try_main() -> Result<()> {
     Ok(())
 }
 
-/// Make sure the root cache directory exists.
-fn ensure_root_cache_dir(path: &PathBuf) -> Result<()> {
+// TODO: Make this platform-specific!
+
+/// Ensure the root cache directory exists.
+pub fn get_root_cache_dir() -> Result<PathBuf> {
+    let path = PathBuf::from("/tmp/cef-ui-simple");
     if !path.exists() {
-        create_dir_all(path)?;
+        create_dir_all(&path)?;
     }
 
-    Ok(())
+    Ok(path)
 }

@@ -4,10 +4,6 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
-[features]
-sandbox = []
-default = ["sandbox"]
-
 [build-dependencies]
 cef-ui-util = { path = "../cef-ui-util" }
 anyhow = { workspace = true }
