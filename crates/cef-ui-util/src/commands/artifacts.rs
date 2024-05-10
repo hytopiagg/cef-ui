@@ -5,7 +5,7 @@ use anyhow::Result;
 use bindgen::{builder, EnumVariation};
 use std::{
     env::consts::{ARCH, OS},
-    fs::{self, canonicalize, create_dir_all, remove_dir_all, remove_file, rename},
+    fs::{self, canonicalize, create_dir_all, remove_dir_all, rename},
     path::{Path, PathBuf},
     process::{Command, Stdio}
 };
@@ -236,7 +236,6 @@ impl ArtifactsCommand {
         if cfg!(target_os = "windows") {
             copy_files(&extracted_dir.join("Release"), &cef_dir)?;
             copy_files(&extracted_dir.join("Resources"), &cef_dir)?;
-            remove_file(&cef_dir.join("cef_sandbox.lib"))?;
         }
 
         // Create the tar gzipped file.

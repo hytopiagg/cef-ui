@@ -1,5 +1,7 @@
 use anyhow::Result;
-use cef_ui_util::{get_tool_workspace_dir, AppBundleSettings, BuildCommand};
+use cef_ui_util::{
+    get_tool_artifacts_dir, get_tool_workspace_dir, AppBundleSettings, BuildCommand
+};
 use clap::Parser;
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
@@ -46,7 +48,7 @@ fn main() -> Result<()> {
         // Build the app bundle.
         AppBundleSettings {
             profile:         args.profile.to_string(),
-            artifacts_dir:   workspace_dir.join("artifacts"),
+            artifacts_dir:   get_tool_artifacts_dir()?,
             app_name:        String::from("cef-ui-simple"),
             main_exe_name:   String::from("cef-ui-simple"),
             helper_exe_name: String::from("cef-ui-simple-helper"),

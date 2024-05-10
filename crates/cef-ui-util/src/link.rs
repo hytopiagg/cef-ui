@@ -1,11 +1,14 @@
-use crate::{copy_files, download_and_extract_cef, get_build_rs_target_dir};
+use crate::{
+    copy_files, download_and_extract_cef, get_build_rs_artifacts_dir, get_build_rs_cef_dir,
+    get_build_rs_target_dir
+};
 use anyhow::Result;
-use std::path::Path;
 
 /// Call this in your binary crate's build.rs
 /// file to properly link against CEF.
-pub fn link_cef(artifacts_dir: &Path) -> Result<()> {
-    let cef_dir = artifacts_dir.join("cef");
+pub fn link_cef() -> Result<()> {
+    let artifacts_dir = get_build_rs_artifacts_dir()?;
+    let cef_dir = get_build_rs_cef_dir()?;
 
     // Download and extract the CEF binaries.
     download_and_extract_cef(&artifacts_dir)?;
@@ -14,7 +17,7 @@ pub fn link_cef(artifacts_dir: &Path) -> Result<()> {
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     {
         // Copy the CEF binaries.
-        copy_cef_linux(artifacts_dir)?;
+        copy_cef_linux()?;
 
         // This tells Rust where to find libcef.so at compile time.
         println!("cargo:rustc-link-search=native={}", cef_dir.display());
@@ -34,7 +37,7 @@ pub fn link_cef(artifacts_dir: &Path) -> Result<()> {
     #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
     {
         // Copy the CEF binaries.
-        copy_cef_windows(artifacts_dir)?;
+        copy_cef_windows()?;
 
         // This tells Rust where to find libcef.lib at compile time.
         println!("cargo:rustc-link-search=native={}", cef_dir.display());
@@ -44,10 +47,12 @@ pub fn link_cef(artifacts_dir: &Path) -> Result<()> {
 }
 
 /// Copy the CEF files to the target directory on Linux.
-#[allow(dead_code)]
-fn copy_cef_linux(artifacts_dir: &Path) -> Result<()> {
-    let src = artifacts_dir.join("cef");
-    let dst = get_build_rs_target_dir()?.join("cef");
+#[cfg(target_os = "linux")]
+fn copy_cef_linux() -> Result<()> {
+    use crate::CEF_DIRECTORY;
+
+    let src = get_build_rs_cef_dir()?;
+    let dst = get_build_rs_target_dir()?.join(CEF_DIRECTORY);
 
     // Copy the CEF binaries.
     copy_files(&src, &dst)?;
@@ -56,9 +61,9 @@ fn copy_cef_linux(artifacts_dir: &Path) -> Result<()> {
 }
 
 /// Copy the CEF files to the target directory on Windows.
-#[allow(dead_code)]
-fn copy_cef_windows(artifacts_dir: &Path) -> Result<()> {
-    let src = artifacts_dir.join("cef");
+#[cfg(target_os = "windows")]
+fn copy_cef_windows() -> Result<()> {
+    let src = get_build_rs_cef_dir()?;
     let dst = get_build_rs_target_dir()?;
 
     // Copy the CEF binaries.
@@ -69,8 +74,9 @@ fn copy_cef_windows(artifacts_dir: &Path) -> Result<()> {
 
 /// Call this in your binary helper crate's build.rs file to
 /// properly link against the CEF sandbox static library.
-pub fn link_cef_helper(artifacts_dir: &Path) -> Result<()> {
-    let cef_dir = artifacts_dir.join("cef");
+pub fn link_cef_helper() -> Result<()> {
+    let artifacts_dir = get_build_rs_artifacts_dir()?;
+    let cef_dir = get_build_rs_cef_dir()?;
 
     // Download and extract the CEF binaries.
     download_and_extract_cef(&artifacts_dir)?;

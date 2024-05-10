@@ -3,3 +3,6 @@ cef-build-debug = "run --bin cef-build --release -- --profile dev"
 cef-build-release = "run --bin cef-build --release -- --profile release"
 cef-clean = "run --bin cef-clean --release"
 cef-artifacts = "run --bin cef-artifacts --release"
+
+[env]
+CEF_ARTIFACTS_DIR = { value = "artifacts", force = true }

@@ -20,8 +20,8 @@ use tracing_subscriber::FmtSubscriber;
 const CEF_PATH: &str = "../../../Chromium Embedded Framework.framework/Chromium Embedded Framework";
 
 /// Returns the CEF error code or 1 if an error occurred.
-pub fn run() {
-    let ret = try_run().unwrap_or_else(|e| {
+pub fn run(sandbox: bool) {
+    let ret = try_run(sandbox).unwrap_or_else(|e| {
         error!("An error occurred: {}", e);
 
         1
@@ -33,7 +33,7 @@ pub fn run() {
 }
 
 /// Try and run the helper, returning the CEF error code if successful.
-fn try_run() -> Result<i32> {
+fn try_run(sandbox: bool) -> Result<i32> {
     // This routes log macros through tracing.
     LogTracer::init()?;
 
@@ -45,8 +45,10 @@ fn try_run() -> Result<i32> {
     set_global_default(subscriber)?;
 
     // Setup the sandbox if enabled.
-    #[cfg(feature = "sandbox")]
-    let _sandbox = ScopedSandbox::new()?;
+    let _sandbox = match sandbox {
+        true => Some(ScopedSandbox::new()?),
+        false => None
+    };
 
     // Manually load CEF and execute the subprocess.
     let ret = unsafe {

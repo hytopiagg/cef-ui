@@ -3,10 +3,6 @@ name = "cef-ui-helper"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-sandbox = []
-default = ["sandbox"]
-
 [dependencies]
 anyhow = { workspace = true }
 tracing = { workspace = true }

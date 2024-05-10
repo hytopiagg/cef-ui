@@ -11,3 +11,6 @@
 
 # Ignore JetBrains files.
 .idea/
+
+# Ignore CEF-generated files.
+MediaDeviceSalts*
