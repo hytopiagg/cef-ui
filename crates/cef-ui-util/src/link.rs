@@ -47,7 +47,7 @@ pub fn link_cef() -> Result<()> {
 }
 
 /// Copy the CEF files to the target directory on Linux.
-#[cfg(target_os = "linux")]
+#[allow(dead_code)]
 fn copy_cef_linux() -> Result<()> {
     use crate::CEF_DIRECTORY;
 
@@ -61,7 +61,7 @@ fn copy_cef_linux() -> Result<()> {
 }
 
 /// Copy the CEF files to the target directory on Windows.
-#[cfg(target_os = "windows")]
+#[allow(dead_code)]
 fn copy_cef_windows() -> Result<()> {
     let src = get_build_rs_cef_dir()?;
     let dst = get_build_rs_target_dir()?;
