@@ -17,6 +17,12 @@ pub fn get_cef_workspace_dir() -> Result<PathBuf> {
 
 /// Get the target directory. Only call within build.rs!
 pub fn get_cef_target_dir(profile: &str) -> Result<PathBuf> {
+    // The debug profile is actually called "dev".
+    let profile = match profile == "dev" {
+        true => "debug",
+        false => profile
+    };
+
     Ok(get_cef_workspace_dir()?
         .join("target")
         .join(profile))
