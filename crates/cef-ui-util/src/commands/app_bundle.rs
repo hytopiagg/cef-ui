@@ -1,4 +1,4 @@
-use crate::{copy_files, get_tool_target_dir};
+use crate::{copy_files, get_cef_target_dir};
 use anyhow::Result;
 use std::{
     fs::{copy, create_dir_all, remove_dir_all, File},
@@ -38,7 +38,7 @@ impl AppBundleSettings {
     pub fn run(&self) -> Result<()> {
         info!("Building app bundle {} ..", self.app_name);
 
-        let target_dir = get_tool_target_dir(&self.profile)?;
+        let target_dir = get_cef_target_dir(&self.profile)?;
         let app_dir = target_dir.join(format!("{}.app", self.app_name));
 
         // Remove any existing app.

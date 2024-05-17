@@ -1,12 +1,13 @@
 use crate::{
-    copy_files, create_tar_gz, download_file, extract_bz2, get_tool_workspace_dir, get_url_filename
+    copy_files, create_tar_gz, download_file, extract_bz2, get_cef_artifacts_dir,
+    get_cef_workspace_dir, get_url_filename
 };
 use anyhow::Result;
 use bindgen::{builder, EnumVariation};
 use std::{
     env::consts::{ARCH, OS},
     fs::{self, canonicalize, create_dir_all, remove_dir_all, rename},
-    path::{Path, PathBuf},
+    path::Path,
     process::{Command, Stdio}
 };
 use tracing::info;
@@ -22,15 +23,12 @@ const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg
 const CEF_URL: &str = "https://cef-builds.spotifycdn.com/cef_binary_121.3.15%2Bg4d3b0b4%2Bchromium-121.0.6167.184_windows64_minimal.tar.bz2";
 
 /// Try and generate CEF artifacts.
-pub struct ArtifactsCommand {
-    /// The artifacts directory.
-    pub artifacts_dir: PathBuf
-}
+pub struct ArtifactsCommand;
 
 impl ArtifactsCommand {
     pub fn run(&self) -> Result<()> {
-        let workspace_dir = get_tool_workspace_dir()?;
-        let artifacts_dir = self.artifacts_dir.clone();
+        let workspace_dir = get_cef_workspace_dir()?;
+        let artifacts_dir = get_cef_artifacts_dir()?;
 
         // Create the artifacts/ directory.
         info!("Creating artifacts dir ..");

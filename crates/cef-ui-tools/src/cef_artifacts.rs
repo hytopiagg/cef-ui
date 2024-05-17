@@ -1,5 +1,5 @@
 use anyhow::Result;
-use cef_ui_util::{get_tool_artifacts_dir, ArtifactsCommand};
+use cef_ui_util::ArtifactsCommand;
 use tracing::{level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;
 use tracing_subscriber::FmtSubscriber;
@@ -15,9 +15,7 @@ fn main() -> Result<()> {
 
     set_global_default(subscriber)?;
 
-    let artifacts_dir = get_tool_artifacts_dir()?;
-
-    ArtifactsCommand { artifacts_dir }.run()?;
+    ArtifactsCommand {}.run()?;
 
     Ok(())
 }

@@ -1,19 +1,19 @@
 use anyhow::Result;
 use std::{
     fs::remove_dir_all,
-    path::PathBuf,
     process::{Command, Stdio}
 };
 use tracing::info;
 
+use crate::get_cef_artifacts_dir;
+
 /// Clean the project.
-pub struct CleanCommand {
-    /// The artifacts directory.
-    pub artifacts_dir: PathBuf
-}
+pub struct CleanCommand;
 
 impl CleanCommand {
     pub fn run(&self) -> Result<()> {
+        let artifacts_dir = get_cef_artifacts_dir()?;
+
         info!("Cleaning project ..");
 
         Command::new("cargo")
@@ -25,8 +25,8 @@ impl CleanCommand {
         info!("Removing artifacts dir ..");
 
         // Remove the artifacts directory.
-        if self.artifacts_dir.exists() {
-            remove_dir_all(&self.artifacts_dir)?;
+        if artifacts_dir.exists() {
+            remove_dir_all(&artifacts_dir)?;
         }
 
         info!("Done!");

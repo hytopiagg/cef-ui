@@ -1,14 +1,16 @@
+use std::env::var;
+
 use crate::{
-    copy_files, download_and_extract_cef, get_build_rs_artifacts_dir, get_build_rs_cef_dir,
-    get_build_rs_target_dir
+    copy_files, download_and_extract_cef, get_cef_artifacts_dir, get_cef_cef_dir,
+    get_cef_target_dir
 };
 use anyhow::Result;
 
 /// Call this in your binary crate's build.rs
 /// file to properly link against CEF.
 pub fn link_cef() -> Result<()> {
-    let artifacts_dir = get_build_rs_artifacts_dir()?;
-    let cef_dir = get_build_rs_cef_dir()?;
+    let artifacts_dir = get_cef_artifacts_dir()?;
+    let cef_dir = get_cef_cef_dir()?;
 
     // Download and extract the CEF binaries.
     download_and_extract_cef(&artifacts_dir)?;
@@ -51,8 +53,9 @@ pub fn link_cef() -> Result<()> {
 fn copy_cef_linux() -> Result<()> {
     use crate::CEF_DIRECTORY;
 
-    let src = get_build_rs_cef_dir()?;
-    let dst = get_build_rs_target_dir()?.join(CEF_DIRECTORY);
+    let profile = var("PROFILE")?;
+    let src = get_cef_cef_dir()?;
+    let dst = get_cef_target_dir(&profile)?.join(CEF_DIRECTORY);
 
     // Copy the CEF binaries.
     copy_files(&src, &dst)?;
@@ -63,8 +66,9 @@ fn copy_cef_linux() -> Result<()> {
 /// Copy the CEF files to the target directory on Windows.
 #[allow(dead_code)]
 fn copy_cef_windows() -> Result<()> {
-    let src = get_build_rs_cef_dir()?;
-    let dst = get_build_rs_target_dir()?;
+    let profile = var("PROFILE")?;
+    let src = get_cef_cef_dir()?;
+    let dst = get_cef_target_dir(&profile)?;
 
     // Copy the CEF binaries.
     copy_files(&src, &dst)?;
@@ -75,8 +79,8 @@ fn copy_cef_windows() -> Result<()> {
 /// Call this in your binary helper crate's build.rs file to
 /// properly link against the CEF sandbox static library.
 pub fn link_cef_helper() -> Result<()> {
-    let artifacts_dir = get_build_rs_artifacts_dir()?;
-    let cef_dir = get_build_rs_cef_dir()?;
+    let artifacts_dir = get_cef_artifacts_dir()?;
+    let cef_dir = get_cef_cef_dir()?;
 
     // Download and extract the CEF binaries.
     download_and_extract_cef(&artifacts_dir)?;
