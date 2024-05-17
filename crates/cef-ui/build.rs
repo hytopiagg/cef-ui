@@ -1,6 +1,12 @@
 use anyhow::Result;
+use cef_ui_util::{download_and_extract_cef, get_cef_artifacts_dir};
 
 fn main() -> Result<()> {
+    let artifacts_dir = get_cef_artifacts_dir()?;
+
+    // Download and extract the CEF binaries.
+    download_and_extract_cef(&artifacts_dir)?;
+
     // Linker flags on x86_64 Linux.
     #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     {
