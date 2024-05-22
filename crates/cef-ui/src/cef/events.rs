@@ -16,7 +16,7 @@ use std::ffi::c_int;
 bitflags! {
     /// Supported event bit flags.
     #[allow(non_upper_case_globals)]
-    #[derive(Default, Clone, Copy)]
+    #[derive(Default, Debug, Clone, Copy)]
     pub struct EventFlags: cef_event_flags_t {
         const None = cef_event_flags_t_EVENTFLAG_NONE;
         const CapsLockOn = cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON;
@@ -134,7 +134,7 @@ impl From<&KeyEventType> for cef_key_event_type_t {
 
 /// Lifted from WebCore/platform/chromium/KeyboardCodes.h for the list of values.
 #[repr(transparent)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct WindowsKeyCode(i32);
 
 #[allow(non_upper_case_globals)]
@@ -324,7 +324,7 @@ impl Default for WindowsKeyCode {
 }
 
 /// Structure representing keyboard event information.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct KeyEvent {
     /// The type of keyboard event.
     pub event_type: KeyEventType,
@@ -454,7 +454,7 @@ impl From<&MouseButtonType> for cef_mouse_button_type_t {
 }
 
 /// Structure representing mouse event information.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct MouseEvent {
     /// X coordinate relative to the left side of the view.
     pub x: i32,
@@ -573,7 +573,7 @@ impl From<&PointerType> for cef_pointer_type_t {
 }
 
 /// Structure representing touch event information.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TouchEvent {
     /// Id of a touch point. Must be unique per touch, can be any number except
     /// -1. Note that a maximum of 16 concurrent touches will be tracked; touches
