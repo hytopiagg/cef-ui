@@ -142,7 +142,7 @@ pub trait RenderHandlerCallbacks: Send + Sync + 'static {
     fn on_text_selection_changed(
         &mut self,
         browser: Browser,
-        selected_text: &str,
+        selected_text: Option<String>,
         selected_range: &Range
     );
 
@@ -469,10 +469,10 @@ impl RenderHandlerWrapper {
     ) {
         let this: &mut Self = Wrapped::wrappable(this);
         let browser = Browser::from_ptr_unchecked(browser);
-        let selected_text: String = CefString::from_ptr_unchecked(selected_text).into();
+        let selected_text: Option<String> = CefString::from_ptr(selected_text).map(|s| s.into());
 
         this.0
-            .on_text_selection_changed(browser, &selected_text, &(*selected_range).into());
+            .on_text_selection_changed(browser, selected_text, &(*selected_range).into());
     }
 
     /// Called when an on-screen keyboard should be shown or hidden for the
