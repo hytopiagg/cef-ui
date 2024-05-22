@@ -134,6 +134,7 @@ impl From<&KeyEventType> for cef_key_event_type_t {
 
 /// Lifted from WebCore/platform/chromium/KeyboardCodes.h for the list of values.
 #[repr(transparent)]
+#[derive(Clone, Copy)]
 pub struct WindowsKeyCode(i32);
 
 #[allow(non_upper_case_globals)]
@@ -323,6 +324,7 @@ impl Default for WindowsKeyCode {
 }
 
 /// Structure representing keyboard event information.
+#[derive(Clone)]
 pub struct KeyEvent {
     /// The type of keyboard event.
     pub event_type: KeyEventType,
@@ -452,6 +454,7 @@ impl From<&MouseButtonType> for cef_mouse_button_type_t {
 }
 
 /// Structure representing mouse event information.
+#[derive(Clone)]
 pub struct MouseEvent {
     /// X coordinate relative to the left side of the view.
     pub x: i32,
@@ -570,6 +573,7 @@ impl From<&PointerType> for cef_pointer_type_t {
 }
 
 /// Structure representing touch event information.
+#[derive(Clone)]
 pub struct TouchEvent {
     /// Id of a touch point. Must be unique per touch, can be any number except
     /// -1. Note that a maximum of 16 concurrent touches will be tracked; touches
