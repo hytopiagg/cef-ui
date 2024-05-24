@@ -317,6 +317,18 @@ impl WindowsKeyCode {
     pub const Unknown: Self = Self(0);
 }
 
+impl From<i32> for WindowsKeyCode {
+    fn from(value: i32) -> Self {
+        Self(value)
+    }
+}
+
+impl From<char> for WindowsKeyCode {
+    fn from(value: char) -> Self {
+        Self(value as i32)
+    }
+}
+
 impl Default for WindowsKeyCode {
     fn default() -> Self {
         Self::Unknown
