@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -9,6 +6,9 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/cef-ui-simple",
+            "osx": {
+                "program": "${workspaceFolder}/target/debug/cef-ui-simple.app/Contents/MacOS/cef-ui-simple"
+            },
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "cef-build-debug"
         },
@@ -17,22 +17,9 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/release/cef-ui-simple",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cef-build-release"
-        },
-        {
-            "name": "macOS Debug",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/target/debug/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cef-build-debug"
-        },
-        {
-            "name": "macOS Release",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceFolder}/target/release/cef-ui-simple.app/Contents/MacOS/cef-ui-simple",
+            "osx": {
+                "program": "${workspaceFolder}/target/release/cef-ui-simple.app/Contents/MacOS/cef-ui-simple"
+            },
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "cef-build-release"
         }
