@@ -1,11 +1,9 @@
-use crate::{
-    bindings::{
-        cef_do_message_loop_work, cef_execute_process, cef_initialize, cef_quit_message_loop,
-        cef_run_message_loop, cef_shutdown
-    },
-    App, MainArgs, Settings
-};
+use crate::{App, MainArgs, Settings};
 use anyhow::{anyhow, Result};
+use cef_ui_sys::{
+    cef_do_message_loop_work, cef_execute_process, cef_initialize, cef_quit_message_loop,
+    cef_run_message_loop, cef_shutdown
+};
 use std::{ffi::c_void, ptr::null_mut};
 
 pub struct Context {
@@ -135,7 +133,7 @@ impl Drop for Context {
 /// This function creates the windows sandbox info.
 #[cfg(target_os = "windows")]
 fn create_windows_sandbox_info(settings: &Settings) -> *mut c_void {
-    use crate::bindings::cef_sandbox_info_create;
+    use cef_ui_sys::cef_sandbox_info_create;
 
     match settings.is_sandbox_enabled() {
         true => unsafe { cef_sandbox_info_create() },
@@ -146,7 +144,7 @@ fn create_windows_sandbox_info(settings: &Settings) -> *mut c_void {
 /// This function destroys the windows sandbox info.
 #[cfg(target_os = "windows")]
 fn destroy_windows_sandbox_info(windows_sandbox_info: *mut c_void) {
-    use crate::bindings::cef_sandbox_info_destroy;
+    use cef_ui_sys::cef_sandbox_info_destroy;
 
     if !windows_sandbox_info.is_null() {
         unsafe { cef_sandbox_info_destroy(windows_sandbox_info) };

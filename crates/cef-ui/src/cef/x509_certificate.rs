@@ -1,8 +1,6 @@
-use crate::{
-    bindings::{cef_x509cert_principal_t, cef_x509certificate_t},
-    ref_counted_ptr, try_c, BinaryValue, CefString, CefStringList, CefTime
-};
+use crate::{ref_counted_ptr, try_c, BinaryValue, CefString, CefStringList, CefTime};
 use anyhow::Result;
+use cef_ui_sys::{cef_x509cert_principal_t, cef_x509certificate_t};
 use chrono::{DateTime, Utc};
 
 // Structure representing the issuer or subject field of an X.509 certificate.

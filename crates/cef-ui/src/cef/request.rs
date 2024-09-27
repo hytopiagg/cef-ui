@@ -1,13 +1,12 @@
 use crate::{
-    bindings::{
-        cef_post_data_create, cef_post_data_element_create, cef_post_data_element_t,
-        cef_post_data_t, cef_postdataelement_type_t, cef_request_create, cef_request_t,
-        cef_urlrequest_flags_t
-    },
     ref_counted_ptr, try_c, CefString, CefStringMultiMap, ReferrerPolicy, ResourceType,
     UrlRequestFlags
 };
 use anyhow::Result;
+use cef_ui_sys::{
+    cef_post_data_create, cef_post_data_element_create, cef_post_data_element_t, cef_post_data_t,
+    cef_postdataelement_type_t, cef_request_create, cef_request_t, cef_urlrequest_flags_t
+};
 use std::{
     collections::HashMap,
     ffi::{c_int, c_void},

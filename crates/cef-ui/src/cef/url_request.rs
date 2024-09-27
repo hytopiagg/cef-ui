@@ -1,20 +1,19 @@
 use crate::{
-    bindings::{
-        cef_auth_callback_t, cef_string_t, cef_urlrequest_client_t, cef_urlrequest_create,
-        cef_urlrequest_flags_t, cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS,
-        cef_urlrequest_flags_t_UR_FLAG_DISABLE_CACHE, cef_urlrequest_flags_t_UR_FLAG_NONE,
-        cef_urlrequest_flags_t_UR_FLAG_NO_DOWNLOAD_DATA,
-        cef_urlrequest_flags_t_UR_FLAG_NO_RETRY_ON_5XX,
-        cef_urlrequest_flags_t_UR_FLAG_ONLY_FROM_CACHE,
-        cef_urlrequest_flags_t_UR_FLAG_REPORT_UPLOAD_PROGRESS,
-        cef_urlrequest_flags_t_UR_FLAG_SKIP_CACHE, cef_urlrequest_flags_t_UR_FLAG_STOP_ON_REDIRECT,
-        cef_urlrequest_status_t, cef_urlrequest_t
-    },
     ref_counted_ptr, try_c, AuthCallback, CefString, ErrorCode, RefCountedPtr, Request,
     RequestContext, Response, Wrappable, Wrapped
 };
 use anyhow::Result;
 use bitflags::bitflags;
+use cef_ui_sys::{
+    cef_auth_callback_t, cef_string_t, cef_urlrequest_client_t, cef_urlrequest_create,
+    cef_urlrequest_flags_t, cef_urlrequest_flags_t_UR_FLAG_ALLOW_STORED_CREDENTIALS,
+    cef_urlrequest_flags_t_UR_FLAG_DISABLE_CACHE, cef_urlrequest_flags_t_UR_FLAG_NONE,
+    cef_urlrequest_flags_t_UR_FLAG_NO_DOWNLOAD_DATA,
+    cef_urlrequest_flags_t_UR_FLAG_NO_RETRY_ON_5XX, cef_urlrequest_flags_t_UR_FLAG_ONLY_FROM_CACHE,
+    cef_urlrequest_flags_t_UR_FLAG_REPORT_UPLOAD_PROGRESS,
+    cef_urlrequest_flags_t_UR_FLAG_SKIP_CACHE, cef_urlrequest_flags_t_UR_FLAG_STOP_ON_REDIRECT,
+    cef_urlrequest_status_t, cef_urlrequest_t
+};
 use std::{
     ffi::{c_int, c_void},
     mem::zeroed,

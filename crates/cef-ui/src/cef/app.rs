@@ -1,10 +1,10 @@
 use crate::{
-    bindings::{
-        cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
-        cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
-    },
     ref_counted_ptr, BrowserProcessHandler, CefString, CommandLine, RefCountedPtr, Wrappable,
     Wrapped
+};
+use cef_ui_sys::{
+    cef_app_t, cef_browser_process_handler_t, cef_command_line_t, cef_render_process_handler_t,
+    cef_resource_bundle_handler_t, cef_scheme_registrar_t, cef_string_t
 };
 use std::{mem::zeroed, ptr::null_mut};
 

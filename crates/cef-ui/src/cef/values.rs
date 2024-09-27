@@ -1,12 +1,10 @@
-use crate::{
-    bindings::{
-        cef_binary_value_create, cef_binary_value_t, cef_dictionary_value_create,
-        cef_dictionary_value_t, cef_list_value_create, cef_list_value_t, cef_value_create,
-        cef_value_t, cef_value_type_t
-    },
-    ref_counted_ptr, try_c, CefString, CefStringList
-};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList};
 use anyhow::Result;
+use cef_ui_sys::{
+    cef_binary_value_create, cef_binary_value_t, cef_dictionary_value_create,
+    cef_dictionary_value_t, cef_list_value_create, cef_list_value_t, cef_value_create, cef_value_t,
+    cef_value_type_t
+};
 use std::ffi::{c_int, c_void};
 
 /// Supported value types.

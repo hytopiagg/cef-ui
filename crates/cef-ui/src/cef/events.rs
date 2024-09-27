@@ -1,4 +1,5 @@
-use crate::bindings::{
+use bitflags::bitflags;
+use cef_ui_sys::{
     cef_event_flags_t, cef_event_flags_t_EVENTFLAG_ALTGR_DOWN,
     cef_event_flags_t_EVENTFLAG_ALT_DOWN, cef_event_flags_t_EVENTFLAG_CAPS_LOCK_ON,
     cef_event_flags_t_EVENTFLAG_COMMAND_DOWN, cef_event_flags_t_EVENTFLAG_CONTROL_DOWN,
@@ -10,7 +11,6 @@ use crate::bindings::{
     cef_key_event_t, cef_key_event_type_t, cef_mouse_button_type_t, cef_mouse_event_t,
     cef_pointer_type_t, cef_touch_event_t, cef_touch_event_type_t, char16_t
 };
-use bitflags::bitflags;
 use std::ffi::c_int;
 
 bitflags! {

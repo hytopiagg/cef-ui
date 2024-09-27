@@ -1,8 +1,6 @@
-use crate::{
-    bindings::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t},
-    ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap
-};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList, CefStringMap};
 use anyhow::Result;
+use cef_ui_sys::{cef_command_line_create, cef_command_line_get_global, cef_command_line_t};
 use std::{collections::HashMap, ptr::null_mut};
 
 #[cfg(not(target_os = "windows"))]

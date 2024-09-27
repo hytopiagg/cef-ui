@@ -1,10 +1,8 @@
-use crate::{
-    bindings::{
-        cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t
-    },
-    free_cef_string, CefString, Rect
-};
+use crate::{free_cef_string, CefString, Rect};
 use anyhow::{anyhow, Error, Result};
+use cef_ui_sys::{
+    cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t
+};
 use std::{
     env::args,
     ffi::{c_char, c_int, CString},

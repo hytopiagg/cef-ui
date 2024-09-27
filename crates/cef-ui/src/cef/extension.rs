@@ -1,7 +1,6 @@
-use crate::{
-    bindings::cef_extension_t, ref_counted_ptr, try_c, CefString, DictionaryValue, RequestContext
-};
+use crate::{ref_counted_ptr, try_c, CefString, DictionaryValue, RequestContext};
 use anyhow::Result;
+use cef_ui_sys::cef_extension_t;
 
 // Object representing an extension. Methods may be called on any thread unless
 // otherwise indicated.

@@ -1,15 +1,15 @@
 use crate::{
-    bindings::{
-        cef_auth_callback_t, cef_browser_t, cef_callback_t, cef_errorcode_t, cef_frame_t,
-        cef_request_handler_t, cef_request_t, cef_resource_request_handler_t,
-        cef_select_client_certificate_callback_t, cef_sslinfo_t, cef_string_t,
-        cef_termination_status_t, cef_window_open_disposition_t, cef_x509certificate_t
-    },
     ref_counted_ptr, try_c, AuthCallback, Browser, Callback, CefString, ErrorCode, Frame,
     RefCountedPtr, Request, ResourceRequestHandler, SslInfo, TerminationStatus,
     WindowOpenDisposition, Wrappable, Wrapped, X509Certificate
 };
 use anyhow::Result;
+use cef_ui_sys::{
+    cef_auth_callback_t, cef_browser_t, cef_callback_t, cef_errorcode_t, cef_frame_t,
+    cef_request_handler_t, cef_request_t, cef_resource_request_handler_t,
+    cef_select_client_certificate_callback_t, cef_sslinfo_t, cef_string_t,
+    cef_termination_status_t, cef_window_open_disposition_t, cef_x509certificate_t
+};
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut, slice::from_raw_parts};
 
 // Callback structure used to select a client certificate for authentication.

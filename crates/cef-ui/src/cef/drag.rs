@@ -1,19 +1,16 @@
-use crate::{
-    bindings::{
-        cef_drag_data_create, cef_drag_data_t, cef_drag_operations_mask_t,
-        cef_drag_operations_mask_t_DRAG_OPERATION_COPY,
-        cef_drag_operations_mask_t_DRAG_OPERATION_DELETE,
-        cef_drag_operations_mask_t_DRAG_OPERATION_EVERY,
-        cef_drag_operations_mask_t_DRAG_OPERATION_GENERIC,
-        cef_drag_operations_mask_t_DRAG_OPERATION_LINK,
-        cef_drag_operations_mask_t_DRAG_OPERATION_MOVE,
-        cef_drag_operations_mask_t_DRAG_OPERATION_NONE,
-        cef_drag_operations_mask_t_DRAG_OPERATION_PRIVATE
-    },
-    ref_counted_ptr, try_c, CefString, CefStringList, Point
-};
+use crate::{ref_counted_ptr, try_c, CefString, CefStringList, Point};
 use anyhow::Result;
 use bitflags::bitflags;
+use cef_ui_sys::{
+    cef_drag_data_create, cef_drag_data_t, cef_drag_operations_mask_t,
+    cef_drag_operations_mask_t_DRAG_OPERATION_COPY,
+    cef_drag_operations_mask_t_DRAG_OPERATION_DELETE,
+    cef_drag_operations_mask_t_DRAG_OPERATION_EVERY,
+    cef_drag_operations_mask_t_DRAG_OPERATION_GENERIC,
+    cef_drag_operations_mask_t_DRAG_OPERATION_LINK, cef_drag_operations_mask_t_DRAG_OPERATION_MOVE,
+    cef_drag_operations_mask_t_DRAG_OPERATION_NONE,
+    cef_drag_operations_mask_t_DRAG_OPERATION_PRIVATE
+};
 
 bitflags! {
     /// "Verb" of a drag-and-drop operation as negotiated between the source and

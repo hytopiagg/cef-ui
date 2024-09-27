@@ -1,11 +1,9 @@
-use crate::{
-    bindings::{
-        cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t,
-        GetModuleHandleA, HMENU
-    },
-    free_cef_string, CefString, Rect
-};
+use crate::{free_cef_string, CefString, Rect};
 use anyhow::{anyhow, Error, Result};
+use cef_ui_sys::{
+    cef_event_handle_t, cef_main_args_t, cef_string_t, cef_window_handle_t, cef_window_info_t,
+    GetModuleHandleA, HMENU
+};
 use std::{
     ffi::{c_int, c_ulong},
     mem::zeroed,

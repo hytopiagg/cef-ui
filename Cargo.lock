@@ -338,6 +338,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bitflags 2.4.2",
+ "cef-ui-sys",
  "cef-ui-util",
  "chrono",
  "dunce",
@@ -363,6 +364,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cef-ui",
+ "cef-ui-sys",
  "cef-ui-util",
  "tracing",
  "tracing-log",
@@ -378,6 +380,10 @@ dependencies = [
  "cef-ui-helper",
  "cef-ui-util",
 ]
+
+[[package]]
+name = "cef-ui-sys"
+version = "0.1.0"
 
 [[package]]
 name = "cef-ui-tools"

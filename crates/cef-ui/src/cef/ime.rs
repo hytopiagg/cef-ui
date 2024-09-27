@@ -1,7 +1,5 @@
-use crate::{
-    bindings::{cef_composition_underline_style_t, cef_composition_underline_t},
-    Color, Range
-};
+use crate::{Color, Range};
+use cef_ui_sys::{cef_composition_underline_style_t, cef_composition_underline_t};
 use std::ffi::c_int;
 
 /// Composition underline style.
