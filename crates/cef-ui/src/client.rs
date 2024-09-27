@@ -1,5 +1,5 @@
 use crate::{
-    cef::keyboard_handler::KeyboardHandler, ref_counted_ptr, ContextMenuHandler, LifeSpanHandler,
+    keyboard_handler::KeyboardHandler, ref_counted_ptr, ContextMenuHandler, LifeSpanHandler,
     RefCountedPtr, RenderHandler, Wrappable, Wrapped
 };
 use cef_ui_sys::{

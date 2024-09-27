@@ -1,4 +1,4 @@
-use crate::{cef::types::LogItems, free_cef_string, CefString, Color, LogSeverity};
+use crate::{free_cef_string, types::LogItems, CefString, Color, LogSeverity};
 use anyhow::{anyhow, Result};
 use cef_ui_sys::{cef_settings_t, cef_string_t};
 use dunce::canonicalize;
