@@ -1,3 +1,8 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+
 use crate::linux_x86_64::XEvent;
 
 // TODO: We currently only support X11, we

@@ -167,6 +167,10 @@ impl ArtifactsCommand {
             .constified_enum("cef_context_menu_media_state_flags_t")
             .constified_enum("cef_context_menu_edit_state_flags_t")
             .constified_enum("cef_quick_menu_edit_state_flags_t")
+            .raw_line("#![allow(non_camel_case_types)]")
+            .raw_line("#![allow(non_upper_case_globals)]")
+            .raw_line("#![allow(non_snake_case)]")
+            .raw_line("#![allow(dead_code)]")
             .clang_args(&[
                 inc(&include_dir),
                 inc(&include_dir.join("capi")),
