@@ -1,5 +1,6 @@
-use crate::{bindings::cef_shared_memory_region_t, ref_counted_ptr, try_c};
+use crate::{ref_counted_ptr, try_c};
 use anyhow::Result;
+use cef_ui_sys::cef_shared_memory_region_t;
 use std::ffi::c_void;
 
 // Structure that wraps platform-dependent share memory region mapping.

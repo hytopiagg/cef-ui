@@ -76,10 +76,7 @@ impl ArtifactsCommand {
         // Copy bindings.
         info!("Copying bindings ..");
 
-        let dst = workspace_dir.join(format!(
-            "crates/cef-ui/src/bindings/{}_{}/bindings.rs",
-            OS, ARCH
-        ));
+        let dst = workspace_dir.join(format!("crates/cef-ui-sys/src/{}_{}/bindings.rs", OS, ARCH));
 
         fs::copy(bindings_file, dst)?;
 

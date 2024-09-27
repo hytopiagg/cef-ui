@@ -1,13 +1,13 @@
 use anyhow::Result;
 use cef_ui::{
-    bindings::cef_quit_message_loop, App, AppCallbacks, Browser, BrowserHost,
-    BrowserProcessHandler, BrowserSettings, Client, ClientCallbacks, CommandLine, Context,
-    ContextMenuHandler, ContextMenuHandlerCallbacks, ContextMenuParams, DictionaryValue,
-    EventFlags, Frame, KeyboardHandler, LifeSpanHandler, LifeSpanHandlerCallbacks, LogSeverity,
-    MainArgs, MenuCommandId, MenuModel, Point, PopupFeatures, QuickMenuEditStateFlags,
-    RenderHandler, RunContextMenuCallback, RunQuickMenuCallback, Settings, Size, WindowInfo,
-    WindowOpenDisposition
+    App, AppCallbacks, Browser, BrowserHost, BrowserProcessHandler, BrowserSettings, Client,
+    ClientCallbacks, CommandLine, Context, ContextMenuHandler, ContextMenuHandlerCallbacks,
+    ContextMenuParams, DictionaryValue, EventFlags, Frame, KeyboardHandler, LifeSpanHandler,
+    LifeSpanHandlerCallbacks, LogSeverity, MainArgs, MenuCommandId, MenuModel, Point,
+    PopupFeatures, QuickMenuEditStateFlags, RenderHandler, RunContextMenuCallback,
+    RunQuickMenuCallback, Settings, Size, WindowInfo, WindowOpenDisposition
 };
+use cef_ui_sys::cef_quit_message_loop;
 use std::{fs::create_dir_all, path::PathBuf, process::exit};
 use tracing::{error, info, level_filters::LevelFilter, subscriber::set_global_default, Level};
 use tracing_log::LogTracer;

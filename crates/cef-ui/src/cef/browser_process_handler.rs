@@ -1,9 +1,9 @@
 use crate::{
-    bindings::{
-        cef_browser_process_handler_t, cef_client_t, cef_command_line_t,
-        cef_preference_registrar_t, cef_preferences_type_t, cef_string_t
-    },
     ref_counted_ptr, CefString, Client, CommandLine, RefCountedPtr, Value, Wrappable, Wrapped
+};
+use cef_ui_sys::{
+    cef_browser_process_handler_t, cef_client_t, cef_command_line_t, cef_preference_registrar_t,
+    cef_preferences_type_t, cef_string_t
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 

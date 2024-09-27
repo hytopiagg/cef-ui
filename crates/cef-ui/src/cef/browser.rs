@@ -1,8 +1,4 @@
 use crate::{
-    bindings::{
-        cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
-        cef_browser_t, cef_composition_underline_t, cef_point_t, cef_range_t, cef_string_t
-    },
     free_cef_string, ref_counted_ptr, try_c, CefString, CefStringList, Client, Color, CommandId,
     CompositionUnderline, DictionaryValue, DragData, DragOperations, Extension, Frame, KeyEvent,
     MouseButtonType, MouseEvent, NativeWindowHandle, NavigationEntry, NavigationEntryVisitor,
@@ -10,6 +6,10 @@ use crate::{
     WindowOpenDisposition, ZoomCommand
 };
 use anyhow::Result;
+use cef_ui_sys::{
+    cef_browser_host_create_browser_sync, cef_browser_host_t, cef_browser_settings_t,
+    cef_browser_t, cef_composition_underline_t, cef_point_t, cef_range_t, cef_string_t
+};
 use std::{
     ffi::{c_int, c_void},
     mem::{size_of, zeroed},

@@ -1,8 +1,6 @@
-use crate::{
-    bindings::{cef_auth_callback_t, cef_callback_t, cef_completion_callback_t},
-    ref_counted_ptr, try_c, CefString, RefCountedPtr, Wrappable, Wrapped
-};
+use crate::{ref_counted_ptr, try_c, CefString, RefCountedPtr, Wrappable, Wrapped};
 use anyhow::Result;
+use cef_ui_sys::{cef_auth_callback_t, cef_callback_t, cef_completion_callback_t};
 use parking_lot::Mutex;
 use std::mem::zeroed;
 

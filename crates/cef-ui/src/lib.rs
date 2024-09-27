@@ -1,4 +1,3 @@
-pub mod bindings;
 mod cef;
 
 /// Note that we don't forward the `bindings` module here,

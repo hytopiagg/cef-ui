@@ -1,4 +1,4 @@
-use crate::bindings::{HCURSOR, HWND, MSG};
+use crate::windows_x86_64::{HCURSOR, HWND, MSG};
 
 /// These types are not properly generated using Rust bindgen
 /// because they are #define'd constants, so we must manually

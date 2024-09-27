@@ -1,10 +1,10 @@
 use crate::{
-    bindings::{
-        cef_browser_t, cef_frame_t, cef_request_context_handler_t, cef_request_context_t,
-        cef_request_t, cef_resource_request_handler_t, cef_string_t
-    },
     ref_counted_ptr, Browser, CefString, Frame, RefCountedPtr, Request, RequestContext,
     ResourceRequestHandler, Wrappable, Wrapped
+};
+use cef_ui_sys::{
+    cef_browser_t, cef_frame_t, cef_request_context_handler_t, cef_request_context_t,
+    cef_request_t, cef_resource_request_handler_t, cef_string_t
 };
 use std::{ffi::c_int, mem::zeroed, ptr::null_mut};
 

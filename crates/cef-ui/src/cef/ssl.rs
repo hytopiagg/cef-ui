@@ -1,25 +1,22 @@
-use crate::{
-    bindings::{
-        cef_cert_status_t, cef_cert_status_t_CERT_STATUS_AUTHORITY_INVALID,
-        cef_cert_status_t_CERT_STATUS_COMMON_NAME_INVALID,
-        cef_cert_status_t_CERT_STATUS_CT_COMPLIANCE_FAILED,
-        cef_cert_status_t_CERT_STATUS_DATE_INVALID, cef_cert_status_t_CERT_STATUS_INVALID,
-        cef_cert_status_t_CERT_STATUS_IS_EV,
-        cef_cert_status_t_CERT_STATUS_NAME_CONSTRAINT_VIOLATION,
-        cef_cert_status_t_CERT_STATUS_NONE, cef_cert_status_t_CERT_STATUS_NON_UNIQUE_NAME,
-        cef_cert_status_t_CERT_STATUS_NO_REVOCATION_MECHANISM,
-        cef_cert_status_t_CERT_STATUS_PINNED_KEY_MISSING, cef_cert_status_t_CERT_STATUS_REVOKED,
-        cef_cert_status_t_CERT_STATUS_REV_CHECKING_ENABLED,
-        cef_cert_status_t_CERT_STATUS_SHA1_SIGNATURE_PRESENT,
-        cef_cert_status_t_CERT_STATUS_UNABLE_TO_CHECK_REVOCATION,
-        cef_cert_status_t_CERT_STATUS_VALIDITY_TOO_LONG, cef_cert_status_t_CERT_STATUS_WEAK_KEY,
-        cef_cert_status_t_CERT_STATUS_WEAK_SIGNATURE_ALGORITHM, cef_ssl_content_status_t,
-        cef_ssl_version_t, cef_sslinfo_t, cef_sslstatus_t
-    },
-    ref_counted_ptr, try_c, X509Certificate
-};
+use crate::{ref_counted_ptr, try_c, X509Certificate};
 use anyhow::Result;
 use bitflags::bitflags;
+use cef_ui_sys::{
+    cef_cert_status_t, cef_cert_status_t_CERT_STATUS_AUTHORITY_INVALID,
+    cef_cert_status_t_CERT_STATUS_COMMON_NAME_INVALID,
+    cef_cert_status_t_CERT_STATUS_CT_COMPLIANCE_FAILED, cef_cert_status_t_CERT_STATUS_DATE_INVALID,
+    cef_cert_status_t_CERT_STATUS_INVALID, cef_cert_status_t_CERT_STATUS_IS_EV,
+    cef_cert_status_t_CERT_STATUS_NAME_CONSTRAINT_VIOLATION, cef_cert_status_t_CERT_STATUS_NONE,
+    cef_cert_status_t_CERT_STATUS_NON_UNIQUE_NAME,
+    cef_cert_status_t_CERT_STATUS_NO_REVOCATION_MECHANISM,
+    cef_cert_status_t_CERT_STATUS_PINNED_KEY_MISSING, cef_cert_status_t_CERT_STATUS_REVOKED,
+    cef_cert_status_t_CERT_STATUS_REV_CHECKING_ENABLED,
+    cef_cert_status_t_CERT_STATUS_SHA1_SIGNATURE_PRESENT,
+    cef_cert_status_t_CERT_STATUS_UNABLE_TO_CHECK_REVOCATION,
+    cef_cert_status_t_CERT_STATUS_VALIDITY_TOO_LONG, cef_cert_status_t_CERT_STATUS_WEAK_KEY,
+    cef_cert_status_t_CERT_STATUS_WEAK_SIGNATURE_ALGORITHM, cef_ssl_content_status_t,
+    cef_ssl_version_t, cef_sslinfo_t, cef_sslstatus_t
+};
 
 bitflags! {
     /// Supported certificate status code values. See net\cert\cert_status_flags.h

@@ -1,13 +1,13 @@
 use crate::{
-    bindings::{
-        cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
-        cef_horizontal_alignment_t, cef_paint_element_type_t, cef_range_t, cef_rect_t,
-        cef_render_handler_t, cef_screen_info_t, cef_size_t, cef_string_t, cef_text_input_mode_t,
-        cef_touch_handle_state_t
-    },
     ref_counted_ptr, AccessibilityHandler, Browser, CefString, DragData, DragOperations,
     HorizontalAlignment, PaintElementType, Point, Range, Rect, RefCountedPtr, ScreenInfo, Size,
     TextInputMode, TouchHandleState, Wrappable, Wrapped
+};
+use cef_ui_sys::{
+    cef_accessibility_handler_t, cef_browser_t, cef_drag_data_t, cef_drag_operations_mask_t,
+    cef_horizontal_alignment_t, cef_paint_element_type_t, cef_range_t, cef_rect_t,
+    cef_render_handler_t, cef_screen_info_t, cef_size_t, cef_string_t, cef_text_input_mode_t,
+    cef_touch_handle_state_t
 };
 use std::{
     ffi::{c_int, c_void},

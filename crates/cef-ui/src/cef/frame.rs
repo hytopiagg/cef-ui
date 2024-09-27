@@ -1,8 +1,9 @@
 use crate::{
-    bindings::cef_frame_t, ref_counted_ptr, try_c, Browser, CefString, ProcessId, ProcessMessage,
-    Request, StringVisitor, UrlRequest, UrlRequestClient
+    ref_counted_ptr, try_c, Browser, CefString, ProcessId, ProcessMessage, Request, StringVisitor,
+    UrlRequest, UrlRequestClient
 };
 use anyhow::Result;
+use cef_ui_sys::cef_frame_t;
 use std::ffi::c_int;
 
 // Structure used to represent a frame in the browser window. When used in the

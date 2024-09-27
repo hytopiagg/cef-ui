@@ -9,6 +9,7 @@ cef-ui-util = { path = "../cef-ui-util" }
 anyhow = { workspace = true }
 
 [dependencies]
+cef-ui-sys = { path = "../cef-ui-sys" }
 cef-ui = { path = "../cef-ui" }
 anyhow = { workspace = true }
 tracing = { workspace = true }
