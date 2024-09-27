@@ -10,6 +10,7 @@ Here is an overview of all crates in the repository:
 
 | Crate | Purpose |
 | --- | --- |
+| `cef-ui-sys` | The raw CEF C bindings. |
 | `cef-ui` | The main CEF wrapper. |
 | `cef-ui-helper` | The CEF helper wrapper (required on macOS). |
 | `cef-ui-tools` | Tools for building the various binaries, and for generating the app bundle on macOS. |
